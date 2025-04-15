@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Task, TaskStatus, TaskPriority, User, UserStats } from '../../types';
+import { Task, TaskStatus, TaskPriority, User, Friendship, FriendshipStatus, LeaderboardEntry, TaskAttachment } from '../../types';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -17,7 +17,7 @@ export const getCurrentUser = async (): Promise<User | null> => {
   
   const { data, error } = await supabase
     .from('users')
-    .select('*, stats:user_stats(*)')
+    .select('*')
     .eq('id', session.user.id)
     .single();
     
@@ -31,14 +31,7 @@ export const getCurrentUser = async (): Promise<User | null> => {
     name: data.name,
     email: data.email,
     avatarUrl: data.avatar_url,
-    createdAt: new Date(data.created_at),
-    stats: {
-      tasksCompleted: data.stats.tasks_completed,
-      tasksAssigned: data.stats.tasks_assigned,
-      averageCompletionTime: data.stats.average_completion_time,
-      completionRate: data.stats.completion_rate,
-      rank: data.stats.rank
-    }
+    createdAt: new Date(data.created_at)
   };
 };
 
@@ -108,16 +101,223 @@ export const getAllUsers = async (): Promise<User[]> => {
   }));
 };
 
+// Friend management functions
+export const getFriendships = async (status?: FriendshipStatus): Promise<Friendship[]> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    return [];
+  }
+  
+  let query = supabase
+    .from('friendships')
+    .select(`
+      *,
+      friend:users!friendships_friend_id_fkey(id, name, email, avatar_url, created_at)
+    `)
+    .or(`user_id.eq.${session.user.id},friend_id.eq.${session.user.id}`);
+  
+  if (status) {
+    query = query.eq('status', status);
+  }
+  
+  const { data, error } = await query.order('created_at', { ascending: false });
+    
+  if (error || !data) {
+    console.error('Error fetching friendships:', error);
+    return [];
+  }
+  
+  return data.map(friendship => {
+    // Determine which user is the friend (not the current user)
+    const isFriendRequester = friendship.user_id === session.user.id;
+    const friendData = isFriendRequester 
+      ? friendship.friend 
+      : friendship.user;
+    
+    return {
+      id: friendship.id,
+      userId: friendship.user_id,
+      friendId: friendship.friend_id,
+      status: friendship.status as FriendshipStatus,
+      createdAt: new Date(friendship.created_at),
+      updatedAt: new Date(friendship.updated_at),
+      friend: friendData ? {
+        id: friendData.id,
+        name: friendData.name,
+        email: friendData.email,
+        avatarUrl: friendData.avatar_url,
+        createdAt: new Date(friendData.created_at)
+      } : undefined
+    };
+  });
+};
+
+export const sendFriendRequest = async (friendId: string): Promise<boolean> => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      throw new Error('No active session');
+    }
+
+    const { error } = await supabase
+      .from('friendships')
+      .insert({
+        user_id: session.user.id,
+        friend_id: friendId,
+        status: FriendshipStatus.PENDING
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error sending friend request:', error);
+    return false;
+  }
+};
+
+export const respondToFriendRequest = async (
+  friendshipId: string, 
+  accept: boolean
+): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('friendships')
+      .update({
+        status: accept ? FriendshipStatus.ACCEPTED : FriendshipStatus.DECLINED,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', friendshipId);
+
+    if (error) {
+      throw error;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error responding to friend request:', error);
+    return false;
+  }
+};
+
+export const searchUsers = async (query: string): Promise<User[]> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session || !query || query.length < 3) {
+    return [];
+  }
+  
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .or(`name.ilike.%${query}%,email.ilike.%${query}%`)
+    .neq('id', session.user.id)
+    .limit(10);
+    
+  if (error || !data) {
+    console.error('Error searching users:', error);
+    return [];
+  }
+  
+  return data.map(user => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    avatarUrl: user.avatar_url,
+    createdAt: new Date(user.created_at)
+  }));
+};
+
 // Task API functions
-export const getUserTasks = async (userId: string): Promise<Task[]> => {
+export const getUserTasks = async (userId: string, filter?: 'assigned' | 'received'): Promise<Task[]> => {
   const { data, error } = await supabase
     .from('tasks')
-    .select('*')
-    .eq('assignee_id', userId)
+    .select(`
+      *,
+      attachments:task_attachments(*)
+    `)
+    .eq(filter === 'assigned' ? 'assigner_id' : 'assignee_id', userId)
     .order('due_date');
     
   if (error || !data) {
     console.error('Error fetching user tasks:', error);
+    return [];
+  }
+  
+  return data.map(transformTaskFromDb);
+};
+
+export const getTasksByFriend = async (friendId: string): Promise<Task[]> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    return [];
+  }
+  
+  // Get tasks that I assigned to this friend
+  const { data, error } = await supabase
+    .from('tasks')
+    .select(`
+      *,
+      attachments:task_attachments(*)
+    `)
+    .eq('assigner_id', session.user.id)
+    .eq('assignee_id', friendId)
+    .order('created_at', { ascending: false });
+    
+  if (error || !data) {
+    console.error('Error fetching tasks by friend:', error);
+    return [];
+  }
+  
+  return data.map(transformTaskFromDb);
+};
+
+export const getTasksFromFriends = async (): Promise<Task[]> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    return [];
+  }
+  
+  // First get accepted friendships
+  const { data: friendships, error: friendError } = await supabase
+    .from('friendships')
+    .select('friend_id, user_id')
+    .or(`user_id.eq.${session.user.id},friend_id.eq.${session.user.id}`)
+    .eq('status', FriendshipStatus.ACCEPTED);
+    
+  if (friendError || !friendships) {
+    console.error('Error fetching friendships:', friendError);
+    return [];
+  }
+  
+  // Extract friend IDs
+  const friendIds = friendships.map(f => 
+    f.user_id === session.user.id ? f.friend_id : f.user_id
+  );
+  
+  if (friendIds.length === 0) {
+    return [];
+  }
+  
+  // Get tasks assigned by friends
+  const { data, error } = await supabase
+    .from('tasks')
+    .select(`
+      *,
+      attachments:task_attachments(*)
+    `)
+    .eq('assignee_id', session.user.id)
+    .in('assigner_id', friendIds)
+    .order('due_date');
+    
+  if (error || !data) {
+    console.error('Error fetching tasks from friends:', error);
     return [];
   }
   
@@ -135,7 +335,12 @@ export const createTask = async (task: Omit<Task, 'id' | 'createdAt'>): Promise<
       assignee_id: task.assigneeId,
       status: task.status,
       priority: task.priority,
-      completed_at: task.completedAt?.toISOString()
+      completed_at: task.completedAt?.toISOString(),
+      estimated_time_minutes: task.estimatedTimeMinutes,
+      actual_time_minutes: task.actualTimeMinutes,
+      submission_date: task.submissionDate?.toISOString(),
+      quality_rating: task.qualityRating,
+      feedback: task.feedback
     })
     .select()
     .single();
@@ -151,21 +356,40 @@ export const createTask = async (task: Omit<Task, 'id' | 'createdAt'>): Promise<
 export const updateTaskStatus = async (
   taskId: string, 
   status: TaskStatus, 
-  completedAt?: Date
+  metadata?: {
+    completedAt?: Date;
+    actualTimeMinutes?: number;
+    qualityRating?: number;
+    feedback?: string;
+  }
 ): Promise<Task | null> => {
   const updateData: any = { status };
   
-  if (status === TaskStatus.COMPLETED && !completedAt) {
-    updateData.completed_at = new Date().toISOString();
-  } else if (completedAt) {
-    updateData.completed_at = completedAt.toISOString();
+  if (status === TaskStatus.COMPLETED) {
+    updateData.completed_at = metadata?.completedAt?.toISOString() || new Date().toISOString();
+    updateData.submission_date = new Date().toISOString();
+    
+    if (metadata?.actualTimeMinutes) {
+      updateData.actual_time_minutes = metadata.actualTimeMinutes;
+    }
+  }
+  
+  if (metadata?.qualityRating) {
+    updateData.quality_rating = metadata.qualityRating;
+  }
+  
+  if (metadata?.feedback) {
+    updateData.feedback = metadata.feedback;
   }
   
   const { data, error } = await supabase
     .from('tasks')
     .update(updateData)
     .eq('id', taskId)
-    .select()
+    .select(`
+      *,
+      attachments:task_attachments(*)
+    `)
     .single();
     
   if (error || !data) {
@@ -174,6 +398,83 @@ export const updateTaskStatus = async (
   }
   
   return transformTaskFromDb(data);
+};
+
+export const addTaskAttachment = async (
+  taskId: string,
+  fileUrl: string,
+  fileType?: string,
+  fileName?: string
+): Promise<TaskAttachment | null> => {
+  const { data, error } = await supabase
+    .from('task_attachments')
+    .insert({
+      task_id: taskId,
+      file_url: fileUrl,
+      file_type: fileType,
+      file_name: fileName
+    })
+    .select()
+    .single();
+    
+  if (error || !data) {
+    console.error('Error adding task attachment:', error);
+    return null;
+  }
+  
+  return {
+    id: data.id,
+    taskId: data.task_id,
+    fileUrl: data.file_url,
+    fileType: data.file_type,
+    fileName: data.file_name,
+    createdAt: new Date(data.created_at)
+  };
+};
+
+export const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    return [];
+  }
+  
+  // First get accepted friendships to mark friends on leaderboard
+  const { data: friendships, error: friendError } = await supabase
+    .from('friendships')
+    .select('friend_id, user_id')
+    .or(`user_id.eq.${session.user.id},friend_id.eq.${session.user.id}`)
+    .eq('status', FriendshipStatus.ACCEPTED);
+    
+  if (friendError || !friendships) {
+    console.error('Error fetching friendships:', friendError);
+    return [];
+  }
+  
+  // Extract friend IDs
+  const friendIds = friendships.map(f => 
+    f.user_id === session.user.id ? f.friend_id : f.user_id
+  );
+  
+  // Get leaderboard data
+  const { data, error } = await supabase
+    .rpc('get_leaderboard');
+    
+  if (error || !data) {
+    console.error('Error fetching leaderboard:', error);
+    return [];
+  }
+  
+  return data.map((entry: any) => ({
+    id: entry.id,
+    name: entry.name,
+    avatarUrl: entry.avatar_url,
+    tasksCompleted: entry.tasks_completed,
+    avgCompletionTime: entry.avg_completion_time,
+    avgQualityRating: entry.avg_quality_rating,
+    tasksOverdue: entry.tasks_overdue,
+    isFriend: friendIds.includes(entry.id) || entry.id === session.user.id
+  }));
 };
 
 // Helper functions
@@ -188,6 +489,19 @@ const transformTaskFromDb = (task: any): Task => {
     assigneeId: task.assignee_id,
     status: task.status as TaskStatus,
     priority: task.priority as TaskPriority,
-    completedAt: task.completed_at ? new Date(task.completed_at) : undefined
+    completedAt: task.completed_at ? new Date(task.completed_at) : undefined,
+    estimatedTimeMinutes: task.estimated_time_minutes,
+    actualTimeMinutes: task.actual_time_minutes,
+    submissionDate: task.submission_date ? new Date(task.submission_date) : undefined,
+    qualityRating: task.quality_rating,
+    feedback: task.feedback,
+    attachments: task.attachments ? task.attachments.map((attachment: any) => ({
+      id: attachment.id,
+      taskId: attachment.task_id,
+      fileUrl: attachment.file_url,
+      fileType: attachment.file_type,
+      fileName: attachment.file_name,
+      createdAt: new Date(attachment.created_at)
+    })) : []
   };
 }; 
