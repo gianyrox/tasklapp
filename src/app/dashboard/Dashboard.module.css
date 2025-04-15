@@ -1,20 +1,171 @@
 .dashboard {
-  width: 100%;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 .header {
-  margin-bottom: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.header h1 {
+  font-size: 2rem;
+  margin: 0;
+  color: #111827;
 }
 
 .welcomeMessage {
-  color: var(--text-secondary);
-  font-size: var(--font-size-lg);
-  margin-top: var(--spacing-sm);
+  font-size: 1rem;
+  color: #4B5563;
+  margin: 0;
 }
 
 .userName {
-  color: var(--primary);
   font-weight: 600;
+  color: #111827;
+}
+
+.error {
+  background-color: #FEE2E2;
+  border: 1px solid #FECACA;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  color: #B91C1C;
+}
+
+.tasksBoard {
+  margin-bottom: 2rem;
+}
+
+.friendsSection {
+  margin-bottom: 2rem;
+}
+
+.friendsSection h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #111827;
+}
+
+.friendTasksGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .friendTasksGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .friendTasksGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.emptyState {
+  text-align: center;
+  padding: 2rem;
+  color: #6B7280;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.emptyState p {
+  margin: 0 0 1rem 0;
+}
+
+.leaderboardBoard {
+  margin-top: 1rem;
+}
+
+.leaderboardPreview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.leaderboardEntry {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background-color: #F9FAFB;
+  border: 1px solid #E5E7EB;
+}
+
+.currentUser {
+  background-color: #F0F9FF;
+  border-color: #BAE6FD;
+}
+
+.friendUser {
+  background-color: #F0FDF4;
+  border-color: #BBF7D0;
+}
+
+.leaderboardRank {
+  font-weight: 700;
+  font-size: 1.25rem;
+  width: 2rem;
+  text-align: center;
+  color: #4B5563;
+}
+
+.leaderboardUser {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.leaderboardAvatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.leaderboardName {
+  font-weight: 500;
+  color: #111827;
+}
+
+.leaderboardCurrentUser {
+  font-size: 0.875rem;
+  color: #6B7280;
+  margin-left: 0.5rem;
+}
+
+.leaderboardStats {
+  display: flex;
+  gap: 1rem;
+}
+
+.leaderboardStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 3.5rem;
+}
+
+.leaderboardStatValue {
+  font-weight: 600;
+  color: #111827;
+}
+
+.leaderboardStatLabel {
+  font-size: 0.75rem;
+  color: #6B7280;
 }
 
 /* Widgets Grid */
@@ -39,25 +190,6 @@
 
 .overdueBoard h2 {
   color: var(--danger);
-}
-
-/* Empty state styling */
-.emptyState {
-  color: var(--text-secondary);
-  text-align: center;
-  padding: var(--spacing-lg);
-}
-
-/* Leaderboard preview styling */
-.leaderboardPreview {
-  padding: var(--spacing-lg);
-  text-align: center;
-}
-
-.leaderboardEmptyState {
-  color: var(--text-secondary);
-  margin: 0;
-  padding: var(--spacing-xl) 0;
 }
 
 /* Loading states */
@@ -150,15 +282,6 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: var(--spacing-md);
-}
-
-.error {
-  padding: var(--spacing-xl);
-  background-color: rgba(239, 71, 111, 0.1);
-  border-radius: var(--border-radius-md);
-  text-align: center;
-  color: var(--danger);
-  border: 1px solid var(--danger);
 }
 
 @media (max-width: 992px) {
