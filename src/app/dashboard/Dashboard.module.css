@@ -17,6 +17,75 @@
   font-weight: 600;
 }
 
+/* Widgets Grid */
+.widgetsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+}
+
+@media (min-width: 992px) {
+  .widgetsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Special styling for overdue board */
+.overdueBoard {
+  border-left: 4px solid var(--danger);
+}
+
+.overdueBoard h2 {
+  color: var(--danger);
+}
+
+/* Empty state styling */
+.emptyState {
+  color: var(--text-secondary);
+  text-align: center;
+  padding: var(--spacing-lg);
+}
+
+/* Leaderboard preview styling */
+.leaderboardPreview {
+  padding: var(--spacing-lg);
+  text-align: center;
+}
+
+.leaderboardEmptyState {
+  color: var(--text-secondary);
+  margin: 0;
+  padding: var(--spacing-xl) 0;
+}
+
+/* Loading states */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 50vh;
+  color: var(--text-secondary);
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(58, 134, 255, 0.2);
+  border-radius: 50%;
+  border-top-color: var(--primary);
+  animation: spin 1s linear infinite;
+  margin-bottom: var(--spacing-md);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .statsContainer {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -83,35 +152,6 @@
   gap: var(--spacing-md);
 }
 
-.emptyState {
-  grid-column: 1 / -1;
-  padding: var(--spacing-lg);
-  background-color: var(--surface);
-  border-radius: var(--border-radius-md);
-  text-align: center;
-  color: var(--text-secondary);
-  border: 1px dashed var(--border);
-}
-
-.loadingContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 50vh;
-  color: var(--text-secondary);
-}
-
-.loadingSpinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(58, 134, 255, 0.2);
-  border-radius: 50%;
-  border-top-color: var(--primary);
-  animation: spin 1s linear infinite;
-  margin-bottom: var(--spacing-md);
-}
-
 .error {
   padding: var(--spacing-xl);
   background-color: rgba(239, 71, 111, 0.1);
@@ -119,12 +159,6 @@
   text-align: center;
   color: var(--danger);
   border: 1px solid var(--danger);
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 @media (max-width: 992px) {
