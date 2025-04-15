@@ -14,10 +14,6 @@ export const TaskList: React.FC<TaskListProps> = ({
   onStatusChange,
   showDetails = false
 }) => {
-  if (tasks.length === 0) {
-    return null;
-  }
-
   return (
     <div className={styles.taskList}>
       {tasks.map(task => (
