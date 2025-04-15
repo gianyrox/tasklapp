@@ -1,6 +1,6 @@
 # Taskl App
 
-A competitive task completion application where users can assign tasks to each other. The app ranks users based on their performance, speed, and consistency in completing tasks.
+A friend-based task completion application where users can assign tasks to their friends and complete tasks assigned to them. Complete tasks, earn ratings, and compete on the leaderboard.
 
 ## Project Overview
 
@@ -13,11 +13,12 @@ The app is built using:
 Website URL: https://taskl.app
 
 ## Key Features
-- Users can assign tasks to other users
-- Users can view their assigned tasks
-- Users can view tasks assigned to other users
-- Performance tracking and ranking system
-- User statistics dashboard
+- Connect with friends and build your network
+- Assign tasks to your friends
+- Complete tasks assigned by your friends
+- Track task performance metrics (time, quality, completion rate)
+- Leaderboard to see how you and your friends compare
+- View tasks by friend - each friend gets their own task list
 
 ## Setup Instructions
 
@@ -43,10 +44,10 @@ Website URL: https://taskl.app
 3. Get your API URL and anon key from Settings > API
 4. Set up database tables:
    - Navigate to the SQL Editor in your Supabase dashboard
-   - Create users, user_stats, and tasks tables using the SQL queries in the setup instructions
+   - Create users, friendships, tasks, and task_attachments tables using the SQL queries in the setup instructions
 5. Enable Row Level Security (RLS) with appropriate policies
 6. Set up authentication in the Authentication settings
-7. Create database triggers for user management and task statistics
+7. Create database triggers and functions for friendship management and leaderboard
 
 ### Magic Link Authentication Setup
 1. In your Supabase dashboard, go to Authentication > Providers
@@ -67,22 +68,46 @@ Website URL: https://taskl.app
 - Set up Next.js with TypeScript
 - Create component structure (layout, ui, task, user, dashboard)
 - Implement global CSS styling
-- Create type definitions for users and tasks
+- Create type definitions for users, friends, and tasks
 
 ### UI Components
 - Button component with different variants and sizes
 - Task card component for displaying task information
+- Friend list component for displaying and managing connections
 - Layout components with responsive design
 
 ### Pages
-- Dashboard page showing user stats and tasks
+- Dashboard page showing tasks from friends and per-friend task lists
 - Home page with features and call-to-action
-- Task management pages
+- Friend management pages
+- Task creation and submission pages
 
 ### Supabase Integration
-- API functions for user and task management
+- API functions for user, friendship, and task management
 - Custom React hooks for data fetching and state management
 - Authentication integration
+
+## Database Schema
+
+### Users Table
+- Standard user information (id, name, email, etc.)
+
+### Friendships Table
+- Tracks connections between users
+- Contains status of friendship (pending, accepted, declined)
+
+### Tasks Table
+- Core task information (title, description, etc.)
+- Assignment data (who assigned to whom)
+- Extended metadata:
+  - Estimated time
+  - Actual completion time
+  - Submission date
+  - Quality rating (1-5)
+  - Feedback text
+
+### Task Attachments
+- Allows users to attach files/evidence to task submissions
 
 ## Running SQL Queries
 To execute SQL queries for database setup:
@@ -123,7 +148,7 @@ If you're testing locally, you can view the magic link emails in the Supabase da
 - **/** - Home page with app introduction
 - **/login** - Login page with magic link authentication
 - **/signup** - Sign up page for new users
-- **/dashboard** - Main dashboard (protected route)
-- **/tasks** - View and manage your assigned tasks (protected route)
-- **/assign** - Assign tasks to other users (protected route)
-- **/leaderboard** - View user rankings (protected route) 
+- **/dashboard** - Main dashboard showing tasks from friends (protected route)
+- **/friends** - Manage your friend connections (protected route)
+- **/assign** - Assign tasks to friends (protected route)
+- **/leaderboard** - View rankings of you and your friends (protected route) 
