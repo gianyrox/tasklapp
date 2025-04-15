@@ -1,0 +1,135 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+.header {
+  background-color: var(--surface);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid var(--border);
+}
+
+.header .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 70px;
+}
+
+.logo {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--primary);
+  text-decoration: none;
+  margin-right: var(--spacing-xl);
+  letter-spacing: -0.5px;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  flex: 1;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 var(--spacing-md);
+  font-weight: 500;
+  color: var(--text-primary);
+  border-bottom: 3px solid transparent;
+  transition: all var(--transition-fast);
+}
+
+.navLink:hover {
+  color: var(--primary);
+  border-bottom-color: var(--border);
+}
+
+.navLink.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.userMenu {
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.avatar:hover {
+  transform: scale(1.05);
+}
+
+.main {
+  flex: 1;
+  padding: var(--spacing-lg) 0;
+  background-color: var(--background);
+}
+
+.footer {
+  background-color: var(--surface);
+  padding: var(--spacing-lg) 0;
+  border-top: 1px solid var(--border);
+}
+
+.footer p {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  margin: 0;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .header .container {
+    height: 60px;
+    flex-wrap: wrap;
+  }
+  
+  .logo {
+    font-size: var(--font-size-lg);
+  }
+  
+  .nav {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+    overflow-x: auto;
+    padding: 0 0 var(--spacing-sm);
+  }
+  
+  .navLink {
+    padding: 0 var(--spacing-sm);
+    font-size: var(--font-size-sm);
+  }
+  
+  .main {
+    padding: var(--spacing-md) 0;
+  }
+} 

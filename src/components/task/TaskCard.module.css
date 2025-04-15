@@ -1,0 +1,84 @@
+.taskCard {
+  background-color: var(--surface);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  border-left-width: 3px;
+  border-left-style: solid;
+}
+
+.taskCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-sm);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  flex: 1;
+}
+
+.status {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--border-radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dates {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.dateItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.dateLabel {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.overdue {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.description {
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-sm);
+  background-color: var(--background);
+  border-radius: var(--border-radius-sm);
+  border-left: 2px solid var(--border);
+}
+
+.description p {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+}
+
+.detailsButton {
+  margin-left: auto;
+} 
