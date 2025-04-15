@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Task, TaskStatus, User, UserStats } from '../../types';
+import { Task, TaskStatus, TaskPriority, User, UserStats } from '../../types';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -40,6 +40,45 @@ export const getCurrentUser = async (): Promise<User | null> => {
       rank: data.stats.rank
     }
   };
+};
+
+export const updateUserProfile = async (data: {
+  name?: string;
+  avatarUrl?: string;
+}): Promise<boolean> => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      throw new Error('No active session');
+    }
+
+    // Update auth.users metadata
+    await supabase.auth.updateUser({
+      data: {
+        name: data.name,
+        avatar_url: data.avatarUrl
+      }
+    });
+
+    // Update public profile
+    const { error } = await supabase
+      .from('users')
+      .update({
+        name: data.name,
+        avatar_url: data.avatarUrl
+      })
+      .eq('id', session.user.id);
+
+    if (error) {
+      throw error;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    return false;
+  }
 };
 
 export const getAllUsers = async (): Promise<User[]> => {

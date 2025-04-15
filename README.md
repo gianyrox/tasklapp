@@ -1,4 +1,4 @@
-# TaskMaster App
+# Taskl App
 
 A competitive task completion application where users can assign tasks to each other. The app ranks users based on their performance, speed, and consistency in completing tasks.
 
@@ -90,4 +90,40 @@ To execute SQL queries for database setup:
 2. Select "SQL Editor" from the left sidebar
 3. Click "New Query" to create a new SQL query
 4. Paste the provided SQL code
-5. Click "Run" to execute the query 
+5. Click "Run" to execute the query
+
+## Testing Authentication
+
+1. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+2. Navigate to http://localhost:3000 in your browser
+3. Click "Sign Up" to create a new account
+4. Fill in your name and email address
+5. Check your email for the confirmation link
+6. After confirming your email, you'll be redirected to the dashboard
+7. To log out, click your profile icon and select "Log Out"
+8. To log back in, use the "Login" page with your email
+
+### Local Email Testing
+
+If you're testing locally, you can view the magic link emails in the Supabase dashboard:
+
+1. Go to your Supabase project dashboard
+2. Navigate to Authentication > Users
+3. Click on your test user
+4. In the Auth section, you'll see a list of emails sent
+5. Click on the most recent email to view the magic link
+6. Copy the link and open it in your browser
+
+## Routes and Navigation
+
+- **/** - Home page with app introduction
+- **/login** - Login page with magic link authentication
+- **/signup** - Sign up page for new users
+- **/dashboard** - Main dashboard (protected route)
+- **/tasks** - View and manage your assigned tasks (protected route)
+- **/assign** - Assign tasks to other users (protected route)
+- **/leaderboard** - View user rankings (protected route) 

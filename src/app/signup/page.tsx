@@ -30,7 +30,7 @@ const SignupPage: React.FC = () => {
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: window.location.origin + '/auth/callback',
