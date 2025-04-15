@@ -1,26 +1,111 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import styles from './Home.module.css';
 import Button from '../components/ui/Button';
+import { supabase } from '../lib/api/supabase';
 
 const HomePage: React.FC = () => {
+  const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check authentication status
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log("Auth session check:", session ? "Session found" : "No session");
+      setIsLoggedIn(!!session);
+      setUserId(session?.user.id || null);
+    };
+    
+    checkAuth();
+
+    // Check if URL contains Supabase auth tokens (in hash fragment)
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const hashParams = new URLSearchParams(
+        window.location.hash.substring(1) // remove the # character
+      );
+      
+      if (hashParams.get('access_token')) {
+        // Process the auth data from hash fragments
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        const expiresIn = hashParams.get('expires_in');
+        const tokenType = hashParams.get('token_type');
+        
+        if (accessToken && refreshToken && expiresIn && tokenType) {
+          // Set the session in Supabase
+          (async () => {
+            console.log("Setting session from URL hash tokens");
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+            
+            if (error) {
+              console.error('Error setting session:', error);
+            } else if (data?.session) {
+              console.log("Successfully set session, redirecting to dashboard");
+              setIsLoggedIn(true);
+              setUserId(data.session.user.id);
+              // Clear the URL hash to avoid sharing tokens
+              window.history.replaceState({}, document.title, window.location.pathname);
+              // Redirect to dashboard
+              router.push('/dashboard');
+            }
+          })();
+        }
+      }
+    }
+  }, [router]);
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.logo}>Taskl</div>
         <nav className={styles.nav}>
-          <Link href="/login" className={styles.navLink}>
-            Login
-          </Link>
-          <Link href="/signup" className={styles.signupButton}>
-            <Button variant="primary">Sign Up</Button>
-          </Link>
+          {isLoggedIn ? (
+            <>
+              <Link href="/dashboard" className={styles.navLink}>
+                Dashboard
+              </Link>
+              <button 
+                className={styles.navLink}
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  setIsLoggedIn(false);
+                  router.refresh();
+                }}
+              >
+                Log Out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link href="/login" className={styles.navLink}>
+                Login
+              </Link>
+              <Link href="/signup" className={styles.signupButton}>
+                <Button variant="primary">Sign Up</Button>
+              </Link>
+            </>
+          )}
         </nav>
       </header>
 
       <main className={styles.main}>
+        {isLoggedIn && (
+          <div className={styles.authStatus}>
+            <p>✅ You are logged in! User ID: {userId}</p>
+            <Link href="/dashboard">
+              <Button variant="primary">Go to Dashboard</Button>
+            </Link>
+          </div>
+        )}
+        
         <section className={styles.hero}>
           <div className={styles.heroContent}>
             <h1 className={styles.title}>Complete Tasks. Do Laps. Compete.</h1>
@@ -28,12 +113,20 @@ const HomePage: React.FC = () => {
               A competitive task management platform where you can assign tasks, track performance, and rise through the ranks.
             </p>
             <div className={styles.cta}>
-              <Link href="/signup">
-                <Button size="lg" variant="primary">Get Started</Button>
-              </Link>
-              <Link href="/dashboard">
-                <Button size="lg" variant="outline">View Demo</Button>
-              </Link>
+              {isLoggedIn ? (
+                <Link href="/dashboard">
+                  <Button size="lg" variant="primary">Go to Dashboard</Button>
+                </Link>
+              ) : (
+                <Link href="/signup">
+                  <Button size="lg" variant="primary">Get Started</Button>
+                </Link>
+              )}
+              {!isLoggedIn && (
+                <Link href="/login">
+                  <Button size="lg" variant="outline">Log In</Button>
+                </Link>
+              )}
             </div>
           </div>
           <div className={styles.heroImage}>
