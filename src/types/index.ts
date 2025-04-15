@@ -4,15 +4,22 @@ export interface User {
   email: string;
   avatarUrl?: string;
   createdAt: Date;
-  stats: UserStats;
 }
 
-export interface UserStats {
-  tasksCompleted: number;
-  tasksAssigned: number;
-  averageCompletionTime: number; // in hours
-  completionRate: number; // percentage
-  rank: number;
+export interface Friendship {
+  id: string;
+  userId: string;
+  friendId: string;
+  status: FriendshipStatus;
+  createdAt: Date;
+  updatedAt: Date;
+  friend?: User; // Populated when getting friend details
+}
+
+export enum FriendshipStatus {
+  PENDING = 'PENDING',
+  ACCEPTED = 'ACCEPTED',
+  DECLINED = 'DECLINED'
 }
 
 export interface Task {
@@ -26,6 +33,32 @@ export interface Task {
   status: TaskStatus;
   priority: TaskPriority;
   completedAt?: Date;
+  estimatedTimeMinutes?: number;
+  actualTimeMinutes?: number;
+  submissionDate?: Date;
+  qualityRating?: number; // 1-5 rating
+  feedback?: string;
+  attachments?: TaskAttachment[];
+}
+
+export interface TaskAttachment {
+  id: string;
+  taskId: string;
+  fileUrl: string;
+  fileType?: string;
+  fileName?: string;
+  createdAt: Date;
+}
+
+export interface LeaderboardEntry {
+  id: string;
+  name: string;
+  avatarUrl?: string;
+  tasksCompleted: number;
+  avgCompletionTime?: number; // In minutes
+  avgQualityRating?: number; // 1-5 average
+  tasksOverdue: number;
+  isFriend: boolean;
 }
 
 export enum TaskStatus {
