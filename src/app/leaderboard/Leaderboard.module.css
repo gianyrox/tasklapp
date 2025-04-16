@@ -214,6 +214,34 @@
   font-weight: 500;
 }
 
+.extendedStatsColumn {
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.miniStat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f8fafc;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  border: 1px solid #e5e7eb;
+}
+
+.miniStatLabel {
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.miniStatValue {
+  font-weight: 600;
+  color: #4338ca;
+}
+
 .actionColumn {
   width: 120px;
   text-align: right;
