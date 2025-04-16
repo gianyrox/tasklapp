@@ -375,7 +375,7 @@ const DashboardPage: React.FC = () => {
             isLoading={isLoading}
             className={styles.leaderboardBoard}
             actionButton={
-              <Button size="sm" variant="outline">View Full Leaderboard</Button>
+              <Button size="sm" variant="outline" onClick={() => router.push('/leaderboard/tasks-completed')}>View Full Leaderboard</Button>
             }
             emptyState={
               <div className={styles.leaderboardEmptyState}>

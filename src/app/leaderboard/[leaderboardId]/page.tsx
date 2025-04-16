@@ -8,76 +8,27 @@ import { useAuth } from '../../../context/AuthContext';
 import Button from '../../../components/ui/Button';
 import { getLeaderboardDetail } from '../../../lib/api/supabase';
 import { LeaderboardEntry } from '../../../types';
-import { FaTrophy, FaArrowLeft, FaMedal, FaCheckCircle, FaCalendarAlt, FaStopwatch } from 'react-icons/fa';
-import { MdTimer, MdOutlineStar, MdLocalFireDepartment, MdTaskAlt } from 'react-icons/md';
+import { FaTrophy, FaArrowLeft } from 'react-icons/fa';
+import { MdTaskAlt } from 'react-icons/md';
 import Link from 'next/link';
 
 import styles from './LeaderboardDetail.module.css';
 
-// Leaderboard type definitions - should match the ones on the main page
-const LEADERBOARD_TYPES = {
-  'tasks-completed': {
-    id: 'tasks-completed',
-    name: 'Tasks Completed',
-    description: 'Users who have completed the most tasks',
-    icon: <MdTaskAlt />,
-    statKey: 'tasksCompleted',
-    statLabel: 'Tasks Completed',
-    higherIsBetter: true,
-    format: (value: number) => `${value}`
-  },
-  'quality-rating': {
-    id: 'quality-rating',
-    name: 'Quality Rating',
-    description: 'Users with the highest average task quality rating',
-    icon: <MdOutlineStar />,
-    statKey: 'avgQualityRating',
-    statLabel: 'Avg. Quality Rating',
-    higherIsBetter: true,
-    format: (value?: number) => value !== undefined ? `${value.toFixed(1)} / 5` : 'N/A'
-  },
-  'speed-demons': {
-    id: 'speed-demons',
-    name: 'Speed Demons',
-    description: 'Users with the fastest average task completion time',
-    icon: <FaStopwatch />,
-    statKey: 'avgCompletionTime',
-    statLabel: 'Avg. Completion Time',
-    higherIsBetter: false,
-    format: (minutes?: number) => {
-      if (minutes === undefined) return 'N/A';
-      
-      if (minutes < 60) {
-        return `${minutes} min${minutes !== 1 ? 's' : ''}`;
-      }
-      
-      const hours = Math.floor(minutes / 60);
-      const remainingMinutes = minutes % 60;
-      
-      if (remainingMinutes === 0) {
-        return `${hours} hr${hours !== 1 ? 's' : ''}`;
-      }
-      
-      return `${hours} hr${hours !== 1 ? 's' : ''} ${remainingMinutes} min${remainingMinutes !== 1 ? 's' : ''}`;
-    }
-  },
-  'consistency': {
-    id: 'consistency',
-    name: 'Most Consistent',
-    description: 'Users who consistently complete tasks on time',
-    icon: <FaCalendarAlt />,
-    statKey: 'tasksOverdue',
-    statLabel: 'Tasks Overdue',
-    higherIsBetter: false,
-    format: (value: number) => `${value}`
-  },
+// Define the single leaderboard type
+const LEADERBOARD_TYPE = {
+  id: 'tasks-completed',
+  name: 'Tasks Completed',
+  description: 'Users who have completed the most tasks',
+  icon: <MdTaskAlt />,
+  statKey: 'tasksCompleted',
+  statLabel: 'Tasks Completed',
+  higherIsBetter: true,
+  format: (value: number) => `${value}`
 };
 
 const LeaderboardDetailPage: React.FC = () => {
   const { user } = useAuth();
   const router = useRouter();
-  const params = useParams();
-  const [leaderboardId, setLeaderboardId] = useState<string>('');
   
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -85,33 +36,22 @@ const LeaderboardDetailPage: React.FC = () => {
   const [userRank, setUserRank] = useState<{ rank: number; outOf: number } | null>(null);
 
   useEffect(() => {
-    if (params && params.leaderboardId) {
-      const id = params.leaderboardId as string;
-      setLeaderboardId(id);
-      
-      if (user) {
-        fetchLeaderboardData(id);
-      }
+    if (user) {
+      fetchLeaderboardData();
     }
-  }, [params, user]);
+  }, [user]);
 
-  const fetchLeaderboardData = async (id: string) => {
+  const fetchLeaderboardData = async () => {
     setIsLoading(true);
     setError(null);
     
     try {
       // Get leaderboard data from the API
-      const leaderboardData = await getLeaderboardDetail(id);
+      const leaderboardData = await getLeaderboardDetail(LEADERBOARD_TYPE.id);
       
-      // Sort the data based on the leaderboard type
-      const leaderboardType = LEADERBOARD_TYPES[id as keyof typeof LEADERBOARD_TYPES];
-      
-      if (!leaderboardType) {
-        throw new Error('Invalid leaderboard type');
-      }
-      
+      // Sort the data based on the statKey
       let sortedData = [...leaderboardData];
-      const statKey = leaderboardType.statKey as keyof LeaderboardEntry;
+      const statKey = LEADERBOARD_TYPE.statKey as keyof LeaderboardEntry;
       
       sortedData.sort((a, b) => {
         const aValue = a[statKey] as number | undefined;
@@ -122,10 +62,8 @@ const LeaderboardDetailPage: React.FC = () => {
         if (aValue === undefined) return 1;
         if (bValue === undefined) return -1;
         
-        // Sort based on whether higher is better
-        return leaderboardType.higherIsBetter
-          ? bValue - aValue // Higher values first
-          : aValue - bValue; // Lower values first
+        // Sort with higher values first
+        return bValue - aValue;
       });
       
       setEntries(sortedData);
@@ -156,41 +94,22 @@ const LeaderboardDetailPage: React.FC = () => {
     return (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
   };
 
-  const leaderboardType = LEADERBOARD_TYPES[leaderboardId as keyof typeof LEADERBOARD_TYPES];
-
-  // If the leaderboard type is not valid, show an error
-  if (leaderboardId && !LEADERBOARD_TYPES[leaderboardId as keyof typeof LEADERBOARD_TYPES]) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <Link href="/leaderboard" className={styles.backButton}>
-            <FaArrowLeft style={{ marginRight: '0.5rem' }} /> Back to Leaderboards
-          </Link>
-          <h1 className={styles.title}>Invalid Leaderboard</h1>
-        </div>
-        <div className={styles.error}>
-          <p>The requested leaderboard does not exist.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <ProtectedRoute>
       <AppLayout>
         <div className={styles.container}>
           <div className={styles.header}>
-            <Link href="/leaderboard" className={styles.backButton}>
-              <FaArrowLeft style={{ marginRight: '0.5rem' }} /> Back to Leaderboards
+            <Link href="/dashboard" className={styles.backButton}>
+              <FaArrowLeft style={{ marginRight: '0.5rem' }} /> Back to Dashboard
             </Link>
             
             <div className={styles.titleWrapper}>
               <div className={styles.icon}>
-                {leaderboardType?.icon || <FaTrophy />}
+                {LEADERBOARD_TYPE.icon || <FaTrophy />}
               </div>
               <div>
-                <h1 className={styles.title}>{leaderboardType?.name || 'Leaderboard'}</h1>
-                <p className={styles.subtitle}>{leaderboardType?.description || 'View top performing users'}</p>
+                <h1 className={styles.title}>{LEADERBOARD_TYPE.name}</h1>
+                <p className={styles.subtitle}>{LEADERBOARD_TYPE.description}</p>
               </div>
             </div>
             
@@ -210,7 +129,7 @@ const LeaderboardDetailPage: React.FC = () => {
               <Button 
                 size="sm" 
                 variant="primary" 
-                onClick={() => fetchLeaderboardData(leaderboardId)}
+                onClick={() => fetchLeaderboardData()}
               >
                 Try Again
               </Button>
@@ -226,7 +145,7 @@ const LeaderboardDetailPage: React.FC = () => {
                 <div className={styles.tableHeader}>
                   <div className={styles.rankColumn}>Rank</div>
                   <div className={styles.userColumn}>User</div>
-                  <div className={styles.statsColumn}>{leaderboardType?.statLabel}</div>
+                  <div className={styles.statsColumn}>{LEADERBOARD_TYPE.statLabel}</div>
                   <div className={styles.additionalStats}>
                     <div>Tasks Completed</div>
                     <div>Completion Rate</div>
@@ -269,7 +188,7 @@ const LeaderboardDetailPage: React.FC = () => {
                     </div>
                     <div className={styles.statsColumn}>
                       <div className={styles.mainStatValue}>
-                        {leaderboardType?.format(entry[leaderboardType.statKey as keyof LeaderboardEntry] as number)}
+                        {LEADERBOARD_TYPE.format(entry[LEADERBOARD_TYPE.statKey as keyof LeaderboardEntry] as number)}
                       </div>
                     </div>
                     <div className={styles.additionalStats}>
