@@ -10,16 +10,14 @@
   font-size: 0.875rem;
   cursor: pointer;
   transition: background-color 0.2s ease, transform 0.2s ease;
-  position: absolute;
-  top: 1.5rem;
-  left: 1.5rem;
-  z-index: 10;
+  align-self: flex-start;
+  margin-bottom: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  margin-bottom: 3rem;
 }
 
 .backButton:hover {
   background-color: #E5E7EB;
+  transform: translateX(-2px);
 }
 
 .backButton:active {
