@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, FormEvent } from 'react';
-import { User, Task, TaskPriority, TaskStatus } from '../../types';
+import { User, Task, TaskPriority, TaskStatus, SubmissionType } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../ui/Button';
 import { createTask } from '../../lib/api/supabase';
@@ -27,6 +27,8 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState<TaskPriority>(TaskPriority.MEDIUM);
   const [estimatedTimeMinutes, setEstimatedTimeMinutes] = useState<number | undefined>();
+  const [submissionType, setSubmissionType] = useState<SubmissionType>(SubmissionType.FORM);
+  const [submissionInstructions, setSubmissionInstructions] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,7 +62,9 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
         assigneeId,
         status: TaskStatus.PENDING,
         priority,
-        estimatedTimeMinutes
+        estimatedTimeMinutes,
+        submissionType,
+        submissionInstructions: submissionInstructions.trim() || undefined
       };
       
       // Submit task
@@ -160,6 +164,42 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 min="1"
                 className={styles.input}
                 placeholder="e.g. 30"
+              />
+            </div>
+            
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Submission Type</label>
+              <div className={styles.submissionTypeContainer}>
+                <div 
+                  className={`${styles.typeOption} ${submissionType === SubmissionType.FORM ? styles.selected : ''}`}
+                  onClick={() => setSubmissionType(SubmissionType.FORM)}
+                >
+                  <span>Text</span>
+                </div>
+                <div 
+                  className={`${styles.typeOption} ${submissionType === SubmissionType.LINK ? styles.selected : ''}`}
+                  onClick={() => setSubmissionType(SubmissionType.LINK)}
+                >
+                  <span>Link</span>
+                </div>
+                <div 
+                  className={`${styles.typeOption} ${submissionType === SubmissionType.FILE ? styles.selected : ''}`}
+                  onClick={() => setSubmissionType(SubmissionType.FILE)}
+                >
+                  <span>File</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className={styles.formGroup}>
+              <label htmlFor="submissionInstructions" className={styles.label}>Submission Instructions</label>
+              <textarea
+                id="submissionInstructions"
+                value={submissionInstructions}
+                onChange={(e) => setSubmissionInstructions(e.target.value)}
+                className={styles.textarea}
+                placeholder="Instructions for how the task should be submitted"
+                rows={3}
               />
             </div>
             
