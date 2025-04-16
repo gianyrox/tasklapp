@@ -360,19 +360,21 @@ const DashboardPage: React.FC = () => {
                   </div>
                 }
               >
-                <div>
-                  <TaskList tasks={selfAssignedTasks} onStatusChange={handleStatusChange} showDetails={true} ownership="self" />
-                  {selfAssignedTasks.length > 0 && (
-                    <div 
-                      className={styles.addTaskCard}
-                      onClick={() => handleAddTask()}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-                      </svg>
-                      Add New Task
-                    </div>
-                  )}
+                <div className={styles.scrollableBoard}>
+                  <div>
+                    <TaskList tasks={selfAssignedTasks} onStatusChange={handleStatusChange} showDetails={true} ownership="self" />
+                    {selfAssignedTasks.length > 0 && (
+                      <div 
+                        className={styles.addTaskCard}
+                        onClick={() => handleAddTask()}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                        </svg>
+                        Add New Task
+                      </div>
+                    )}
+                  </div>
                 </div>
               </Board>
             </div>
@@ -395,7 +397,9 @@ const DashboardPage: React.FC = () => {
                   </div>
                 }
               >
-                <TaskList tasks={tasksFromFriends} onStatusChange={handleStatusChange} showDetails={true} ownership="self" />
+                <div className={styles.scrollableBoard}>
+                  <TaskList tasks={tasksFromFriends} onStatusChange={handleStatusChange} showDetails={true} ownership="self" />
+                </div>
               </Board>
             </div>
 
@@ -431,27 +435,29 @@ const DashboardPage: React.FC = () => {
                   </div>
                 }
               >
-                <div>
-                  <TaskList tasks={tasksAssignedToOthers} showDetails={false} ownership="friend" />
-                  {tasksAssignedToOthers.length > 0 && friends.length > 0 && (
-                    <div 
-                      className={styles.addTaskCard}
-                      onClick={() => {
-                        if (friends.length > 0) {
-                          const friendId = friends[0].userId === user?.id ? friends[0].friendId : friends[0].userId;
-                          const friendName = friends[0].friend?.name || 'Friend';
-                          handleAddTaskToFriend(friendId, friendName);
-                        } else {
-                          handleFindFriends();
-                        }
-                      }}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-                      </svg>
-                      Assign New Task
-                    </div>
-                  )}
+                <div className={styles.scrollableBoard}>
+                  <div>
+                    <TaskList tasks={tasksAssignedToOthers} showDetails={false} ownership="friend" />
+                    {tasksAssignedToOthers.length > 0 && friends.length > 0 && (
+                      <div 
+                        className={styles.addTaskCard}
+                        onClick={() => {
+                          if (friends.length > 0) {
+                            const friendId = friends[0].userId === user?.id ? friends[0].friendId : friends[0].userId;
+                            const friendName = friends[0].friend?.name || 'Friend';
+                            handleAddTaskToFriend(friendId, friendName);
+                          } else {
+                            handleFindFriends();
+                          }
+                        }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                        </svg>
+                        Assign New Task
+                      </div>
+                    )}
+                  </div>
                 </div>
               </Board>
             </div>
@@ -484,17 +490,6 @@ const DashboardPage: React.FC = () => {
                       key={friendId}
                       title={`${friendName}'s Tasks`}
                       isLoading={isLoading}
-                      actionButton={
-                        <button 
-                          onClick={() => handleAddTaskToFriend(friendId, friendName)} 
-                          className={styles.addTaskButton}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-                          </svg>
-                          Assign Task
-                        </button>
-                      }
                       emptyState={
                         <div className={styles.emptyState}>
                           <p>You haven't assigned any tasks to {friendName} yet</p>
@@ -510,19 +505,21 @@ const DashboardPage: React.FC = () => {
                         </div>
                       }
                     >
-                      <div>
-                        <TaskList tasks={tasks} showDetails={false} ownership="friend" />
-                        {tasks.length > 0 && (
-                          <div 
-                            className={styles.addTaskCard}
-                            onClick={() => handleAddTaskToFriend(friendId, friendName)}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-                            </svg>
-                            Assign Task
-                          </div>
-                        )}
+                      <div className={styles.scrollableBoard}>
+                        <div>
+                          <TaskList tasks={tasks} showDetails={false} ownership="friend" />
+                          {tasks.length > 0 && (
+                            <div 
+                              className={styles.addTaskCard}
+                              onClick={() => handleAddTaskToFriend(friendId, friendName)}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                              </svg>
+                              Assign Task
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </Board>
                   );
@@ -545,35 +542,37 @@ const DashboardPage: React.FC = () => {
               </div>
             }
           >
-            <div className={styles.leaderboardPreview}>
-              {leaderboard.slice(0, 5).map((entry: any) => (
-                <div key={entry.id} className={`${styles.leaderboardEntry} ${entry.id === user?.id ? styles.currentUser : ''} ${entry.isFriend ? styles.friendUser : ''}`}>
-                  <div className={styles.leaderboardRank}>{entry.rank}</div>
-                  <div className={styles.leaderboardUser}>
-                    {entry.avatarUrl && (
-                      <img 
-                        src={entry.avatarUrl} 
-                        alt={entry.name} 
-                        className={styles.leaderboardAvatar} 
-                      />
-                    )}
-                    <span className={styles.leaderboardName}>{entry.name}</span>
-                    {entry.id === user?.id && <span className={styles.leaderboardCurrentUser}>(You)</span>}
-                  </div>
-                  <div className={styles.leaderboardStats}>
-                    <div className={styles.leaderboardStat}>
-                      <span className={styles.leaderboardStatValue}>{entry.tasksCompleted}</span>
-                      <span className={styles.leaderboardStatLabel}>Completed</span>
+            <div className={styles.scrollableBoard}>
+              <div className={styles.leaderboardPreview}>
+                {leaderboard.slice(0, 5).map((entry: any) => (
+                  <div key={entry.id} className={`${styles.leaderboardEntry} ${entry.id === user?.id ? styles.currentUser : ''} ${entry.isFriend ? styles.friendUser : ''}`}>
+                    <div className={styles.leaderboardRank}>{entry.rank}</div>
+                    <div className={styles.leaderboardUser}>
+                      {entry.avatarUrl && (
+                        <img 
+                          src={entry.avatarUrl} 
+                          alt={entry.name} 
+                          className={styles.leaderboardAvatar} 
+                        />
+                      )}
+                      <span className={styles.leaderboardName}>{entry.name}</span>
+                      {entry.id === user?.id && <span className={styles.leaderboardCurrentUser}>(You)</span>}
                     </div>
-                    {entry.avgQualityRating && (
+                    <div className={styles.leaderboardStats}>
                       <div className={styles.leaderboardStat}>
-                        <span className={styles.leaderboardStatValue}>{entry.avgQualityRating.toFixed(1)}</span>
-                        <span className={styles.leaderboardStatLabel}>Rating</span>
+                        <span className={styles.leaderboardStatValue}>{entry.tasksCompleted}</span>
+                        <span className={styles.leaderboardStatLabel}>Completed</span>
                       </div>
-                    )}
+                      {entry.avgQualityRating && (
+                        <div className={styles.leaderboardStat}>
+                          <span className={styles.leaderboardStatValue}>{entry.avgQualityRating.toFixed(1)}</span>
+                          <span className={styles.leaderboardStatLabel}>Rating</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </Board>
           
