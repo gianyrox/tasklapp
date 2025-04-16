@@ -456,25 +456,77 @@ export const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
     f.user_id === session.user.id ? f.friend_id : f.user_id
   );
   
-  // Get leaderboard data
-  const { data, error } = await supabase
-    .rpc('get_leaderboard');
+  // Get all users
+  const { data: users, error: usersError } = await supabase
+    .from('users')
+    .select('id, name, avatar_url');
     
-  if (error || !data) {
-    console.error('Error fetching leaderboard:', error);
+  if (usersError || !users) {
+    console.error('Error fetching users for leaderboard:', usersError);
     return [];
   }
   
-  return data.map((entry: any) => ({
-    id: entry.id,
-    name: entry.name,
-    avatarUrl: entry.avatar_url,
-    tasksCompleted: entry.tasks_completed,
-    avgCompletionTime: entry.avg_completion_time,
-    avgQualityRating: entry.avg_quality_rating,
-    tasksOverdue: entry.tasks_overdue,
-    isFriend: friendIds.includes(entry.id) || entry.id === session.user.id
-  }));
+  // Get tasks for calculations
+  const { data: tasks, error: tasksError } = await supabase
+    .from('tasks')
+    .select('id, status, assignee_id, actual_time_minutes, quality_rating, due_date');
+    
+  if (tasksError || !tasks) {
+    console.error('Error fetching tasks for leaderboard:', tasksError);
+    return [];
+  }
+  
+  // Calculate leaderboard data manually
+  const leaderboardData = users.map(user => {
+    // Get tasks assigned to this user
+    const userTasks = tasks.filter(task => task.assignee_id === user.id);
+    
+    // Calculate metrics
+    const tasksCompleted = userTasks.filter(task => task.status === 'COMPLETED').length;
+    
+    const completedTasksWithTime = userTasks.filter(
+      task => task.status === 'COMPLETED' && task.actual_time_minutes !== null
+    );
+    
+    const avgCompletionTime = completedTasksWithTime.length 
+      ? completedTasksWithTime.reduce((sum, task) => sum + (task.actual_time_minutes || 0), 0) / completedTasksWithTime.length
+      : undefined;
+    
+    const completedTasksWithRating = userTasks.filter(
+      task => task.status === 'COMPLETED' && task.quality_rating !== null
+    );
+    
+    const avgQualityRating = completedTasksWithRating.length
+      ? completedTasksWithRating.reduce((sum, task) => sum + (task.quality_rating || 0), 0) / completedTasksWithRating.length
+      : undefined;
+    
+    const tasksOverdue = userTasks.filter(task => 
+      task.status === 'OVERDUE' || 
+      (task.status !== 'COMPLETED' && new Date(task.due_date) < new Date())
+    ).length;
+    
+    return {
+      id: user.id,
+      name: user.name,
+      avatarUrl: user.avatar_url,
+      tasksCompleted,
+      avgCompletionTime,
+      avgQualityRating,
+      tasksOverdue,
+      isFriend: friendIds.includes(user.id) || user.id === session.user.id
+    };
+  });
+  
+  // Sort leaderboard by tasks completed and quality rating
+  return leaderboardData.sort((a, b) => {
+    if (a.tasksCompleted !== b.tasksCompleted) {
+      return b.tasksCompleted - a.tasksCompleted;
+    }
+    
+    const aRating = a.avgQualityRating || 0;
+    const bRating = b.avgQualityRating || 0;
+    return bRating - aRating;
+  });
 };
 
 // Helper functions
