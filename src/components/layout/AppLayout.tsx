@@ -58,7 +58,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                     Leaderboard
                   </Link>
                 </li>
-                <li className={styles.navItem}></li>
+                <li className={styles.navItem}>
+                  <Link 
+                    href="/task" 
+                    className={`${styles.navLink} ${pathname.startsWith('/task') ? styles.active : ''}`}
+                  >
+                    Tasks
+                  </Link>
+                </li>
               </ul>
             </nav>
           </div>
