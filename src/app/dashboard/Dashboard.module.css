@@ -518,7 +518,7 @@
 }
 
 .scrollableBoard {
-  max-height: 80vh; /* Increased from 65vh */
+  max-height: 85vh; /* Increased from 65vh */
   overflow-y: auto;
   padding-right: 5px; /* Add padding for scrollbar */
   
