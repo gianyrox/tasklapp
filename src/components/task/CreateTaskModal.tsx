@@ -136,7 +136,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
             </div>
             
             <div className={styles.formRow}>
-              <div className={styles.formGroup}>
+              <div className={styles.formGroup} style={{ flex: 2 }}>
                 <label htmlFor="dueDate" className={styles.label}>Due Date *</label>
                 <input
                   type="date"
@@ -148,6 +148,19 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 />
               </div>
               
+              <div className={styles.formGroup} style={{ flex: 1 }}>
+                <label htmlFor="dueTime" className={styles.label}>Time</label>
+                <input
+                  type="time"
+                  id="dueTime"
+                  value={dueTime || getCurrentTime()}
+                  onChange={(e) => setDueTime(e.target.value)}
+                  className={styles.input}
+                />
+              </div>
+            </div>
+            
+            <div className={styles.formRow}>
               <div className={styles.formGroup}>
                 <label htmlFor="priority" className={styles.label}>Priority</label>
                 <select
@@ -162,19 +175,19 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                   <option value={TaskPriority.URGENT}>Urgent</option>
                 </select>
               </div>
-            </div>
-            
-            <div className={styles.formGroup}>
-              <label htmlFor="estimatedTime" className={styles.label}>Estimated Time (minutes)</label>
-              <input
-                type="number"
-                id="estimatedTime"
-                value={estimatedTimeMinutes || ''}
-                onChange={(e) => setEstimatedTimeMinutes(e.target.value ? parseInt(e.target.value) : undefined)}
-                min="1"
-                className={styles.input}
-                placeholder="e.g. 30"
-              />
+              
+              <div className={styles.formGroup}>
+                <label htmlFor="estimatedTime" className={styles.label}>Estimated Time (minutes)</label>
+                <input
+                  type="number"
+                  id="estimatedTime"
+                  value={estimatedTimeMinutes || ''}
+                  onChange={(e) => setEstimatedTimeMinutes(e.target.value ? parseInt(e.target.value) : undefined)}
+                  min="1"
+                  className={styles.input}
+                  placeholder="e.g. 30"
+                />
+              </div>
             </div>
             
             <div className={styles.formGroup}>
