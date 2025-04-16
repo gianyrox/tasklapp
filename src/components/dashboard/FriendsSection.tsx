@@ -22,6 +22,14 @@ const FriendsSection: React.FC<FriendsSectionProps> = ({
   onAddTaskToFriend,
   onFindFriends
 }) => {
+  // Debug code to check if friend tasks are loaded
+  React.useEffect(() => {
+    console.log('Friends section rendered with:', {
+      friendsCount: friends.length,
+      friendTasksObject: friendTasks,
+    });
+  }, [friends, friendTasks]);
+
   return (
     <div className={styles.friendsSection}>
       <div className={styles.sectionHeader}>
@@ -68,7 +76,7 @@ const FriendsSection: React.FC<FriendsSectionProps> = ({
                 </div>
                 
                 <div className={styles.taskPreview}>
-                  {tasks.length > 0 ? (
+                  {tasks && tasks.length > 0 ? (
                     <>
                       <h4 className={styles.taskPreviewTitle}>
                         Recent Tasks ({tasks.length})
@@ -77,7 +85,7 @@ const FriendsSection: React.FC<FriendsSectionProps> = ({
                         <TaskList 
                           tasks={tasks.slice(0, 3)} 
                           onStatusChange={onStatusChange}
-                          compact={true}
+                          showDetails={false}
                         />
                       </div>
                       {tasks.length > 3 && (
@@ -88,7 +96,7 @@ const FriendsSection: React.FC<FriendsSectionProps> = ({
                     </>
                   ) : (
                     <div className={styles.emptyTaskState}>
-                      <p>No tasks yet</p>
+                      <p>No tasks assigned yet</p>
                     </div>
                   )}
                 </div>
