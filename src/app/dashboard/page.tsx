@@ -443,50 +443,84 @@ const DashboardPage: React.FC = () => {
               </Board>
             </div>
 
-            {/* Column 2: Task Analytics Placeholder */}
+            {/* Column 2: Task Submission Review */}
             <div className={styles.taskColumn}>
-              <h2 className={styles.taskColumnTitle}>Task Overview</h2>
+              <h2 className={styles.taskColumnTitle}>Task Submission Review</h2>
               <Board 
-                title="Task Analytics" 
+                title="Review Completed Tasks" 
                 isLoading={isLoading}
                 className={styles.taskColumnBoard}
                 emptyState={
                   <div className={styles.emptyState}>
-                    <p>Complete tasks to see analytics</p>
+                    <p>No completed tasks to review yet</p>
                   </div>
                 }
               >
                 <div className={styles.scrollableBoard}>
                   <div className={styles.analyticsPlaceholder}>
-                    <div className={styles.analyticsCard}>
-                      <h3>Task Completion Rate</h3>
-                      <div className={styles.analyticValue}>
-                        {myTasks.length > 0 
-                          ? `${Math.round((myTasks.filter(t => t.status === TaskStatus.COMPLETED).length / myTasks.length) * 100)}%` 
-                          : 'N/A'}
+                    {tasksAssignedToOthers
+                      .filter(task => task.status === TaskStatus.COMPLETED && !task.qualityRating)
+                      .map(task => (
+                        <div key={task.id} className={styles.reviewTask}>
+                          <div className={styles.reviewTaskHeader}>
+                            <h3>{task.title}</h3>
+                            <span className={styles.taskAssignee}>
+                              {task.assignee?.name}
+                            </span>
+                          </div>
+                          <div className={styles.reviewTaskDetails}>
+                            <p>{task.description}</p>
+                            <div className={styles.reviewTaskMeta}>
+                              <div>
+                                <span className={styles.reviewTaskLabel}>Completed:</span>
+                                <span>{task.completedAt ? new Date(task.completedAt).toLocaleDateString() : 'Unknown'}</span>
+                              </div>
+                              <div>
+                                <span className={styles.reviewTaskLabel}>Due Date:</span>
+                                <span>{new Date(task.dueDate).toLocaleDateString()}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className={styles.reviewTaskActions}>
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              onClick={() => router.push(`/task/${task.id}`)}
+                            >
+                              Review & Grade
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+
+                    {tasksAssignedToOthers.filter(task => task.status === TaskStatus.COMPLETED && !task.qualityRating).length === 0 && (
+                      <div className={styles.emptyReviewState}>
+                        <p>No tasks waiting for review</p>
+                        <p className={styles.reviewSubtext}>Completed tasks assigned by you will appear here for review</p>
                       </div>
-                    </div>
-                    
-                    <div className={styles.analyticsCard}>
-                      <h3>Upcoming Deadlines</h3>
-                      <div className={styles.upcomingTasks}>
-                        {myTasks
-                          .filter(t => t.status !== TaskStatus.COMPLETED && new Date(t.dueDate) > new Date())
-                          .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+                    )}
+
+                    {/* Recently Graded Tasks */}
+                    {tasksAssignedToOthers.filter(task => task.status === TaskStatus.COMPLETED && task.qualityRating).length > 0 && (
+                      <div className={styles.gradedTasksSection}>
+                        <h3 className={styles.gradedTasksTitle}>Recently Graded</h3>
+                        {tasksAssignedToOthers
+                          .filter(task => task.status === TaskStatus.COMPLETED && task.qualityRating)
                           .slice(0, 3)
                           .map(task => (
-                            <div key={task.id} className={styles.upcomingTask}>
-                              <div className={styles.upcomingTaskTitle}>{task.title}</div>
-                              <div className={styles.upcomingTaskDate}>
-                                Due: {new Date(task.dueDate).toLocaleDateString()}
+                            <div key={task.id} className={styles.gradedTask}>
+                              <div className={styles.gradedTaskTitle}>{task.title}</div>
+                              <div className={styles.gradedTaskDetails}>
+                                <span className={styles.gradedTaskAssignee}>{task.assignee?.name}</span>
+                                <div className={styles.gradedTaskRating}>
+                                  <span className={styles.gradedTaskLabel}>Rating:</span>
+                                  <span className={styles.gradedTaskValue}>{task.qualityRating}/5</span>
+                                </div>
                               </div>
                             </div>
                           ))}
-                        {myTasks.filter(t => t.status !== TaskStatus.COMPLETED && new Date(t.dueDate) > new Date()).length === 0 && (
-                          <div className={styles.noTasks}>No upcoming deadlines</div>
-                        )}
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </Board>
