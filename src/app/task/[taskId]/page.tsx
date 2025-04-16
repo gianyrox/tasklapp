@@ -124,6 +124,8 @@ const TaskDetailPage: React.FC = () => {
       <ProtectedRoute>
         <AppLayout>
           <div className={styles.container}>
+            <BackButton route="/task" />
+            
             <div className={styles.errorMessage}>
               <p>{error}</p>
               <Button variant="primary" onClick={fetchTaskData}>
@@ -141,9 +143,10 @@ const TaskDetailPage: React.FC = () => {
       <ProtectedRoute>
         <AppLayout>
           <div className={styles.container}>
+            <BackButton route="/task" />
+            
             <div className={styles.errorMessage}>
               <p>Task not found</p>
-              <BackButton route="/task" />
             </div>
           </div>
         </AppLayout>
