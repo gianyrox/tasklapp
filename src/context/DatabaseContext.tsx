@@ -128,14 +128,22 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     
     try {
       const tasksFromMe = await getUserTasks(user.id, 'assigned');
+      console.log('Tasks assigned by me:', tasksFromMe.length);
+      
       const tasksForMe = await getUserTasks(user.id, 'received');
+      console.log('Tasks assigned to me:', tasksForMe.length);
+      
       const friendTasks = await getTasksFromFriends();
+      console.log('Tasks from friends:', friendTasks.length);
       
       // Combine all tasks and remove duplicates
       const allTasks = [...tasksFromMe, ...tasksForMe, ...friendTasks];
       const uniqueTasks = allTasks.filter((task, index, self) => 
         index === self.findIndex(t => t.id === task.id)
       );
+      
+      console.log('Total unique tasks:', uniqueTasks.length);
+      console.log('Task statuses:', uniqueTasks.map(t => t.status));
       
       setTasks(uniqueTasks);
     } catch (error) {
@@ -167,10 +175,14 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     
     try {
       const allFriendships = await getFriendships();
+      console.log('Friendships loaded:', allFriendships);
       
       // Separate accepted friendships and pending requests
       const accepted = allFriendships.filter(f => f.status === FriendshipStatus.ACCEPTED);
       const pending = allFriendships.filter(f => f.status === FriendshipStatus.PENDING);
+      
+      console.log('Accepted friendships:', accepted.length);
+      console.log('Pending friendships:', pending.length);
       
       setFriendships(accepted);
       setFriendRequests(pending);
