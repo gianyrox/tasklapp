@@ -21,6 +21,9 @@ const TaskDetailPage: React.FC = () => {
   
   // States for task grading
   const [qualityRating, setQualityRating] = useState<number>(0);
+  const [timelinessRating, setTimelinessRating] = useState<number>(0);
+  const [effortRating, setEffortRating] = useState<number>(0);
+  const [accuracyRating, setAccuracyRating] = useState<number>(0);
   const [feedback, setFeedback] = useState<string>('');
   const [showGradingSection, setShowGradingSection] = useState(false);
 
@@ -69,6 +72,9 @@ const TaskDetailPage: React.FC = () => {
     try {
       await updateTaskStatus(task.id, TaskStatus.COMPLETED, {
         qualityRating: qualityRating,
+        timelinessRating: timelinessRating,
+        effortRating: effortRating,
+        accuracyRating: accuracyRating,
         feedback: feedback
       });
       // Refresh task data and hide grading section
@@ -83,14 +89,14 @@ const TaskDetailPage: React.FC = () => {
   };
   
   // Render star rating component
-  const renderRatingStars = () => {
+  const renderRatingStars = (rating: number, setRating: (rating: number) => void) => {
     return (
       <div className={styles.ratingStars}>
         {[1, 2, 3, 4, 5].map(star => (
           <span
             key={star}
-            className={`${styles.ratingStar} ${star <= qualityRating ? styles.ratingStarFilled : ''}`}
-            onClick={() => setQualityRating(star)}
+            className={`${styles.ratingStar} ${star <= rating ? styles.ratingStarFilled : ''}`}
+            onClick={() => setRating(star)}
           >
             ★
           </span>
@@ -218,6 +224,27 @@ const TaskDetailPage: React.FC = () => {
                     </div>
                   )}
                   
+                  {task.timelinessRating && (
+                    <div className={styles.detailItem}>
+                      <span className={styles.detailLabel}>Timeliness Rating</span>
+                      <span className={styles.detailValue}>{task.timelinessRating}/5</span>
+                    </div>
+                  )}
+                  
+                  {task.effortRating && (
+                    <div className={styles.detailItem}>
+                      <span className={styles.detailLabel}>Effort Rating</span>
+                      <span className={styles.detailValue}>{task.effortRating}/5</span>
+                    </div>
+                  )}
+                  
+                  {task.accuracyRating && (
+                    <div className={styles.detailItem}>
+                      <span className={styles.detailLabel}>Accuracy Rating</span>
+                      <span className={styles.detailValue}>{task.accuracyRating}/5</span>
+                    </div>
+                  )}
+                  
                   {task.feedback && (
                     <div className={styles.feedbackDetail}>
                       <span className={styles.detailLabel}>Feedback</span>
@@ -269,7 +296,26 @@ const TaskDetailPage: React.FC = () => {
                     <div className={styles.gradingForm}>
                       <div className={styles.gradingField}>
                         <label className={styles.gradingLabel}>Quality Rating:</label>
-                        {renderRatingStars()}
+                        {renderRatingStars(qualityRating, setQualityRating)}
+                        <p className={styles.ratingDescription}>Rate the overall quality of work</p>
+                      </div>
+                      
+                      <div className={styles.gradingField}>
+                        <label className={styles.gradingLabel}>Timeliness Rating:</label>
+                        {renderRatingStars(timelinessRating, setTimelinessRating)}
+                        <p className={styles.ratingDescription}>Rate how promptly the task was completed</p>
+                      </div>
+                      
+                      <div className={styles.gradingField}>
+                        <label className={styles.gradingLabel}>Effort Rating:</label>
+                        {renderRatingStars(effortRating, setEffortRating)}
+                        <p className={styles.ratingDescription}>Rate the level of effort demonstrated</p>
+                      </div>
+                      
+                      <div className={styles.gradingField}>
+                        <label className={styles.gradingLabel}>Accuracy Rating:</label>
+                        {renderRatingStars(accuracyRating, setAccuracyRating)}
+                        <p className={styles.ratingDescription}>Rate how accurately requirements were met</p>
                       </div>
                       
                       <div className={styles.gradingField}>

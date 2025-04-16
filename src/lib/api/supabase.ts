@@ -399,6 +399,9 @@ export const updateTaskStatus = async (
     completedAt?: Date;
     actualTimeMinutes?: number;
     qualityRating?: number;
+    timelinessRating?: number;
+    effortRating?: number;
+    accuracyRating?: number;
     feedback?: string;
   }
 ): Promise<Task | null> => {
@@ -415,6 +418,18 @@ export const updateTaskStatus = async (
   
   if (metadata?.qualityRating) {
     updateData.quality_rating = metadata.qualityRating;
+  }
+  
+  if (metadata?.timelinessRating) {
+    updateData.timeliness_rating = metadata.timelinessRating;
+  }
+  
+  if (metadata?.effortRating) {
+    updateData.effort_rating = metadata.effortRating;
+  }
+  
+  if (metadata?.accuracyRating) {
+    updateData.accuracy_rating = metadata.accuracyRating;
   }
   
   if (metadata?.feedback) {
