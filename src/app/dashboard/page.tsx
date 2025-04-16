@@ -341,8 +341,22 @@ const DashboardPage: React.FC = () => {
             >
               <div className={styles.scrollableBoard}>
                 <div className={styles.leaderboardPreview}>
-                  {leaderboard.map((entry: any) => (
-                    <div key={entry.id} className={`${styles.leaderboardEntry} ${entry.id === user?.id ? styles.currentUser : ''} ${entry.isFriend ? styles.friendUser : ''}`}>
+                  {leaderboard.map((entry: any, index) => (
+                    <div 
+                      key={entry.id} 
+                      className={`${styles.leaderboardEntry} ${entry.id === user?.id ? styles.currentUser : ''} ${entry.isFriend ? styles.friendUser : ''}`}
+                      onClick={() => router.push(`/user/${entry.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <div className={styles.leaderboardRank}>
+                        {index < 3 ? (
+                          <span className={`${index === 0 ? styles.gold : index === 1 ? styles.silver : styles.bronze}Medal`}>
+                            {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
+                          </span>
+                        ) : (
+                          <span className={styles.rankNumber}>{index + 1}</span>
+                        )}
+                      </div>
                       <div className={styles.leaderboardUser}>
                         {entry.avatarUrl ? (
                           <div className={styles.avatarContainer}>
@@ -351,21 +365,21 @@ const DashboardPage: React.FC = () => {
                               alt={entry.name} 
                               className={styles.leaderboardAvatar} 
                             />
-                            <span className={styles.avatarRank}>{entry.rank}</span>
                           </div>
                         ) : (
                           <div className={styles.leaderboardAvatarPlaceholder}>
-                            <span className={styles.avatarRank}>{entry.rank}</span>
                             {entry.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()}
                           </div>
                         )}
-                        <span className={styles.leaderboardName}>{entry.name}</span>
-                        {entry.id === user?.id && <span className={styles.leaderboardCurrentUser}>(You)</span>}
+                        <span className={styles.leaderboardName}>
+                          {entry.name}
+                          {entry.id === user?.id && <span className={styles.leaderboardCurrentUser}>(You)</span>}
+                        </span>
                       </div>
                       <div className={styles.leaderboardStats}>
                         <div className={styles.leaderboardStat}>
                           <span className={styles.leaderboardStatValue}>{entry.tasksCompleted}</span>
-                          <span className={styles.leaderboardStatLabel}>Completed</span>
+                          <span className={styles.leaderboardStatLabel}>Tasks</span>
                         </div>
                         {entry.avgQualityRating && (
                           <div className={styles.leaderboardStat}>
@@ -378,15 +392,15 @@ const DashboardPage: React.FC = () => {
                             <span className={styles.leaderboardStatValue}>
                               {entry.avgCompletionTime < 60 
                                 ? `${entry.avgCompletionTime}m` 
-                                : `${Math.floor(entry.avgCompletionTime/60)}h ${entry.avgCompletionTime%60}m`}
+                                : `${Math.floor(entry.avgCompletionTime/60)}h`}
                             </span>
-                            <span className={styles.leaderboardStatLabel}>Avg Time</span>
+                            <span className={styles.leaderboardStatLabel}>Time</span>
                           </div>
                         )}
                         {entry.tasksOverdue > 0 && (
                           <div className={styles.leaderboardStat}>
                             <span className={styles.leaderboardStatValue}>{entry.tasksOverdue}</span>
-                            <span className={styles.leaderboardStatLabel}>Overdue</span>
+                            <span className={styles.leaderboardStatLabel}>Due</span>
                           </div>
                         )}
                       </div>

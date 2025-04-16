@@ -171,6 +171,7 @@
   font-weight: 600;
   color: white;
   border-bottom: 1px solid #eee;
+  gap: 0.5rem;
 }
 
 .tableRow {
@@ -178,8 +179,9 @@
   align-items: center;
   padding: 1rem;
   border-bottom: 1px solid #eee;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.2s ease;
   position: relative;
+  gap: 0.5rem;
 }
 
 .tableRow:last-child {
@@ -188,6 +190,13 @@
 
 .tableRow:hover {
   background-color: #f9f9f9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Hide action column since rows are now clickable */
+.actionColumn {
+  display: none;
 }
 
 /* Style top 3 positions */
@@ -253,11 +262,6 @@
 .miniStatValue {
   font-weight: 600;
   color: #4338ca;
-}
-
-.actionColumn {
-  width: 120px;
-  text-align: right;
 }
 
 .goldMedal, .silverMedal, .bronzeMedal {
@@ -443,10 +447,6 @@
   
   .extendedStatsColumn {
     display: none;
-  }
-  
-  .actionColumn {
-    width: 30px;
   }
   
   .cardHeader {

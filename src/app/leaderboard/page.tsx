@@ -199,28 +199,32 @@ const LeaderboardPage: React.FC = () => {
                     {activeLeaderboard === 'speed-demons' && 'Performance'}
                     {activeLeaderboard === 'consistency' && 'Quality Metrics'}
                   </div>
-                  <div className={styles.actionColumn}></div>
                 </div>
                 
                 {entries.map((entry, index) => (
                   <div 
                     key={entry.id} 
                     className={`${styles.tableRow} ${entry.id === user?.id ? styles.currentUser : ''}`}
+                    onClick={() => handleViewDetails(entry.id)}
+                    style={{ cursor: 'pointer' }}
                   >
                     <div className={styles.rankColumn}>
-                      {index === 0 && <span className={styles.goldMedal}>🥇</span>}
-                      {index === 1 && <span className={styles.silverMedal}>🥈</span>}
-                      {index === 2 && <span className={styles.bronzeMedal}>🥉</span>}
-                      {index > 2 && <span className={styles.rank}>#{index + 1}</span>}
+                      {index < 3 ? (
+                        index === 0 ? (
+                          <span className={styles.goldMedal}>🥇</span>
+                        ) : index === 1 ? (
+                          <span className={styles.silverMedal}>🥈</span>
+                        ) : (
+                          <span className={styles.bronzeMedal}>🥉</span>
+                        )
+                      ) : (
+                        <div className={styles.rank}>{index + 1}</div>
+                      )}
                     </div>
                     <div className={styles.userColumn}>
                       <div className={styles.userAvatarContainer}>
                         {entry.avatarUrl ? (
-                          <img 
-                            src={entry.avatarUrl} 
-                            alt={entry.name} 
-                            className={styles.userAvatar} 
-                          />
+                          <img src={entry.avatarUrl} alt={entry.name} className={styles.userAvatar} />
                         ) : (
                           <div className={styles.userAvatarPlaceholder}>
                             {getUserInitials(entry.name)}
@@ -228,68 +232,67 @@ const LeaderboardPage: React.FC = () => {
                         )}
                       </div>
                       <div className={styles.userInfo}>
-                        <h4 className={styles.userName}>
+                        <div className={styles.userName}>
                           {entry.name}
-                          {entry.isFriend && <span className={styles.friendBadge}>Friend</span>}
                           {entry.id === user?.id && <span className={styles.youBadge}>You</span>}
-                        </h4>
+                          {entry.isFriend && <span className={styles.friendBadge}>Friend</span>}
+                        </div>
                       </div>
                     </div>
                     <div className={styles.statsColumn}>
-                      {activeLeaderboard === 'tasks-completed' && (
-                        <div className={styles.statValue}>{entry.tasksCompleted}</div>
-                      )}
-                      {activeLeaderboard === 'quality-rating' && (
-                        <div className={styles.statValue}>{formatRating(entry.avgQualityRating)}</div>
-                      )}
-                      {activeLeaderboard === 'speed-demons' && (
-                        <div className={styles.statValue}>{formatTime(entry.avgCompletionTime)}</div>
-                      )}
-                      {activeLeaderboard === 'consistency' && (
-                        <div className={styles.statValue}>{entry.tasksOverdue}</div>
-                      )}
+                      {activeLeaderboard === 'tasks-completed' && <span className={styles.statValue}>{entry.tasksCompleted}</span>}
+                      {activeLeaderboard === 'quality-rating' && <span className={styles.statValue}>{formatRating(entry.avgQualityRating)}</span>}
+                      {activeLeaderboard === 'speed-demons' && <span className={styles.statValue}>{formatTime(entry.avgCompletionTime)}</span>}
+                      {activeLeaderboard === 'consistency' && <span className={styles.statValue}>{entry.tasksOverdue}</span>}
                     </div>
                     <div className={styles.extendedStatsColumn}>
-                      {activeLeaderboard === 'tasks-completed' && entry.avgQualityRating && (
-                        <div className={styles.miniStat}>
-                          <span className={styles.miniStatLabel}>Quality:</span>
-                          <span className={styles.miniStatValue}>{formatRating(entry.avgQualityRating)}</span>
-                        </div>
+                      {activeLeaderboard === 'tasks-completed' && (
+                        <>
+                          <div className={styles.miniStat}>
+                            <span className={styles.miniStatLabel}>Quality</span>
+                            <span className={styles.miniStatValue}>{formatRating(entry.avgQualityRating)}</span>
+                          </div>
+                          <div className={styles.miniStat}>
+                            <span className={styles.miniStatLabel}>Avg. Time</span>
+                            <span className={styles.miniStatValue}>{formatTime(entry.avgCompletionTime)}</span>
+                          </div>
+                        </>
                       )}
-                      {activeLeaderboard === 'quality-rating' && entry.avgTimelinessRating && (
-                        <div className={styles.miniStat}>
-                          <span className={styles.miniStatLabel}>Timeliness:</span>
-                          <span className={styles.miniStatValue}>{formatRating(entry.avgTimelinessRating)}</span>
-                        </div>
-                      )}
-                      {activeLeaderboard === 'quality-rating' && entry.avgEffortRating && (
-                        <div className={styles.miniStat}>
-                          <span className={styles.miniStatLabel}>Effort:</span>
-                          <span className={styles.miniStatValue}>{formatRating(entry.avgEffortRating)}</span>
-                        </div>
+                      {activeLeaderboard === 'quality-rating' && (
+                        <>
+                          <div className={styles.miniStat}>
+                            <span className={styles.miniStatLabel}>Tasks</span>
+                            <span className={styles.miniStatValue}>{entry.tasksCompleted}</span>
+                          </div>
+                          <div className={styles.miniStat}>
+                            <span className={styles.miniStatLabel}>5★ Tasks</span>
+                            <span className={styles.miniStatValue}>{entry.perfectTasks || 0}</span>
+                          </div>
+                        </>
                       )}
                       {activeLeaderboard === 'speed-demons' && (
-                        <div className={styles.miniStat}>
-                          <span className={styles.miniStatLabel}>Tasks:</span>
-                          <span className={styles.miniStatValue}>{entry.tasksCompleted}</span>
-                        </div>
+                        <>
+                          <div className={styles.miniStat}>
+                            <span className={styles.miniStatLabel}>Tasks</span>
+                            <span className={styles.miniStatValue}>{entry.tasksCompleted}</span>
+                          </div>
+                          <div className={styles.miniStat}>
+                            <span className={styles.miniStatLabel}>Fastest</span>
+                            <span className={styles.miniStatValue}>{formatTime(entry.fastestCompletionTime || entry.avgCompletionTime)}</span>
+                          </div>
+                        </>
                       )}
-                      {activeLeaderboard === 'consistency' && entry.avgQualityRating && (
-                        <div className={styles.miniStat}>
-                          <span className={styles.miniStatLabel}>Quality:</span>
-                          <span className={styles.miniStatValue}>{formatRating(entry.avgQualityRating)}</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className={styles.actionColumn}>
-                      {entry.id !== user?.id && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => router.push(`/user/${entry.id}`)}
-                        >
-                          View Profile
-                        </Button>
+                      {activeLeaderboard === 'consistency' && (
+                        <>
+                          <div className={styles.miniStat}>
+                            <span className={styles.miniStatLabel}>Tasks</span>
+                            <span className={styles.miniStatValue}>{entry.tasksCompleted}</span>
+                          </div>
+                          <div className={styles.miniStat}>
+                            <span className={styles.miniStatLabel}>On Time</span>
+                            <span className={styles.miniStatValue}>{entry.tasksOnTime || (entry.tasksCompleted - entry.tasksOverdue)}</span>
+                          </div>
+                        </>
                       )}
                     </div>
                   </div>
