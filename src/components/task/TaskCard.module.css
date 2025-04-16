@@ -237,4 +237,84 @@
 
 .detailsButton {
   margin-left: auto;
+}
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  .taskCard {
+    padding: var(--spacing-sm);
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .title {
+    font-size: var(--font-size-md);
+    margin-bottom: var(--spacing-xs);
+    width: 100%;
+  }
+  
+  .status {
+    margin-top: var(--spacing-xs);
+    font-size: 0.7rem;
+    align-self: flex-start;
+  }
+  
+  .dates {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+  
+  .dateItem {
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .actions button {
+    width: 100%;
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .detailsButton {
+    margin-left: 0;
+  }
+  
+  .assignerInfo {
+    padding: 6px 8px;
+  }
+  
+  .assignerAvatar {
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+  }
+  
+  .description {
+    padding: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .taskCard {
+    padding: 10px;
+    margin-bottom: 12px;
+  }
+  
+  .title {
+    font-size: 1rem;
+  }
+  
+  .assignerName {
+    font-size: 0.8rem;
+  }
+  
+  .description p {
+    font-size: 0.9rem;
+  }
 } 
