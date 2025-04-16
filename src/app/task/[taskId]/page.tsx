@@ -7,6 +7,7 @@ import { Task, TaskStatus } from '../../../types';
 import ProtectedRoute from '../../../components/layout/ProtectedRoute';
 import { useAuth } from '../../../context/AuthContext';
 import Button from '../../../components/ui/Button';
+import BackButton from '../../../components/ui/BackButton';
 import { getTaskById, updateTaskStatus } from '../../../lib/api/supabase';
 import styles from './TaskDetail.module.css';
 
@@ -180,13 +181,7 @@ const TaskDetailPage: React.FC = () => {
           </div>
 
           <div className={styles.actions}>
-            <Button
-              variant="secondary"
-              onClick={() => router.back()}
-              className={styles.backButton}
-            >
-              ← Back
-            </Button>
+            <BackButton />
             
             {canUpdate && (
               <div className={styles.statusButtons}>
