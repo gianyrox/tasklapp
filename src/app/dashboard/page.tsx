@@ -336,13 +336,13 @@ const DashboardPage: React.FC = () => {
             ))}
           </div>
 
-          {/* Three-column Task Layout */}
+          {/* Two-column Task Layout */}
           <div className={styles.tasksColumnsContainer}>
-            {/* Column 1: My Tasks */}
+            {/* Column 1: Combined My Tasks and Friends' Tasks */}
             <div className={styles.taskColumn}>
               <h2 className={styles.taskColumnTitle}>My Tasks</h2>
               <Board 
-                title="Tasks I Created" 
+                title="All My Tasks" 
                 isLoading={isLoading}
                 className={styles.taskColumnBoard}
                 emptyState={
@@ -362,101 +362,83 @@ const DashboardPage: React.FC = () => {
               >
                 <div className={styles.scrollableBoard}>
                   <div>
-                    <TaskList tasks={selfAssignedTasks} onStatusChange={handleStatusChange} showDetails={true} ownership="self" />
+                    {/* Tasks I created for myself */}
                     {selfAssignedTasks.length > 0 && (
-                      <div 
-                        className={styles.addTaskCard}
-                        onClick={() => handleAddTask()}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-                        </svg>
-                        Add New Task
+                      <div className={styles.taskSection}>
+                        <h3 className={styles.taskSectionTitle}>Tasks I Created</h3>
+                        <TaskList tasks={selfAssignedTasks} onStatusChange={handleStatusChange} showDetails={true} ownership="self" />
                       </div>
                     )}
+                    
+                    {/* Tasks assigned to me by friends */}
+                    {tasksFromFriends.length > 0 && (
+                      <div className={styles.taskSection}>
+                        <h3 className={styles.taskSectionTitle}>Tasks From Friends</h3>
+                        <TaskList tasks={tasksFromFriends} onStatusChange={handleStatusChange} showDetails={true} ownership="self" />
+                      </div>
+                    )}
+                    
+                    {/* Add Task card */}
+                    <div 
+                      className={styles.addTaskCard}
+                      onClick={() => handleAddTask()}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                      </svg>
+                      Add New Task
+                    </div>
                   </div>
                 </div>
               </Board>
             </div>
 
-            {/* Column 2: Tasks Assigned to Me by Friends */}
+            {/* Column 2: Leaderboard */}
             <div className={styles.taskColumn}>
-              <h2 className={styles.taskColumnTitle}>Friends' Assigned Tasks</h2>
+              <h2 className={styles.taskColumnTitle}>Leaderboard</h2>
               <Board 
-                title="Tasks Assigned to Me" 
+                title="Top Performers" 
                 isLoading={isLoading}
-                className={styles.taskColumnBoard}
+                className={`${styles.taskColumnBoard} ${styles.leaderboardBoard}`}
+                actionButton={
+                  <Button size="sm" variant="outline" onClick={() => router.push('/leaderboard')}>View All Leaderboards</Button>
+                }
                 emptyState={
-                  <div className={styles.emptyState}>
-                    <p>No friends have assigned you tasks yet</p>
-                    {friends.length === 0 && (
-                      <Button size="sm" variant="primary" onClick={handleFindFriends}>
-                        Find Friends
-                      </Button>
-                    )}
+                  <div className={styles.leaderboardEmptyState}>
+                    <p>Complete tasks to appear on the leaderboard!</p>
                   </div>
                 }
               >
                 <div className={styles.scrollableBoard}>
-                  <TaskList tasks={tasksFromFriends} onStatusChange={handleStatusChange} showDetails={true} ownership="self" />
-                </div>
-              </Board>
-            </div>
-
-            {/* Column 3: Tasks I Assigned to Others */}
-            <div className={styles.taskColumn}>
-              <h2 className={styles.taskColumnTitle}>Tasks Assigned to Others</h2>
-              <Board 
-                title="Tasks I Delegated" 
-                isLoading={isLoading}
-                className={styles.taskColumnBoard}
-                emptyState={
-                  <div className={styles.emptyState}>
-                    <p>You haven't assigned tasks to anyone yet</p>
-                    {friends.length === 0 ? (
-                      <Button size="sm" variant="primary" onClick={handleFindFriends}>
-                        Find Friends First
-                      </Button>
-                    ) : (
-                      <div 
-                        className={styles.addTaskCard}
-                        onClick={() => {
-                          const friendId = friends[0].userId === user?.id ? friends[0].friendId : friends[0].userId;
-                          const friendName = friends[0].friend?.name || 'Friend';
-                          handleAddTaskToFriend(friendId, friendName);
-                        }}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-                        </svg>
-                        Assign New Task
+                  <div className={styles.leaderboardPreview}>
+                    {leaderboard.slice(0, 5).map((entry: any) => (
+                      <div key={entry.id} className={`${styles.leaderboardEntry} ${entry.id === user?.id ? styles.currentUser : ''} ${entry.isFriend ? styles.friendUser : ''}`}>
+                        <div className={styles.leaderboardRank}>{entry.rank}</div>
+                        <div className={styles.leaderboardUser}>
+                          {entry.avatarUrl && (
+                            <img 
+                              src={entry.avatarUrl} 
+                              alt={entry.name} 
+                              className={styles.leaderboardAvatar} 
+                            />
+                          )}
+                          <span className={styles.leaderboardName}>{entry.name}</span>
+                          {entry.id === user?.id && <span className={styles.leaderboardCurrentUser}>(You)</span>}
+                        </div>
+                        <div className={styles.leaderboardStats}>
+                          <div className={styles.leaderboardStat}>
+                            <span className={styles.leaderboardStatValue}>{entry.tasksCompleted}</span>
+                            <span className={styles.leaderboardStatLabel}>Completed</span>
+                          </div>
+                          {entry.avgQualityRating && (
+                            <div className={styles.leaderboardStat}>
+                              <span className={styles.leaderboardStatValue}>{entry.avgQualityRating.toFixed(1)}</span>
+                              <span className={styles.leaderboardStatLabel}>Rating</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </div>
-                }
-              >
-                <div className={styles.scrollableBoard}>
-                  <div>
-                    <TaskList tasks={tasksAssignedToOthers} showDetails={false} ownership="friend" />
-                    {tasksAssignedToOthers.length > 0 && friends.length > 0 && (
-                      <div 
-                        className={styles.addTaskCard}
-                        onClick={() => {
-                          if (friends.length > 0) {
-                            const friendId = friends[0].userId === user?.id ? friends[0].friendId : friends[0].userId;
-                            const friendName = friends[0].friend?.name || 'Friend';
-                            handleAddTaskToFriend(friendId, friendName);
-                          } else {
-                            handleFindFriends();
-                          }
-                        }}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-                        </svg>
-                        Assign New Task
-                      </div>
-                    )}
+                    ))}
                   </div>
                 </div>
               </Board>
@@ -528,54 +510,6 @@ const DashboardPage: React.FC = () => {
             )}
           </div>
 
-          {/* Leaderboard */}
-          <Board 
-            title="Leaderboard" 
-            isLoading={isLoading}
-            className={styles.leaderboardBoard}
-            actionButton={
-              <Button size="sm" variant="outline" onClick={() => router.push('/leaderboard')}>View All Leaderboards</Button>
-            }
-            emptyState={
-              <div className={styles.leaderboardEmptyState}>
-                <p>Complete tasks to appear on the leaderboard!</p>
-              </div>
-            }
-          >
-            <div className={styles.scrollableBoard}>
-              <div className={styles.leaderboardPreview}>
-                {leaderboard.slice(0, 5).map((entry: any) => (
-                  <div key={entry.id} className={`${styles.leaderboardEntry} ${entry.id === user?.id ? styles.currentUser : ''} ${entry.isFriend ? styles.friendUser : ''}`}>
-                    <div className={styles.leaderboardRank}>{entry.rank}</div>
-                    <div className={styles.leaderboardUser}>
-                      {entry.avatarUrl && (
-                        <img 
-                          src={entry.avatarUrl} 
-                          alt={entry.name} 
-                          className={styles.leaderboardAvatar} 
-                        />
-                      )}
-                      <span className={styles.leaderboardName}>{entry.name}</span>
-                      {entry.id === user?.id && <span className={styles.leaderboardCurrentUser}>(You)</span>}
-                    </div>
-                    <div className={styles.leaderboardStats}>
-                      <div className={styles.leaderboardStat}>
-                        <span className={styles.leaderboardStatValue}>{entry.tasksCompleted}</span>
-                        <span className={styles.leaderboardStatLabel}>Completed</span>
-                      </div>
-                      {entry.avgQualityRating && (
-                        <div className={styles.leaderboardStat}>
-                          <span className={styles.leaderboardStatValue}>{entry.avgQualityRating.toFixed(1)}</span>
-                          <span className={styles.leaderboardStatLabel}>Rating</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Board>
-          
           {/* Task Creation Modal */}
           {showCreateTaskModal && (
             <CreateTaskModal
