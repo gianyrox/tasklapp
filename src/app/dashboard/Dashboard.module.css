@@ -406,7 +406,7 @@
 }
 
 /* Fix for 400-700px range */
-@media (max-width: 7px) {
+@media (max-width: 768px) {
   .leaderboardEntry {
     flex-direction: column;
     padding: 1rem;
