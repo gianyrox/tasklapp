@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import AppLayout from '../../components/layout/AppLayout';
 import ProtectedRoute from '../../components/layout/ProtectedRoute';
+import BackButton from '../../components/ui/BackButton';
 import { updateUserProfile, supabase } from '../../lib/api/supabase';
 
 // Import CSS modules
@@ -110,6 +111,7 @@ const SettingsPage: React.FC = () => {
       <AppLayout>
         <div className={styles.container}>
           <div className={styles.header}>
+            <BackButton />
             <h1 className={styles.title}>Settings</h1>
             <p className={styles.subtitle}>Manage your account settings and profile</p>
           </div>

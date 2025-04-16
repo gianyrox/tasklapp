@@ -9,6 +9,7 @@ import { useAuth } from '../../../context/AuthContext';
 import Board from '../../../components/ui/Board';
 import TaskList from '../../../components/task/TaskList';
 import Button from '../../../components/ui/Button';
+import BackButton from '../../../components/ui/BackButton';
 import { getUserById, getTasksByUser } from '../../../lib/api/supabase';
 import styles from './UserProfile.module.css';
 
@@ -51,6 +52,7 @@ const UserPage: React.FC = () => {
       <AppLayout>
         <div className={styles.userProfile}>
           <div className={styles.userHeader}>
+            <BackButton />
             <h1>{userProfile?.name || 'User'}'s Profile</h1>
             <p className={styles.userEmail}>{userProfile?.email || ''}</p>
           </div>
