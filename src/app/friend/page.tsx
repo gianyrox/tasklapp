@@ -285,6 +285,13 @@ const FriendPage: React.FC = () => {
                       </div>
                       <div className={styles.userActions}>
                         <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleViewFriend(searchUser.id)}
+                        >
+                          View Profile
+                        </Button>
+                        <Button 
                           variant="primary" 
                           size="sm" 
                           onClick={() => handleSendFriendRequest(searchUser.id)}
