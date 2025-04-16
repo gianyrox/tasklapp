@@ -343,7 +343,9 @@ const TaskDetailPage: React.FC = () => {
                     
                     {task.submissionContent && (
                       <div className={`${styles.detailItem} ${styles.feedbackDetail}`}>
-                        <span className={styles.detailLabel}>Submission Content</span>
+                        <span className={styles.detailLabel}>
+                          <span className={styles.submissionIcon}>📄</span> Submission Content
+                        </span>
                         <div className={styles.submissionWrapper}>
                           <p className={styles.feedbackText}>{task.submissionContent}</p>
                         </div>
