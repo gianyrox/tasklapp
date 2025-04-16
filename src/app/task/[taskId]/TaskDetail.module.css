@@ -341,14 +341,40 @@
 }
 
 .gradingIcon::before {
-  content: "⭐";
+  content: "📝";
+}
+
+.gradingSection {
+  background-color: #FFFFFF;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+  border: 1px solid #e5e7eb;
+  margin-top: 2rem;
+}
+
+.gradingTitle {
+  font-size: 1.25rem;
+  color: #4338ca;
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid #E5E7EB;
+  padding-bottom: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.gradingTitle::before {
+  content: "📝";
   margin-right: 0.5rem;
+  font-size: 1.2em;
 }
 
 .gradingForm {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
   padding: 1.5rem;
   background-color: #f9fafb;
   border-radius: 0.75rem;
