@@ -11,6 +11,7 @@ import {
   searchUsers, 
   sendFriendRequest, 
   respondToFriendRequest,
+  getAllUsers
 } from '../../lib/api/supabase';
 import { User, Friendship, FriendshipStatus } from '../../types';
 
@@ -27,6 +28,7 @@ const FriendPage: React.FC = () => {
   const [pendingRequests, setPendingRequests] = useState<Friendship[]>([]);
   const [friends, setFriends] = useState<Friendship[]>([]);
   const [sentRequests, setSentRequests] = useState<Friendship[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
   
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,8 +38,18 @@ const FriendPage: React.FC = () => {
   useEffect(() => {
     if (user) {
       fetchFriendsData();
+      fetchAllUsers();
     }
   }, [user]);
+
+  const fetchAllUsers = async () => {
+    try {
+      const users = await getAllUsers();
+      setAllUsers(users);
+    } catch (err) {
+      console.error('Error fetching all users:', err);
+    }
+  };
 
   const fetchFriendsData = async () => {
     setIsLoading(true);
@@ -172,6 +184,29 @@ const FriendPage: React.FC = () => {
     const nameParts = name.split(' ');
     if (nameParts.length === 1) return nameParts[0][0].toUpperCase();
     return (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
+  };
+
+  // Check if a user is already a friend or has a pending request
+  const getRelationshipStatus = (otherUserId: string): 'none' | 'friend' | 'pending' | 'sent' => {
+    // Check if already friends
+    if (friends.some(f => 
+      (f.userId === user?.id && f.friendId === otherUserId) || 
+      (f.friendId === user?.id && f.userId === otherUserId)
+    )) {
+      return 'friend';
+    }
+    
+    // Check if we received a request from them
+    if (pendingRequests.some(f => f.userId === otherUserId)) {
+      return 'pending';
+    }
+    
+    // Check if we sent a request to them
+    if (sentRequests.some(f => f.friendId === otherUserId)) {
+      return 'sent';
+    }
+    
+    return 'none';
   };
 
   return (
@@ -418,6 +453,107 @@ const FriendPage: React.FC = () => {
             ) : (
               <div className={styles.emptyState}>
                 <p>You don't have any friends yet. Search for users to add friends!</p>
+              </div>
+            )}
+          </div>
+
+          {/* All Users */}
+          <div className={styles.card}>
+            <h2 className={styles.cardTitle}>
+              All Users <span className={styles.badgeCount}>{allUsers.length}</span>
+            </h2>
+            
+            {allUsers.length > 0 ? (
+              <div className={styles.userGrid}>
+                {allUsers
+                  .filter(otherUser => otherUser.id !== user?.id) // Exclude current user
+                  .map(otherUser => {
+                    const relationshipStatus = getRelationshipStatus(otherUser.id);
+                    
+                    return (
+                      <div key={otherUser.id} className={styles.userCard}>
+                        <div className={styles.userAvatarContainer}>
+                          {otherUser.avatarUrl ? (
+                            <img 
+                              src={otherUser.avatarUrl} 
+                              alt={otherUser.name} 
+                              className={styles.userAvatar} 
+                            />
+                          ) : (
+                            <div className={styles.userAvatarPlaceholder}>
+                              {getUserInitials(otherUser.name)}
+                            </div>
+                          )}
+                        </div>
+                        <div className={styles.userInfo}>
+                          <h4 className={styles.userName}>{otherUser.name}</h4>
+                          <p className={styles.userEmail}>{otherUser.email}</p>
+                          
+                          {relationshipStatus === 'friend' && (
+                            <span className={styles.friendStatus}>Friend</span>
+                          )}
+                          
+                          {relationshipStatus === 'pending' && (
+                            <span className={styles.pendingStatus}>Request Received</span>
+                          )}
+                          
+                          {relationshipStatus === 'sent' && (
+                            <span className={styles.pendingStatus}>Request Sent</span>
+                          )}
+                        </div>
+                        <div className={styles.userActions}>
+                          {relationshipStatus === 'none' && (
+                            <Button 
+                              variant="primary" 
+                              size="sm" 
+                              onClick={() => handleSendFriendRequest(otherUser.id)}
+                            >
+                              Add Friend
+                            </Button>
+                          )}
+                          
+                          {relationshipStatus === 'friend' && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleViewFriend(otherUser.id)}
+                            >
+                              View Profile
+                            </Button>
+                          )}
+                          
+                          {relationshipStatus === 'pending' && (
+                            <>
+                              <Button 
+                                variant="primary" 
+                                size="sm" 
+                                onClick={() => {
+                                  const request = pendingRequests.find(r => r.userId === otherUser.id);
+                                  if (request) handleRespondToRequest(request.id, true);
+                                }}
+                              >
+                                Accept
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => {
+                                  const request = pendingRequests.find(r => r.userId === otherUser.id);
+                                  if (request) handleRespondToRequest(request.id, false);
+                                }}
+                              >
+                                Decline
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            ) : (
+              <div className={styles.emptyState}>
+                <p>No other users found in the system.</p>
               </div>
             )}
           </div>
