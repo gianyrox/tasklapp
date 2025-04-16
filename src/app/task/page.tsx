@@ -113,17 +113,18 @@ const TasksPage: React.FC = () => {
   };
 
   const renderTaskCard = (task: Task) => {
-    const isOverdue = new Date(task.dueDate) < new Date() && task.status !== TaskStatus.COMPLETED;
+    const isOverdue = new Date(task.dueDate) < new Date() && task.status !== TaskStatus.COMPLETED && task.status !== TaskStatus.GRADED;
+    const statusClass = task.status.toLowerCase();
     
     return (
       <div 
         key={task.id} 
-        className={`${styles.taskCard} ${styles[task.status.toLowerCase()]} ${isOverdue ? styles.overdue : ''}`}
+        className={`${styles.taskCard} ${styles[statusClass]} ${isOverdue ? styles.overdue : ''}`}
         onClick={() => handleTaskClick(task.id)}
       >
         <div className={styles.taskHeader}>
           <h3 className={styles.taskTitle}>{task.title}</h3>
-          <span className={styles.taskStatus}>{task.status}</span>
+          <span className={`${styles.taskStatus} ${styles[statusClass]}`}>{task.status}</span>
         </div>
         
         <div className={styles.taskDetails}>
@@ -146,7 +147,7 @@ const TasksPage: React.FC = () => {
                 {task.qualityRating}/5
                 {task.timelinessRating && task.effortRating && task.accuracyRating && (
                   <span className={styles.avgRating}>
-                    (Avg: {((task.qualityRating + task.timelinessRating + task.effortRating + task.accuracyRating) / 4).toFixed(1)})
+                    (Avg: {((task.qualityRating + (task.timelinessRating || 0) + (task.effortRating || 0) + (task.accuracyRating || 0)) / 4).toFixed(1)})
                   </span>
                 )}
               </span>
