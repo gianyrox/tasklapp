@@ -57,13 +57,13 @@ const TasksPage: React.FC = () => {
     
     if (activeTab === 'active') {
       filteredTasks = tasks.filter(task => 
-        task.status !== TaskStatus.COMPLETED && 
-        task.status !== TaskStatus.GRADED
+        task.status !== TaskStatus.GRADED && 
+        (task.status !== TaskStatus.COMPLETED || !task.qualityRating)
       );
     } else if (activeTab === 'archived') {
       filteredTasks = tasks.filter(task => 
-        task.status === TaskStatus.COMPLETED || 
-        task.status === TaskStatus.GRADED
+        task.status === TaskStatus.GRADED || 
+        (task.status === TaskStatus.COMPLETED && task.qualityRating)
       );
     }
     
@@ -89,13 +89,13 @@ const TasksPage: React.FC = () => {
     // Apply active/archived tab filter
     if (activeTab === 'active') {
       filteredTasks = friendTasks.filter(task => 
-        task.status !== TaskStatus.COMPLETED && 
-        task.status !== TaskStatus.GRADED
+        task.status !== TaskStatus.GRADED && 
+        (task.status !== TaskStatus.COMPLETED || !task.qualityRating)
       );
     } else if (activeTab === 'archived') {
       filteredTasks = friendTasks.filter(task => 
-        task.status === TaskStatus.COMPLETED || 
-        task.status === TaskStatus.GRADED
+        task.status === TaskStatus.GRADED || 
+        (task.status === TaskStatus.COMPLETED && task.qualityRating)
       );
     }
     
