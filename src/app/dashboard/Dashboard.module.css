@@ -518,19 +518,19 @@
 }
 
 .scrollableBoard {
-  max-height: 500px;
+  max-height: 65vh; /* Medium size as default */
   overflow-y: auto;
   padding-right: 5px; /* Add padding for scrollbar */
 }
 
 .taskColumnBoard .scrollableBoard {
-  max-height: 450px;
+  max-height: 80vh; /* Large - 80% of viewport height */
 }
 
 .friendTasksGrid .scrollableBoard {
-  max-height: 350px;
+  max-height: 65vh; /* Medium - 65% of viewport height */
 }
 
 .leaderboardBoard .scrollableBoard {
-  max-height: 400px;
+  max-height: 50vh; /* Small - 50% of viewport height */
 } 
