@@ -6,8 +6,8 @@ DECLARE
 BEGIN
   -- Delete all test users from public.users and auth.users
   -- We identify test users by their email pattern
-  DELETE FROM public.users WHERE email LIKE 'user%@example.com';
-  DELETE FROM auth.users WHERE email LIKE 'user%@example.com';
+  DELETE FROM public.users WHERE public.users.email LIKE 'user%@example.com';
+  DELETE FROM auth.users WHERE auth.users.email LIKE 'user%@example.com';
 END $$;
 
 -- Function to add a test user to both auth.users and public.users tables
@@ -20,8 +20,7 @@ CREATE OR REPLACE FUNCTION add_test_user(
 DECLARE
   user_id UUID;
 BEGIN
-  -- Generate a deterministic UUID based on email to avoid collisions
-  -- This ensures the same user always gets the same ID
+  -- Generate a UUID
   user_id := gen_random_uuid();
   
   -- Insert into auth.users
@@ -48,14 +47,14 @@ BEGIN
     user_id,
     'authenticated',
     'authenticated',
-    email,
+    add_test_user.email,
     -- This is a hashed password 'password123'
     '$2a$10$ffEiXwvuEJTGKgUAGmswNeE4iUGdDDB1P.z9yWJ9Xvb0EgFGnKEwi',
     NOW(),
     NOW(),
     NOW(),
     '{"provider":"email","providers":["email"]}',
-    jsonb_build_object('name', name),
+    jsonb_build_object('name', add_test_user.name),
     NOW(),
     NOW(),
     '',
@@ -73,9 +72,9 @@ BEGIN
     created_at
   ) VALUES (
     user_id,
-    name,
-    email,
-    avatar_url,
+    add_test_user.name,
+    add_test_user.email,
+    add_test_user.avatar_url,
     NOW()
   );
 
@@ -197,7 +196,7 @@ DECLARE
   j INTEGER;
 BEGIN
   -- Get all test user ids
-  SELECT array_agg(id) INTO user_ids FROM public.users WHERE email LIKE 'user%@example.com';
+  SELECT array_agg(id) INTO user_ids FROM public.users WHERE public.users.email LIKE 'user%@example.com';
   
   -- Create some random friendships
   FOR i IN 1..array_length(user_ids, 1) LOOP
@@ -239,12 +238,12 @@ DECLARE
   priorities TEXT[] := ARRAY['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
 BEGIN
   -- Get all test user ids
-  SELECT array_agg(id) INTO user_ids FROM public.users WHERE email LIKE 'user%@example.com';
+  SELECT array_agg(id) INTO user_ids FROM public.users WHERE public.users.email LIKE 'user%@example.com';
   
   -- Delete any existing tasks for test users
   DELETE FROM public.tasks 
-  WHERE assigner_id IN (SELECT id FROM public.users WHERE email LIKE 'user%@example.com')
-     OR assignee_id IN (SELECT id FROM public.users WHERE email LIKE 'user%@example.com');
+  WHERE assigner_id IN (SELECT id FROM public.users WHERE public.users.email LIKE 'user%@example.com')
+     OR assignee_id IN (SELECT id FROM public.users WHERE public.users.email LIKE 'user%@example.com');
   
   -- Create sample tasks
   FOR i IN 1..30 LOOP
