@@ -152,13 +152,23 @@ const DashboardPage: React.FC = () => {
       const friendships = await getFriendships(FriendshipStatus.ACCEPTED);
       setFriends(friendships);
       
+      console.log("Fetched friendships:", friendships.length);
+      
       // Fetch tasks for each friend
       const tasksByFriend: {[friendId: string]: any[]} = {};
       for (const friendship of friendships) {
+        // Get the friend's ID (not the current user's ID)
         const friendId = friendship.userId === user?.id ? friendship.friendId : friendship.userId;
-        const friendTasks = await getTasksByFriend(friendId);
-        tasksByFriend[friendId] = friendTasks;
+        const friendName = friendship.friend?.name || 'Friend';
+        
+        console.log(`Fetching tasks for friend ${friendName} (${friendId})`);
+        const friendTasksData = await getTasksByFriend(friendId);
+        console.log(`Got ${friendTasksData.length} tasks for ${friendName}`);
+        
+        tasksByFriend[friendId] = friendTasksData;
       }
+      
+      console.log("Tasks by friend:", tasksByFriend);
       setFriendTasks(tasksByFriend);
       
       // Fetch leaderboard data
