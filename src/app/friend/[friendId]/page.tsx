@@ -9,6 +9,7 @@ import { useAuth } from '../../../context/AuthContext';
 import Board from '../../../components/ui/Board';
 import TaskList from '../../../components/task/TaskList';
 import Button from '../../../components/ui/Button';
+import BackButton from '../../../components/ui/BackButton';
 import CreateTaskModal from '../../../components/task/CreateTaskModal';
 import { getFriendById, getTasksByFriend } from '../../../lib/api/supabase';
 import styles from './FriendProfile.module.css';
@@ -150,12 +151,7 @@ const FriendProfilePage: React.FC = () => {
                   Assign Task
                 </Button>
               )}
-              <Button 
-                variant="outline"
-                onClick={() => router.back()}
-              >
-                Go Back
-              </Button>
+              <BackButton />
             </div>
           </div>
 
