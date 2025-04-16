@@ -179,6 +179,50 @@ const TaskDetailPage: React.FC = () => {
             </div>
           </div>
 
+          <div className={styles.actions}>
+            <Button
+              variant="secondary"
+              onClick={() => router.back()}
+              className={styles.backButton}
+            >
+              ← Back
+            </Button>
+            
+            {canUpdate && (
+              <div className={styles.statusButtons}>
+                {task.status !== TaskStatus.PENDING && (
+                  <button 
+                    onClick={() => handleStatusChange(TaskStatus.PENDING)}
+                    disabled={isUpdating}
+                    className={styles.actionButton}
+                  >
+                    Mark as Pending
+                  </button>
+                )}
+                
+                {task.status !== TaskStatus.IN_PROGRESS && (
+                  <button 
+                    onClick={() => handleStatusChange(TaskStatus.IN_PROGRESS)}
+                    disabled={isUpdating}
+                    className={styles.actionButton}
+                  >
+                    Mark as In Progress
+                  </button>
+                )}
+                
+                {task.status !== TaskStatus.COMPLETED && (
+                  <button 
+                    onClick={() => handleStatusChange(TaskStatus.COMPLETED)}
+                    disabled={isUpdating}
+                    className={`${styles.actionButton} ${styles.primaryAction}`}
+                  >
+                    ✅ Mark as Completed
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className={styles.content}>
             <div className={styles.mainContent}>
               <div className={styles.section}>

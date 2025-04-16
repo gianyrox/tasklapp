@@ -7,7 +7,10 @@
 }
 
 .header {
-  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
   border-bottom: 1px solid #E5E7EB;
   padding-bottom: 1.5rem;
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
@@ -215,6 +218,9 @@
 }
 
 .actions {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
   background-color: #FFFFFF;
   border-radius: 1rem;
   padding: 1.5rem;
@@ -236,9 +242,24 @@
 
 .statusButtons {
   display: flex;
-  flex-direction: column;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
+}
+
+.backButton {
+  padding: 0.5rem 1rem;
+  background-color: #F3F4F6;
+  color: #4B5563;
+  border: 1px solid #E5E7EB;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.backButton:hover {
+  background-color: #E5E7EB;
+  transform: translateX(-2px);
 }
 
 .actionButton {
