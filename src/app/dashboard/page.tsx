@@ -567,7 +567,7 @@ const DashboardPage: React.FC = () => {
           <div className={styles.friendsSection}>
             <div className={styles.sectionHeader}>
               <h2>Friends' Task Lists</h2>
-              <Button size="sm" variant="primary" onClick={handleFindFriends}>
+              <Button size="xs" variant="primary" onClick={handleFindFriends}>
                 Find Friends
               </Button>
             </div>
