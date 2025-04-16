@@ -13,21 +13,19 @@ import styles from './TaskDetail.module.css';
 
 // Helper function to calculate average rating
 const calculateAverageRating = (task: Task): string => {
-  if (!task.qualityRating) return '0.0';
-  
+  // Get all available ratings
   const ratings = [
     task.qualityRating || 0,
     task.timelinessRating || 0,
     task.effortRating || 0,
     task.accuracyRating || 0
-  ];
+  ].filter(rating => rating > 0);
   
-  // Count how many non-zero ratings we have
-  const validRatings = ratings.filter(rating => rating > 0);
-  const sum = validRatings.reduce((total, rating) => total + rating, 0);
-  const count = validRatings.length || 1; // Avoid division by zero
+  // If no ratings, return 0
+  if (ratings.length === 0) return '0.0';
   
-  return (sum / count).toFixed(1);
+  const sum = ratings.reduce((total, rating) => total + rating, 0);
+  return (sum / ratings.length).toFixed(1);
 };
 
 const TaskDetailPage: React.FC = () => {
@@ -88,13 +86,19 @@ const TaskDetailPage: React.FC = () => {
   const handleSubmitGrade = async () => {
     if (!task) return;
     
+    // Need at least one rating to submit
+    if (!qualityRating && !timelinessRating && !effortRating && !accuracyRating) {
+      setError('Please provide at least one rating before submitting.');
+      return;
+    }
+    
     setIsUpdating(true);
     try {
       await updateTaskStatus(task.id, TaskStatus.GRADED, {
-        qualityRating: qualityRating,
-        timelinessRating: timelinessRating,
-        effortRating: effortRating,
-        accuracyRating: accuracyRating,
+        qualityRating: qualityRating || undefined,
+        timelinessRating: timelinessRating || undefined,
+        effortRating: effortRating || undefined,
+        accuracyRating: accuracyRating || undefined,
         feedback: feedback
       });
       // Refresh task data and hide grading section
@@ -333,7 +337,9 @@ const TaskDetailPage: React.FC = () => {
               </div>
               
               {/* New Grade Section */}
-              {(task.status === TaskStatus.GRADED || task.qualityRating || 
+              {(task.status === TaskStatus.GRADED || 
+                task.qualityRating || task.timelinessRating || 
+                task.effortRating || task.accuracyRating || 
                 task.estimatedTimeMinutes || task.actualTimeMinutes || 
                 task.submissionDate || task.submissionContent) && (
                 <div className={styles.section}>
@@ -419,7 +425,8 @@ const TaskDetailPage: React.FC = () => {
                       </div>
                     )}
                     
-                    {task.qualityRating && task.timelinessRating && task.effortRating && task.accuracyRating && (
+                    {/* Average Rating - show if ANY rating exists */}
+                    {(task.qualityRating || task.timelinessRating || task.effortRating || task.accuracyRating) && (
                       <div className={styles.detailItem}>
                         <span className={styles.detailLabel}>
                           <span className={styles.ratingIcon}>⭐</span> Average Rating
