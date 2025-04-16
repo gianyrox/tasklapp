@@ -481,27 +481,35 @@ const TaskDetailPage: React.FC = () => {
                 <h2 className={styles.gradingTitle}>Review & Grade</h2>
                 <div className={styles.gradingForm}>
                   <div className={styles.gradingField}>
-                    <label className={styles.gradingLabel}>Quality Rating:</label>
+                    <label className={styles.gradingLabel}>
+                      <span className={styles.ratingIcon}>✨</span> Quality Rating:
+                    </label>
                     {renderRatingStars(qualityRating, setQualityRating)}
-                    <p className={styles.ratingDescription}>Rate the overall quality of work</p>
+                    <p className={styles.ratingDescription}>Rate the overall quality and excellence of work</p>
                   </div>
                   
                   <div className={styles.gradingField}>
-                    <label className={styles.gradingLabel}>Timeliness Rating:</label>
+                    <label className={styles.gradingLabel}>
+                      <span className={styles.ratingIcon}>⏱️</span> Timeliness Rating:
+                    </label>
                     {renderRatingStars(timelinessRating, setTimelinessRating)}
-                    <p className={styles.ratingDescription}>Rate how promptly the task was completed</p>
+                    <p className={styles.ratingDescription}>Rate how promptly the task was completed relative to deadline</p>
                   </div>
                   
                   <div className={styles.gradingField}>
-                    <label className={styles.gradingLabel}>Effort Rating:</label>
+                    <label className={styles.gradingLabel}>
+                      <span className={styles.ratingIcon}>💪</span> Effort Rating:
+                    </label>
                     {renderRatingStars(effortRating, setEffortRating)}
-                    <p className={styles.ratingDescription}>Rate the level of effort demonstrated</p>
+                    <p className={styles.ratingDescription}>Rate the level of effort, dedication and thoroughness</p>
                   </div>
                   
                   <div className={styles.gradingField}>
-                    <label className={styles.gradingLabel}>Accuracy Rating:</label>
+                    <label className={styles.gradingLabel}>
+                      <span className={styles.ratingIcon}>🎯</span> Accuracy Rating:
+                    </label>
                     {renderRatingStars(accuracyRating, setAccuracyRating)}
-                    <p className={styles.ratingDescription}>Rate how accurately requirements were met</p>
+                    <p className={styles.ratingDescription}>Rate how precisely requirements were met and understood</p>
                   </div>
                   
                   <div className={styles.gradingField}>
