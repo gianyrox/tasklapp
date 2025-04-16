@@ -387,16 +387,7 @@ const DashboardPage: React.FC = () => {
                           </span>
                           <span className={styles.leaderboardStatLabel}>Rating</span>
                         </div>
-                        <div className={styles.leaderboardStat}>
-                          <span className={styles.leaderboardStatValue}>
-                            {entry.avgCompletionTime 
-                              ? (entry.avgCompletionTime < 60 
-                                  ? `${entry.avgCompletionTime}m` 
-                                  : `${Math.floor(entry.avgCompletionTime/60)}h`)
-                              : 'N/A'}
-                          </span>
-                          <span className={styles.leaderboardStatLabel}>Time</span>
-                        </div>
+
                         <div className={styles.leaderboardStat}>
                           <span className={styles.leaderboardStatValue}>{entry.tasksOverdue || 0}</span>
                           <span className={styles.leaderboardStatLabel}>Due</span>
