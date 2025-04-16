@@ -245,28 +245,31 @@
 
 .leaderboardStats {
   display: flex;
-  gap: 1.75rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-left: auto;
 }
 
 .leaderboardStat {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 4rem;
+  background-color: #f5f7ff;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  min-width: 70px;
 }
 
 .leaderboardStatValue {
-  font-weight: 800;
-  color: #111827;
-  font-size: 1.5rem;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #4338ca;
 }
 
 .leaderboardStatLabel {
   font-size: 0.75rem;
-  color: #4b5563;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 500;
+  color: #6b7280;
+  margin-top: 0.2rem;
 }
 
 /* Add task button */
