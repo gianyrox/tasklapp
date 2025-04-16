@@ -255,17 +255,20 @@
 .mobileMenuRow {
   display: flex;
   align-items: center;
-  padding: 4px;
+  padding: 4px 10px 4px 4px;
   border-radius: 9999px;
   border: 1px solid var(--border);
   background-color: var(--surface);
+  gap: 6px;
 }
 
-.mobileMenuRow .avatar {
-  width: 32px;
-  height: 32px;
-  margin-right: 0;
-  box-shadow: none;
+.menuIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  width: 24px;
+  height: 24px;
 }
 
 .mobileMenuItems {
@@ -279,6 +282,8 @@
   z-index: 30;
   border: 1px solid var(--border);
   overflow: hidden;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
 }
 
 .mobileUserHeader {
@@ -420,5 +425,9 @@
     border-radius: 0;
     border-left: none;
     border-right: none;
+    position: fixed;
+    top: 56px; /* Match header height */
+    max-height: calc(100vh - 56px);
+    border-top: none;
   }
 } 

@@ -156,7 +156,16 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
               className={styles.mobileMenuRow}
               onClick={handleMenuToggle}
             >
-              <div className={styles.avatar}>
+              <div className={styles.menuIcon}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  {showMobileMenu ? (
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  ) : (
+                    <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  )}
+                </svg>
+              </div>
+              <div className={styles.avatar} style={{ width: '32px', height: '32px', margin: 0, boxShadow: 'none' }}>
                 {user?.avatarUrl ? (
                   <img src={user.avatarUrl} alt={user.name} />
                 ) : (
