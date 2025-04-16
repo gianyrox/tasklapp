@@ -506,6 +506,13 @@
   font-size: 1em;
 }
 
+.ratingIcon {
+  margin-right: 0.25rem;
+  font-size: 1em;
+  display: inline-flex;
+  align-items: center;
+}
+
 .feedbackText {
   margin: 0;
   font-size: 1rem;
