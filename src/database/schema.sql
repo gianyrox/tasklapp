@@ -38,8 +38,15 @@ CREATE TABLE IF NOT EXISTS tasks (
   completed_at TIMESTAMP WITH TIME ZONE,
   estimated_time_minutes INTEGER,
   actual_time_minutes INTEGER,
+  submission_type TEXT, -- Type of submission required (FORM, LINK, FILE, etc.)
+  submission_instructions TEXT, -- Directions for completing the task
+  started_at TIMESTAMP WITH TIME ZONE, -- When the assignee started the task
   submission_date TIMESTAMP WITH TIME ZONE,
+  submission_content TEXT, -- Text content or link submitted by assignee
   quality_rating INTEGER CHECK (quality_rating BETWEEN 1 AND 5),
+  timeliness_rating INTEGER CHECK (timeliness_rating BETWEEN 1 AND 5), -- Rating for on-time completion
+  effort_rating INTEGER CHECK (effort_rating BETWEEN 1 AND 5), -- Rating for effort shown
+  accuracy_rating INTEGER CHECK (accuracy_rating BETWEEN 1 AND 5), -- Rating for accuracy of submission
   feedback TEXT
 );
 
@@ -95,6 +102,9 @@ RETURNS TABLE (
   tasks_completed BIGINT,
   avg_completion_time FLOAT,
   avg_quality_rating FLOAT,
+  avg_timeliness_rating FLOAT,
+  avg_effort_rating FLOAT,
+  avg_accuracy_rating FLOAT,
   tasks_overdue BIGINT
 ) AS $$
 BEGIN
@@ -110,6 +120,15 @@ BEGIN
     AVG(CASE WHEN t.status = 'COMPLETED' AND t.quality_rating IS NOT NULL 
         THEN t.quality_rating 
         ELSE NULL END)::FLOAT as avg_quality_rating,
+    AVG(CASE WHEN t.status = 'COMPLETED' AND t.timeliness_rating IS NOT NULL 
+        THEN t.timeliness_rating 
+        ELSE NULL END)::FLOAT as avg_timeliness_rating,
+    AVG(CASE WHEN t.status = 'COMPLETED' AND t.effort_rating IS NOT NULL 
+        THEN t.effort_rating 
+        ELSE NULL END)::FLOAT as avg_effort_rating,
+    AVG(CASE WHEN t.status = 'COMPLETED' AND t.accuracy_rating IS NOT NULL 
+        THEN t.accuracy_rating 
+        ELSE NULL END)::FLOAT as avg_accuracy_rating,
     COUNT(CASE WHEN t.status = 'OVERDUE' THEN 1 END) as tasks_overdue
   FROM 
     users u
