@@ -74,10 +74,10 @@ export function FriendProvider({ children }: { children: React.ReactNode }) {
         const friend = friendship.friend as any;
         const friendData: User = {
           id: friend.id,
-          name: friend.name,
-          email: friend.email,
-          avatarUrl: friend.avatar_url,
-          createdAt: new Date(friend.created_at),
+          email: friend.email || '',
+          name: friend.name || friend.display_name || friend.username || 'User',
+          avatarUrl: friend.avatar_url || '',
+          createdAt: new Date(friend.created_at as string),
           stats: {
             rank: 0, // These would be populated in a real app
             tasksCompleted: 0,
@@ -91,8 +91,8 @@ export function FriendProvider({ children }: { children: React.ReactNode }) {
           userId: friendship.user_id,
           friendId: friendship.friend_id,
           status: friendship.status as FriendshipStatus,
-          createdAt: new Date(friendship.created_at),
-          updatedAt: new Date(friendship.updated_at),
+          createdAt: new Date(friendship.created_at as string),
+          updatedAt: new Date(friendship.updated_at as string),
           friend: friendData
         };
       });
