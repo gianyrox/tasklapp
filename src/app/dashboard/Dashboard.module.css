@@ -1016,6 +1016,15 @@
     font-size: 0.9rem;
   }
   
+  /* Add style for N/A values */
+  .leaderboardStatValue:empty::before,
+  .leaderboardStatValue:contains('N/A') {
+    content: 'N/A';
+    color: #9CA3AF;
+    font-style: italic;
+    font-size: 0.8rem;
+  }
+  
   .leaderboardStatLabel {
     font-size: 0.65rem;
   }
@@ -1045,6 +1054,12 @@
   
   .leaderboardStatValue {
     font-size: 0.75rem;
+  }
+  
+  /* Style for N/A values on extra small screens */
+  .leaderboardStatValue:empty::before,
+  .leaderboardStatValue:contains('N/A') {
+    font-size: 0.7rem;
   }
   
   .leaderboardStatLabel {
