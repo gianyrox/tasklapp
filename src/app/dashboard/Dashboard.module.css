@@ -1000,14 +1000,16 @@
   .leaderboardStats {
     width: 100%;
     margin-left: 0;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     gap: 0.25rem;
   }
   
   .leaderboardStat {
     flex: 1;
     padding: 0.35rem;
-    min-width: 45px;
+    min-width: auto;
+    text-align: center;
   }
   
   .leaderboardStatValue {
@@ -1032,14 +1034,21 @@
 /* Extra small screens */
 @media (max-width: 360px) {
   .leaderboardStats {
-    flex-wrap: wrap;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.2rem;
   }
   
   .leaderboardStat {
-    min-width: 40px;
     padding: 0.25rem;
-    flex: 0 0 calc(50% - 0.25rem);
-    margin-bottom: 0.25rem;
+    min-width: auto;
+  }
+  
+  .leaderboardStatValue {
+    font-size: 0.75rem;
+  }
+  
+  .leaderboardStatLabel {
+    font-size: 0.6rem;
   }
 }
 
