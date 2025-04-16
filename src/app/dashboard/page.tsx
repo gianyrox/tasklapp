@@ -348,20 +348,31 @@ const DashboardPage: React.FC = () => {
                 emptyState={
                   <div className={styles.emptyState}>
                     <p>You don't have any tasks yet</p>
+                    <div 
+                      className={styles.addTaskCard}
+                      onClick={() => handleAddTask()}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                      </svg>
+                      Create Your First Task
+                    </div>
                   </div>
                 }
               >
                 <div>
                   <TaskList tasks={selfAssignedTasks} onStatusChange={handleStatusChange} showDetails={true} ownership="self" />
-                  <div 
-                    className={styles.addTaskCard}
-                    onClick={() => handleAddTask()}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-                    </svg>
-                    Add New Task
-                  </div>
+                  {selfAssignedTasks.length > 0 && (
+                    <div 
+                      className={styles.addTaskCard}
+                      onClick={() => handleAddTask()}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                      </svg>
+                      Add New Task
+                    </div>
+                  )}
                 </div>
               </Board>
             </div>
@@ -376,6 +387,11 @@ const DashboardPage: React.FC = () => {
                 emptyState={
                   <div className={styles.emptyState}>
                     <p>No friends have assigned you tasks yet</p>
+                    {friends.length === 0 && (
+                      <Button size="sm" variant="primary" onClick={handleFindFriends}>
+                        Find Friends
+                      </Button>
+                    )}
                   </div>
                 }
               >
@@ -393,28 +409,49 @@ const DashboardPage: React.FC = () => {
                 emptyState={
                   <div className={styles.emptyState}>
                     <p>You haven't assigned tasks to anyone yet</p>
+                    {friends.length === 0 ? (
+                      <Button size="sm" variant="primary" onClick={handleFindFriends}>
+                        Find Friends First
+                      </Button>
+                    ) : (
+                      <div 
+                        className={styles.addTaskCard}
+                        onClick={() => {
+                          const friendId = friends[0].userId === user?.id ? friends[0].friendId : friends[0].userId;
+                          const friendName = friends[0].friend?.name || 'Friend';
+                          handleAddTaskToFriend(friendId, friendName);
+                        }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                        </svg>
+                        Assign New Task
+                      </div>
+                    )}
                   </div>
                 }
               >
                 <div>
                   <TaskList tasks={tasksAssignedToOthers} showDetails={false} ownership="friend" />
-                  <div 
-                    className={styles.addTaskCard}
-                    onClick={() => {
-                      if (friends.length > 0) {
-                        const friendId = friends[0].userId === user?.id ? friends[0].friendId : friends[0].userId;
-                        const friendName = friends[0].friend?.name || 'Friend';
-                        handleAddTaskToFriend(friendId, friendName);
-                      } else {
-                        handleFindFriends();
-                      }
-                    }}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-                    </svg>
-                    Assign New Task
-                  </div>
+                  {tasksAssignedToOthers.length > 0 && friends.length > 0 && (
+                    <div 
+                      className={styles.addTaskCard}
+                      onClick={() => {
+                        if (friends.length > 0) {
+                          const friendId = friends[0].userId === user?.id ? friends[0].friendId : friends[0].userId;
+                          const friendName = friends[0].friend?.name || 'Friend';
+                          handleAddTaskToFriend(friendId, friendName);
+                        } else {
+                          handleFindFriends();
+                        }
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                      </svg>
+                      Assign New Task
+                    </div>
+                  )}
                 </div>
               </Board>
             </div>
