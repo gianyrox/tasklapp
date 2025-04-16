@@ -32,6 +32,7 @@ export const Button: React.FC<ButtonProps> = ({
     fullWidth ? styles.fullWidth : '',
     isLoading ? styles.loading : '',
     size === 'xs' ? styles.textured : '',
+    disabled ? styles.disabled : '',
     className
   ].filter(Boolean).join(' ');
 
