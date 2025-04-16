@@ -307,7 +307,7 @@ export const getTasksByFriend = async (friendId: string): Promise<Task[]> => {
   
   console.log(`Getting tasks for friend ${friendId}, current user: ${session.user.id}`);
   
-  // Get tasks that I assigned to this friend
+  // Get tasks exchanged between me and this friend (in both directions)
   const { data, error } = await supabase
     .from('tasks')
     .select(`
@@ -316,8 +316,10 @@ export const getTasksByFriend = async (friendId: string): Promise<Task[]> => {
       assigner:users!tasks_assigner_id_fkey(id, name, email, avatar_url, created_at),
       assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url, created_at)
     `)
-    .eq('assigner_id', session.user.id)
-    .eq('assignee_id', friendId)
+    .or(
+      `and(assigner_id.eq.${session.user.id},assignee_id.eq.${friendId}),` +
+      `and(assignee_id.eq.${session.user.id},assigner_id.eq.${friendId})`
+    )
     .order('created_at', { ascending: false });
     
   if (error) {
@@ -327,25 +329,15 @@ export const getTasksByFriend = async (friendId: string): Promise<Task[]> => {
   
   if (!data || data.length === 0) {
     console.log(`No tasks found between user ${session.user.id} and friend ${friendId}`);
-    
-    // Try an alternative query to check if any tasks exist at all for this friend
-    const { data: allTasks, error: allError } = await supabase
-      .from('tasks')
-      .select('id, title, assigner_id, assignee_id')
-      .or(`assigner_id.eq.${friendId},assignee_id.eq.${friendId}`)
-      .limit(5);
-      
-    if (!allError && allTasks && allTasks.length > 0) {
-      console.log(`Found ${allTasks.length} tasks involving the friend in general:`, allTasks);
-    } else {
-      console.log('No tasks found involving this friend in any capacity');
-    }
-    
     return [];
   }
   
-  console.log(`Found ${data.length} tasks assigned to friend ${friendId}:`, 
-    data.map(t => ({ id: t.id, title: t.title })));
+  console.log(`Found ${data.length} tasks exchanged with friend ${friendId}:`, 
+    data.map(t => ({ 
+      id: t.id, 
+      title: t.title,
+      direction: t.assigner_id === session.user.id ? 'assigned-by-me' : 'assigned-to-me'
+    })));
   
   return data.map(transformTaskFromDb);
 };
