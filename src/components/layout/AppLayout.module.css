@@ -6,9 +6,21 @@
 
 .container {
   width: 100%;
-  max-width: 1200px;
+  max-width: 95%;
   margin: 0 auto;
   padding: 0 var(--spacing-md);
+}
+
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1800px;
+  }
+}
+
+@media (min-width: 2000px) {
+  .container {
+    max-width: 2400px;
+  }
 }
 
 .header {
@@ -180,6 +192,7 @@
   flex: 1;
   padding: var(--spacing-lg) 0;
   background-color: var(--background);
+  width: 100%;
 }
 
 .footer {
