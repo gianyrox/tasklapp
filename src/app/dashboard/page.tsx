@@ -378,31 +378,29 @@ const DashboardPage: React.FC = () => {
                       </div>
                       <div className={styles.leaderboardStats}>
                         <div className={styles.leaderboardStat}>
-                          <span className={styles.leaderboardStatValue}>{entry.tasksCompleted}</span>
+                          <span className={styles.leaderboardStatValue}>{entry.tasksCompleted || 0}</span>
                           <span className={styles.leaderboardStatLabel}>Tasks</span>
                         </div>
-                        {entry.avgQualityRating && (
-                          <div className={styles.leaderboardStat}>
-                            <span className={styles.leaderboardStatValue}>{entry.avgQualityRating.toFixed(1)}</span>
-                            <span className={styles.leaderboardStatLabel}>Rating</span>
-                          </div>
-                        )}
-                        {entry.avgCompletionTime && (
-                          <div className={styles.leaderboardStat}>
-                            <span className={styles.leaderboardStatValue}>
-                              {entry.avgCompletionTime < 60 
-                                ? `${entry.avgCompletionTime}m` 
-                                : `${Math.floor(entry.avgCompletionTime/60)}h`}
-                            </span>
-                            <span className={styles.leaderboardStatLabel}>Time</span>
-                          </div>
-                        )}
-                        {entry.tasksOverdue > 0 && (
-                          <div className={styles.leaderboardStat}>
-                            <span className={styles.leaderboardStatValue}>{entry.tasksOverdue}</span>
-                            <span className={styles.leaderboardStatLabel}>Due</span>
-                          </div>
-                        )}
+                        <div className={styles.leaderboardStat}>
+                          <span className={styles.leaderboardStatValue}>
+                            {entry.avgQualityRating ? entry.avgQualityRating.toFixed(1) : 'N/A'}
+                          </span>
+                          <span className={styles.leaderboardStatLabel}>Rating</span>
+                        </div>
+                        <div className={styles.leaderboardStat}>
+                          <span className={styles.leaderboardStatValue}>
+                            {entry.avgCompletionTime 
+                              ? (entry.avgCompletionTime < 60 
+                                  ? `${entry.avgCompletionTime}m` 
+                                  : `${Math.floor(entry.avgCompletionTime/60)}h`)
+                              : 'N/A'}
+                          </span>
+                          <span className={styles.leaderboardStatLabel}>Time</span>
+                        </div>
+                        <div className={styles.leaderboardStat}>
+                          <span className={styles.leaderboardStatValue}>{entry.tasksOverdue || 0}</span>
+                          <span className={styles.leaderboardStatLabel}>Due</span>
+                        </div>
                       </div>
                     </div>
                   ))}
