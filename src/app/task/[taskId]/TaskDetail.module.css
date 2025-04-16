@@ -132,6 +132,10 @@
   font-size: 1.2em;
 }
 
+.gradeIcon::before {
+  content: "🏆";
+}
+
 .description {
   font-size: 1rem;
   color: #4B5563;

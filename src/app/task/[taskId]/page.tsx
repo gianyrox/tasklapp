@@ -164,7 +164,8 @@ const TaskDetailPage: React.FC = () => {
   const sectionIcons = {
     description: "✏️",
     details: "📋",
-    people: "👥"
+    people: "👥",
+    grade: "🏆"
   };
 
   return (
@@ -227,17 +228,30 @@ const TaskDetailPage: React.FC = () => {
                 )}
               </div>
             )}
+            
+            {needsGrading && (
+              <button 
+                onClick={() => setShowGradingSection(!showGradingSection)}
+                className={`${styles.actionButton} ${styles.primaryAction}`}
+              >
+                {showGradingSection ? 'Hide Grading Form' : '📝 Grade this Task'}
+              </button>
+            )}
           </div>
 
           <div className={styles.content}>
             <div className={styles.mainContent}>
               <div className={styles.section}>
-                <h2 className={`${styles.sectionTitle} ${styles.descriptionIcon}`}>Description</h2>
+                <h2 className={`${styles.sectionTitle} ${styles.descriptionIcon}`}>
+                  {sectionIcons.description} Description
+                </h2>
                 <p className={styles.description}>{task.description || 'No description provided.'}</p>
               </div>
 
               <div className={styles.section}>
-                <h2 className={`${styles.sectionTitle} ${styles.detailsIcon}`}>Details</h2>
+                <h2 className={`${styles.sectionTitle} ${styles.detailsIcon}`}>
+                  {sectionIcons.details} Details
+                </h2>
                 <div className={styles.detailsGrid}>
                   <div className={styles.detailItem}>
                     <span className={styles.detailLabel}>Due Date</span>
@@ -251,61 +265,96 @@ const TaskDetailPage: React.FC = () => {
                     <span className={styles.detailValue}>{task.priority}</span>
                   </div>
                   
-                  {task.estimatedTimeMinutes && (
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Status</span>
+                    <span className={styles.detailValue}>{task.status}</span>
+                  </div>
+                  
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Created</span>
+                    <span className={styles.detailValue}>
+                      {new Date(task.createdAt).toLocaleString()}
+                    </span>
+                  </div>
+                  
+                  {task.startedAt && (
                     <div className={styles.detailItem}>
-                      <span className={styles.detailLabel}>Estimated Time</span>
-                      <span className={styles.detailValue}>{task.estimatedTimeMinutes} minutes</span>
+                      <span className={styles.detailLabel}>Started</span>
+                      <span className={styles.detailValue}>
+                        {new Date(task.startedAt).toLocaleString()}
+                      </span>
                     </div>
                   )}
                   
                   {task.completedAt && (
                     <div className={styles.detailItem}>
-                      <span className={styles.detailLabel}>Completed At</span>
+                      <span className={styles.detailLabel}>Completed</span>
                       <span className={styles.detailValue}>
                         {new Date(task.completedAt).toLocaleString()}
                       </span>
                     </div>
                   )}
-                  
-                  {task.qualityRating && (
-                    <div className={styles.detailItem}>
-                      <span className={styles.detailLabel}>Quality Rating</span>
-                      <span className={styles.detailValue}>{task.qualityRating}/5</span>
-                    </div>
-                  )}
-                  
-                  {task.timelinessRating && (
-                    <div className={styles.detailItem}>
-                      <span className={styles.detailLabel}>Timeliness Rating</span>
-                      <span className={styles.detailValue}>{task.timelinessRating}/5</span>
-                    </div>
-                  )}
-                  
-                  {task.effortRating && (
-                    <div className={styles.detailItem}>
-                      <span className={styles.detailLabel}>Effort Rating</span>
-                      <span className={styles.detailValue}>{task.effortRating}/5</span>
-                    </div>
-                  )}
-                  
-                  {task.accuracyRating && (
-                    <div className={styles.detailItem}>
-                      <span className={styles.detailLabel}>Accuracy Rating</span>
-                      <span className={styles.detailValue}>{task.accuracyRating}/5</span>
-                    </div>
-                  )}
-                  
-                  {task.feedback && (
-                    <div className={styles.feedbackDetail}>
-                      <span className={styles.detailLabel}>Feedback</span>
-                      <p className={styles.feedbackText}>{task.feedback}</p>
-                    </div>
-                  )}
                 </div>
               </div>
+              
+              {/* New Grade Section */}
+              {(task.status === TaskStatus.GRADED || task.qualityRating) && (
+                <div className={styles.section}>
+                  <h2 className={`${styles.sectionTitle} ${styles.gradeIcon}`}>
+                    {sectionIcons.grade} Grade
+                  </h2>
+                  <div className={styles.detailsGrid}>
+                    {task.qualityRating && (
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Quality Rating</span>
+                        <span className={styles.detailValue}>{task.qualityRating}/5</span>
+                      </div>
+                    )}
+                    
+                    {task.timelinessRating && (
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Timeliness Rating</span>
+                        <span className={styles.detailValue}>{task.timelinessRating}/5</span>
+                      </div>
+                    )}
+                    
+                    {task.effortRating && (
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Effort Rating</span>
+                        <span className={styles.detailValue}>{task.effortRating}/5</span>
+                      </div>
+                    )}
+                    
+                    {task.accuracyRating && (
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Accuracy Rating</span>
+                        <span className={styles.detailValue}>{task.accuracyRating}/5</span>
+                      </div>
+                    )}
+                    
+                    {task.qualityRating && task.timelinessRating && task.effortRating && task.accuracyRating && (
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Average Rating</span>
+                        <span className={styles.detailValue}>
+                          {((task.qualityRating + task.timelinessRating + task.effortRating + task.accuracyRating) / 4).toFixed(1)}/5
+                        </span>
+                      </div>
+                    )}
+                    
+                    {task.feedback && (
+                      <div className={`${styles.detailItem} ${styles.feedbackDetail}`}>
+                        <span className={styles.detailLabel}>Feedback</span>
+                        <p className={styles.feedbackText}>{task.feedback}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className={styles.section}>
-                <h2 className={`${styles.sectionTitle} ${styles.peopleIcon}`}>People</h2>
+                <h2 className={`${styles.sectionTitle} ${styles.peopleIcon}`}>
+                  {sectionIcons.people} People
+                </h2>
                 <div className={styles.people}>
                   <div className={styles.person}>
                     <span className={styles.personRole}>Assigned by</span>
@@ -336,81 +385,65 @@ const TaskDetailPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
-              {/* Task Grading Section */}
-              {needsGrading && (
-                <div className={styles.section}>
-                  <h2 className={`${styles.sectionTitle} ${styles.gradingIcon}`}>Review & Grade</h2>
-                  
-                  {showGradingSection ? (
-                    <div className={styles.gradingForm}>
-                      <div className={styles.gradingField}>
-                        <label className={styles.gradingLabel}>Quality Rating:</label>
-                        {renderRatingStars(qualityRating, setQualityRating)}
-                        <p className={styles.ratingDescription}>Rate the overall quality of work</p>
-                      </div>
-                      
-                      <div className={styles.gradingField}>
-                        <label className={styles.gradingLabel}>Timeliness Rating:</label>
-                        {renderRatingStars(timelinessRating, setTimelinessRating)}
-                        <p className={styles.ratingDescription}>Rate how promptly the task was completed</p>
-                      </div>
-                      
-                      <div className={styles.gradingField}>
-                        <label className={styles.gradingLabel}>Effort Rating:</label>
-                        {renderRatingStars(effortRating, setEffortRating)}
-                        <p className={styles.ratingDescription}>Rate the level of effort demonstrated</p>
-                      </div>
-                      
-                      <div className={styles.gradingField}>
-                        <label className={styles.gradingLabel}>Accuracy Rating:</label>
-                        {renderRatingStars(accuracyRating, setAccuracyRating)}
-                        <p className={styles.ratingDescription}>Rate how accurately requirements were met</p>
-                      </div>
-                      
-                      <div className={styles.gradingField}>
-                        <label className={styles.gradingLabel}>Feedback:</label>
-                        <textarea 
-                          className={styles.feedbackInput}
-                          value={feedback}
-                          onChange={(e) => setFeedback(e.target.value)}
-                          placeholder="Provide feedback on the completed task..."
-                          rows={4}
-                        />
-                      </div>
-                      
-                      <div className={styles.gradingActions}>
-                        <Button 
-                          variant="primary" 
-                          onClick={handleSubmitGrade}
-                          disabled={isUpdating || qualityRating === 0}
-                        >
-                          {isUpdating ? 'Submitting...' : 'Submit Grade'}
-                        </Button>
-                        <Button 
-                          variant="secondary" 
-                          onClick={() => setShowGradingSection(false)}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className={styles.gradingPrompt}>
-                      <p>This task has been completed and is waiting for your review.</p>
-                      <Button 
-                        variant="primary" 
-                        onClick={() => setShowGradingSection(true)}
-                      >
-                        Grade Now
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
 
-            
+            {showGradingSection && (
+              <div className={styles.gradingSection}>
+                <h2 className={styles.gradingTitle}>Review & Grade</h2>
+                <div className={styles.gradingForm}>
+                  <div className={styles.gradingField}>
+                    <label className={styles.gradingLabel}>Quality Rating:</label>
+                    {renderRatingStars(qualityRating, setQualityRating)}
+                    <p className={styles.ratingDescription}>Rate the overall quality of work</p>
+                  </div>
+                  
+                  <div className={styles.gradingField}>
+                    <label className={styles.gradingLabel}>Timeliness Rating:</label>
+                    {renderRatingStars(timelinessRating, setTimelinessRating)}
+                    <p className={styles.ratingDescription}>Rate how promptly the task was completed</p>
+                  </div>
+                  
+                  <div className={styles.gradingField}>
+                    <label className={styles.gradingLabel}>Effort Rating:</label>
+                    {renderRatingStars(effortRating, setEffortRating)}
+                    <p className={styles.ratingDescription}>Rate the level of effort demonstrated</p>
+                  </div>
+                  
+                  <div className={styles.gradingField}>
+                    <label className={styles.gradingLabel}>Accuracy Rating:</label>
+                    {renderRatingStars(accuracyRating, setAccuracyRating)}
+                    <p className={styles.ratingDescription}>Rate how accurately requirements were met</p>
+                  </div>
+                  
+                  <div className={styles.gradingField}>
+                    <label className={styles.gradingLabel}>Feedback:</label>
+                    <textarea 
+                      className={styles.feedbackInput}
+                      value={feedback}
+                      onChange={(e) => setFeedback(e.target.value)}
+                      placeholder="Provide feedback on the completed task..."
+                      rows={4}
+                    />
+                  </div>
+                  
+                  <div className={styles.gradingActions}>
+                    <Button 
+                      variant="primary" 
+                      onClick={handleSubmitGrade}
+                      disabled={isUpdating || qualityRating === 0}
+                    >
+                      {isUpdating ? 'Submitting...' : 'Submit Grade'}
+                    </Button>
+                    <Button 
+                      variant="secondary" 
+                      onClick={() => setShowGradingSection(false)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </AppLayout>
