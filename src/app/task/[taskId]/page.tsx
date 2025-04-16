@@ -17,12 +17,14 @@ const calculateAverageRating = (task: Task): string => {
   
   const ratings = [
     task.qualityRating,
-    task.timelinessRating || 0,
-    task.effortRating || 0,
-    task.accuracyRating || 0
+    task.timelinessRating,
+    task.effortRating,
+    task.accuracyRating
   ];
   
-  const average = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
+  const average = ratings.filter(rating => rating !== undefined)
+                         .reduce((sum, rating) => sum + (rating || 0), 0) / 
+                  ratings.filter(rating => rating !== undefined).length || 1;
   return average.toFixed(1);
 };
 
