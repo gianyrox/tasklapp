@@ -14,15 +14,9 @@
   position: absolute;
   bottom: -10px;
   left: 0;
-  width: 80px;
-  height: 4px;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--track-curb-red) 0px,
-    var(--track-curb-red) 10px,
-    var(--track-curb-white) 10px,
-    var(--track-curb-white) 20px
-  );
+  width: 60px;
+  height: 3px;
+  background-color: var(--primary);
   border-radius: 2px;
 }
 
@@ -37,7 +31,7 @@
 .title::before {
   content: '🏆';
   margin-right: 10px;
-  font-size: 2rem;
+  font-size: 1.8rem;
 }
 
 .subtitle {
@@ -51,7 +45,7 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
   margin-bottom: 2rem;
-  border-top: 4px solid var(--track-asphalt);
+  border-top: 3px solid var(--primary);
   position: relative;
   overflow: hidden;
 }
@@ -62,15 +56,9 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 5px;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--track-curb-red) 0px,
-    var(--track-curb-red) 20px,
-    var(--track-curb-white) 20px,
-    var(--track-curb-white) 40px
-  );
-  opacity: 0.7;
+  height: 3px;
+  background-color: var(--track-curb-red);
+  opacity: 0.5;
 }
 
 .cardHeader {
@@ -86,7 +74,7 @@
   margin: 0;
 }
 
-/* Leaderboard Type Cards - Race Categories */
+/* Leaderboard Type Cards */
 .leaderboardTypes {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -112,8 +100,8 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 4px;
-  background: linear-gradient(to right, var(--track-curb-red), var(--track-curb-white), var(--track-curb-red));
+  height: 3px;
+  background-color: var(--primary);
   opacity: 0;
   transition: opacity 0.2s ease;
 }
@@ -125,17 +113,16 @@
 }
 
 .leaderboardTypeCard:hover::after {
-  opacity: 1;
+  opacity: 0.5;
 }
 
 .leaderboardTypeCard.active {
-  border-color: #6B46C1;
-  background-color: #f9f5ff;
+  border-color: var(--primary);
+  background-color: #f5f7ff;
 }
 
 .leaderboardTypeCard.active::after {
   opacity: 1;
-  background: var(--primary);
 }
 
 .leaderboardIcon {
@@ -154,20 +141,20 @@
   color: #666;
 }
 
-/* Leaderboard Table - Victory Podium */
+/* Leaderboard Table */
 .leaderboardTable {
   width: 100%;
   border-radius: 0.5rem;
   overflow: hidden;
   border: 1px solid #eee;
-  background: linear-gradient(to bottom, rgba(247, 247, 247, 0.5), white);
+  background-color: white;
 }
 
 .tableHeader {
   display: flex;
   align-items: center;
   padding: 1rem;
-  background-color: var(--track-asphalt);
+  background-color: var(--primary);
   font-weight: 600;
   color: white;
   border-bottom: 1px solid #eee;
@@ -190,22 +177,22 @@
   background-color: #f9f9f9;
 }
 
-/* Add trophy highlight to top 3 */
+/* Style top 3 positions */
 .tableRow:nth-child(1) {
-  background-color: rgba(255, 215, 0, 0.1); /* Gold */
+  background-color: rgba(255, 215, 0, 0.05);
 }
 
 .tableRow:nth-child(2) {
-  background-color: rgba(192, 192, 192, 0.1); /* Silver */
+  background-color: rgba(192, 192, 192, 0.05);
 }
 
 .tableRow:nth-child(3) {
-  background-color: rgba(205, 127, 50, 0.1); /* Bronze */
+  background-color: rgba(205, 127, 50, 0.05);
 }
 
 .tableRow.currentUser {
-  background-color: #f8f4ff;
-  border-left: 3px solid var(--primary);
+  background-color: rgba(99, 102, 241, 0.05);
+  border-left: 2px solid var(--primary);
 }
 
 .rankColumn {
@@ -237,30 +224,27 @@
 }
 
 .goldMedal {
-  color: #FFD700; /* Gold */
-  text-shadow: 0 0 3px rgba(255, 215, 0, 0.5);
+  color: #FFD700;
 }
 
 .silverMedal {
-  color: #C0C0C0; /* Silver */
-  text-shadow: 0 0 3px rgba(192, 192, 192, 0.5);
+  color: #C0C0C0;
 }
 
 .bronzeMedal {
-  color: #CD7F32; /* Bronze */
-  text-shadow: 0 0 3px rgba(205, 127, 50, 0.5);
+  color: #CD7F32;
 }
 
 .rank {
   font-weight: 600;
   color: #666;
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background-color: #f1f1f1;
+  background-color: #f5f5f5;
 }
 
 .tableRow:nth-child(1) .rank,
@@ -270,15 +254,15 @@
 }
 
 .tableRow:nth-child(1) .rank {
-  background-color: #FFD700; /* Gold */
+  background-color: #FFD700;
 }
 
 .tableRow:nth-child(2) .rank {
-  background-color: #C0C0C0; /* Silver */
+  background-color: #C0C0C0;
 }
 
 .tableRow:nth-child(3) .rank {
-  background-color: #CD7F32; /* Bronze */
+  background-color: #CD7F32;
 }
 
 .userAvatarContainer {
@@ -290,8 +274,8 @@
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .userAvatarPlaceholder {
@@ -305,8 +289,8 @@
   align-items: center;
   font-size: 1rem;
   font-weight: 500;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .userInfo {
@@ -344,16 +328,15 @@
 .statValue {
   font-weight: 600;
   color: #333;
-  position: relative;
   display: inline-block;
 }
 
-/* Add speedometer icon for stats */
+/* Simple stat icon */
 .statValue::before {
   content: '🔥';
   font-size: 12px;
   margin-right: 4px;
-  opacity: 0.8;
+  opacity: 0.6;
 }
 
 .loading, .emptyState {
@@ -378,10 +361,10 @@
   align-items: center;
 }
 
-/* Add checkered flag pattern to empty state */
+/* Add simple flag to empty state */
 .emptyState::before {
   content: '🏁';
-  font-size: 3rem;
+  font-size: 2rem;
   display: block;
   margin-bottom: 1rem;
 }

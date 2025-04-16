@@ -16,24 +16,24 @@
   box-shadow: var(--shadow-md);
 }
 
-/* Add racing track curve to corner */
+/* Subtle track curve indicator */
 .taskCard::after {
   content: '';
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 50px;
-  height: 50px;
-  background: radial-gradient(circle at bottom right, transparent 70%, var(--track-asphalt) 70%);
+  width: 40px;
+  height: 40px;
+  background: radial-gradient(circle at bottom right, transparent 80%, var(--primary) 80%);
   opacity: 0.1;
   z-index: 0;
 }
 
-/* Ownership styles - track lanes */
+/* Ownership styles */
 .ownership-self {
   border-top: 3px solid #6366f1;
   position: relative;
-  background-image: linear-gradient(to bottom, rgba(99, 102, 241, 0.05), transparent);
+  background-image: linear-gradient(to bottom, rgba(99, 102, 241, 0.03), transparent);
 }
 
 .ownership-self::before {
@@ -50,7 +50,7 @@
 .ownership-friend {
   border-top: 3px solid #8b5cf6;
   position: relative;
-  background-image: linear-gradient(to bottom, rgba(139, 92, 246, 0.05), transparent);
+  background-image: linear-gradient(to bottom, rgba(139, 92, 246, 0.03), transparent);
 }
 
 .ownership-friend::before {
@@ -112,9 +112,6 @@
   border-radius: var(--border-radius-sm);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  /* Add subtle race flag checkered pattern to status badges */
-  background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.1) 75%, transparent 75%, transparent);
-  background-size: 8px 8px;
 }
 
 .dates {
@@ -131,16 +128,17 @@
   display: flex;
   flex-direction: column;
   position: relative;
+  padding-left: 20px;
 }
 
-/* Add lap timer icons */
+/* Add subtle timer icon */
 .dateItem::before {
   content: '⏱️';
   position: absolute;
-  left: -20px;
+  left: 0;
   top: 2px;
   font-size: 14px;
-  opacity: 0.6;
+  opacity: 0.4;
 }
 
 .dateLabel {
@@ -151,23 +149,15 @@
 .overdue {
   color: var(--danger);
   font-weight: 600;
-  /* Add caution flag effect */
   position: relative;
 }
 
+/* Simple flag indicator for overdue */
 .overdue::after {
-  content: '🏁';
+  content: '🚩';
   margin-left: 4px;
   font-size: 12px;
-  animation: waveFlag 1s ease-in-out infinite;
   display: inline-block;
-}
-
-@keyframes waveFlag {
-  0% { transform: rotate(0deg); }
-  25% { transform: rotate(5deg); }
-  75% { transform: rotate(-5deg); }
-  100% { transform: rotate(0deg); }
 }
 
 .description {
