@@ -13,19 +13,17 @@ import styles from './TaskDetail.module.css';
 
 // Helper function to calculate average rating
 const calculateAverageRating = (task: Task): string => {
-  // Get all available ratings
+  if (!task.qualityRating) return '0.0';
+  
   const ratings = [
-    task.qualityRating || 0,
-    task.timelinessRating || 0,
+    task.qualityRating,
+    task.timelinessRating,
     task.effortRating || 0,
     task.accuracyRating || 0
-  ].filter(rating => rating > 0);
+  ];
   
-  // If no ratings, return 0
-  if (ratings.length === 0) return '0.0';
-  
-  const sum = ratings.reduce((total, rating) => total + rating, 0);
-  return (sum / ratings.length).toFixed(1);
+  const average = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
+  return average.toFixed(1);
 };
 
 const TaskDetailPage: React.FC = () => {
@@ -86,19 +84,13 @@ const TaskDetailPage: React.FC = () => {
   const handleSubmitGrade = async () => {
     if (!task) return;
     
-    // Need at least one rating to submit
-    if (!qualityRating && !timelinessRating && !effortRating && !accuracyRating) {
-      setError('Please provide at least one rating before submitting.');
-      return;
-    }
-    
     setIsUpdating(true);
     try {
       await updateTaskStatus(task.id, TaskStatus.GRADED, {
-        qualityRating: qualityRating || undefined,
-        timelinessRating: timelinessRating || undefined,
-        effortRating: effortRating || undefined,
-        accuracyRating: accuracyRating || undefined,
+        qualityRating: qualityRating,
+        timelinessRating: timelinessRating,
+        effortRating: effortRating,
+        accuracyRating: accuracyRating,
         feedback: feedback
       });
       // Refresh task data and hide grading section
@@ -125,25 +117,6 @@ const TaskDetailPage: React.FC = () => {
             ★
           </span>
         ))}
-      </div>
-    );
-  };
-
-  // Render a compact visual display of stars for ratings
-  const renderRatingDisplay = (rating: number) => {
-    return (
-      <div className={styles.ratingDisplay}>
-        <span className={styles.numericRating}>{rating}</span>
-        <span className={styles.starsDisplay}>
-          {[1, 2, 3, 4, 5].map(star => (
-            <span 
-              key={star} 
-              className={star <= rating ? styles.smallStarFilled : styles.smallStar}
-            >
-              ★
-            </span>
-          ))}
-        </span>
       </div>
     );
   };
@@ -337,9 +310,7 @@ const TaskDetailPage: React.FC = () => {
               </div>
               
               {/* New Grade Section */}
-              {(task.status === TaskStatus.GRADED || 
-                task.qualityRating || task.timelinessRating || 
-                task.effortRating || task.accuracyRating || 
+              {(task.status === TaskStatus.GRADED || task.qualityRating || 
                 task.estimatedTimeMinutes || task.actualTimeMinutes || 
                 task.submissionDate || task.submissionContent) && (
                 <div className={styles.section}>
@@ -383,56 +354,37 @@ const TaskDetailPage: React.FC = () => {
                     
                     {task.qualityRating && (
                       <div className={styles.detailItem}>
-                        <span className={styles.detailLabel}>
-                          <span className={styles.ratingIcon}>✨</span> Quality Rating
-                        </span>
-                        <span className={styles.detailValue}>
-                          {renderRatingDisplay(task.qualityRating)}
-                        </span>
+                        <span className={styles.detailLabel}>Quality Rating</span>
+                        <span className={styles.detailValue}>{task.qualityRating}/5</span>
                       </div>
                     )}
                     
                     {task.timelinessRating && (
                       <div className={styles.detailItem}>
-                        <span className={styles.detailLabel}>
-                          <span className={styles.ratingIcon}>⏱️</span> Timeliness Rating
-                        </span>
-                        <span className={styles.detailValue}>
-                          {renderRatingDisplay(task.timelinessRating)}
-                        </span>
+                        <span className={styles.detailLabel}>Timeliness Rating</span>
+                        <span className={styles.detailValue}>{task.timelinessRating}/5</span>
                       </div>
                     )}
                     
                     {task.effortRating && (
                       <div className={styles.detailItem}>
-                        <span className={styles.detailLabel}>
-                          <span className={styles.ratingIcon}>💪</span> Effort Rating
-                        </span>
-                        <span className={styles.detailValue}>
-                          {renderRatingDisplay(task.effortRating)}
-                        </span>
+                        <span className={styles.detailLabel}>Effort Rating</span>
+                        <span className={styles.detailValue}>{task.effortRating}/5</span>
                       </div>
                     )}
                     
                     {task.accuracyRating && (
                       <div className={styles.detailItem}>
-                        <span className={styles.detailLabel}>
-                          <span className={styles.ratingIcon}>🎯</span> Accuracy Rating
-                        </span>
-                        <span className={styles.detailValue}>
-                          {renderRatingDisplay(task.accuracyRating)}
-                        </span>
+                        <span className={styles.detailLabel}>Accuracy Rating</span>
+                        <span className={styles.detailValue}>{task.accuracyRating}/5</span>
                       </div>
                     )}
                     
-                    {/* Average Rating - show if ANY rating exists */}
-                    {(task.qualityRating || task.timelinessRating || task.effortRating || task.accuracyRating) && (
+                    {task.qualityRating && task.timelinessRating && task.effortRating && task.accuracyRating && (
                       <div className={styles.detailItem}>
-                        <span className={styles.detailLabel}>
-                          <span className={styles.ratingIcon}>⭐</span> Average Rating
-                        </span>
+                        <span className={styles.detailLabel}>Average Rating</span>
                         <span className={styles.detailValue}>
-                          {renderRatingDisplay(Number(calculateAverageRating(task)))}
+                          {calculateAverageRating(task)}/5
                         </span>
                       </div>
                     )}
@@ -488,35 +440,27 @@ const TaskDetailPage: React.FC = () => {
                 <h2 className={styles.gradingTitle}>Review & Grade</h2>
                 <div className={styles.gradingForm}>
                   <div className={styles.gradingField}>
-                    <label className={styles.gradingLabel}>
-                      <span className={styles.ratingIcon}>✨</span> Quality Rating:
-                    </label>
+                    <label className={styles.gradingLabel}>Quality Rating:</label>
                     {renderRatingStars(qualityRating, setQualityRating)}
-                    <p className={styles.ratingDescription}>Rate the overall quality and excellence of work</p>
+                    <p className={styles.ratingDescription}>Rate the overall quality of work</p>
                   </div>
                   
                   <div className={styles.gradingField}>
-                    <label className={styles.gradingLabel}>
-                      <span className={styles.ratingIcon}>⏱️</span> Timeliness Rating:
-                    </label>
+                    <label className={styles.gradingLabel}>Timeliness Rating:</label>
                     {renderRatingStars(timelinessRating, setTimelinessRating)}
-                    <p className={styles.ratingDescription}>Rate how promptly the task was completed relative to deadline</p>
+                    <p className={styles.ratingDescription}>Rate how promptly the task was completed</p>
                   </div>
                   
                   <div className={styles.gradingField}>
-                    <label className={styles.gradingLabel}>
-                      <span className={styles.ratingIcon}>💪</span> Effort Rating:
-                    </label>
+                    <label className={styles.gradingLabel}>Effort Rating:</label>
                     {renderRatingStars(effortRating, setEffortRating)}
-                    <p className={styles.ratingDescription}>Rate the level of effort, dedication and thoroughness</p>
+                    <p className={styles.ratingDescription}>Rate the level of effort demonstrated</p>
                   </div>
                   
                   <div className={styles.gradingField}>
-                    <label className={styles.gradingLabel}>
-                      <span className={styles.ratingIcon}>🎯</span> Accuracy Rating:
-                    </label>
+                    <label className={styles.gradingLabel}>Accuracy Rating:</label>
                     {renderRatingStars(accuracyRating, setAccuracyRating)}
-                    <p className={styles.ratingDescription}>Rate how precisely requirements were met and understood</p>
+                    <p className={styles.ratingDescription}>Rate how accurately requirements were met</p>
                   </div>
                   
                   <div className={styles.gradingField}>
@@ -534,7 +478,7 @@ const TaskDetailPage: React.FC = () => {
                     <Button 
                       variant="primary" 
                       onClick={handleSubmitGrade}
-                      disabled={isUpdating || (!qualityRating && !timelinessRating && !effortRating && !accuracyRating)}
+                      disabled={isUpdating || qualityRating === 0}
                     >
                       {isUpdating ? 'Submitting...' : 'Submit Grade'}
                     </Button>
