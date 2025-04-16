@@ -165,8 +165,9 @@ const LeaderboardDetailPage: React.FC = () => {
       <ProtectedRoute>
         <AppLayout>
           <div className={styles.container}>
+            <BackButton route="/leaderboard" />
+            
             <div className={styles.header}>
-              <BackButton route="/leaderboard" />
               <h1 className={styles.title}>Invalid Leaderboard</h1>
             </div>
             <div className={styles.error}>
@@ -182,9 +183,9 @@ const LeaderboardDetailPage: React.FC = () => {
     <ProtectedRoute>
       <AppLayout>
         <div className={styles.container}>
+          <BackButton route="/leaderboard" />
+          
           <div className={styles.header}>
-            <BackButton route="/leaderboard" />
-            
             <div className={styles.titleWrapper}>
               <div className={styles.icon}>
                 {leaderboardType?.icon || <FaTrophy />}
