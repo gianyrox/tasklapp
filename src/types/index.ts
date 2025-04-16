@@ -28,6 +28,12 @@ export enum FriendshipStatus {
   DECLINED = 'DECLINED'
 }
 
+export enum SubmissionType {
+  FORM = 'FORM',
+  LINK = 'LINK',
+  FILE = 'FILE'
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -41,8 +47,15 @@ export interface Task {
   completedAt?: Date;
   estimatedTimeMinutes?: number;
   actualTimeMinutes?: number;
+  submissionType?: SubmissionType;
+  submissionInstructions?: string;
+  startedAt?: Date;
   submissionDate?: Date;
+  submissionContent?: string;
   qualityRating?: number; // 1-5 rating
+  timelinessRating?: number; // 1-5 rating
+  effortRating?: number; // 1-5 rating
+  accuracyRating?: number; // 1-5 rating
   feedback?: string;
   attachments?: TaskAttachment[];
   assigner?: User; // Populated with assigner profile information
@@ -65,6 +78,9 @@ export interface LeaderboardEntry {
   tasksCompleted: number;
   avgCompletionTime?: number; // In minutes
   avgQualityRating?: number; // 1-5 average
+  avgTimelinessRating?: number; // 1-5 average
+  avgEffortRating?: number; // 1-5 average
+  avgAccuracyRating?: number; // 1-5 average
   tasksOverdue: number;
   isFriend: boolean;
 }
