@@ -563,4 +563,19 @@
   margin-bottom: 1rem;
   padding-left: 0.5rem;
   border-left: 3px solid #4338ca;
+}
+
+.centeredLeaderboard {
+  width: 50%;
+  margin: 0 auto 2rem auto;
+}
+
+.centeredLeaderboard .scrollableBoard {
+  max-height: 40vh; /* Shorter max-height */
+}
+
+@media (max-width: 992px) {
+  .centeredLeaderboard {
+    width: 100%;
+  }
 } 
