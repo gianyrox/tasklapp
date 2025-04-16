@@ -567,16 +567,16 @@ const DashboardPage: React.FC = () => {
           <div className={styles.friendsSection}>
             <div className={styles.sectionHeader}>
               <h2>Friends' Task Lists</h2>
-              <button className={styles.findFriendsButton} onClick={handleFindFriends}>
+              <Button size="sm" variant="primary" onClick={handleFindFriends}>
                 Find Friends
-              </button>
+              </Button>
             </div>
             {friends.length === 0 && !isLoading ? (
               <div className={styles.emptyState}>
                 <p>You haven't connected with any friends yet</p>
-                <button className={styles.findFriendsButton} onClick={handleFindFriends}>
+                <Button size="sm" variant="primary" onClick={handleFindFriends}>
                   Find Friends
-                </button>
+                </Button>
               </div>
             ) : (
               <div className={styles.friendTasksGrid}>
