@@ -61,5 +61,71 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Create a helper function for starting a task
+CREATE OR REPLACE FUNCTION start_task(task_uuid UUID)
+RETURNS SETOF tasks AS $$
+BEGIN
+  -- Update the task status to IN_PROGRESS and set the started_at timestamp
+  RETURN QUERY
+  UPDATE tasks
+  SET 
+    status = 'IN_PROGRESS',
+    started_at = NOW()
+  WHERE 
+    id = task_uuid
+    AND status = 'PENDING'
+  RETURNING *;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create a helper function for submitting task completion
+CREATE OR REPLACE FUNCTION submit_task(
+  task_uuid UUID,
+  content TEXT
+)
+RETURNS SETOF tasks AS $$
+BEGIN
+  -- Update the task with submission content and date
+  RETURN QUERY
+  UPDATE tasks
+  SET 
+    submission_content = content,
+    submission_date = NOW(),
+    status = 'COMPLETED'
+  WHERE 
+    id = task_uuid
+    AND status = 'IN_PROGRESS'
+  RETURNING *;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create a helper function for reviewing a task submission
+CREATE OR REPLACE FUNCTION review_task(
+  task_uuid UUID,
+  quality INT,
+  timeliness INT,
+  effort INT,
+  accuracy INT,
+  feedback_text TEXT
+)
+RETURNS SETOF tasks AS $$
+BEGIN
+  -- Update the task with ratings and feedback
+  RETURN QUERY
+  UPDATE tasks
+  SET 
+    quality_rating = quality,
+    timeliness_rating = timeliness,
+    effort_rating = effort,
+    accuracy_rating = accuracy,
+    feedback = feedback_text,
+    completed_at = NOW()
+  WHERE 
+    id = task_uuid
+    AND status = 'COMPLETED'
+  RETURNING *;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Create index for started_at to help with queries filtering by task status
 CREATE INDEX IF NOT EXISTS idx_tasks_started_at ON tasks(started_at); 
