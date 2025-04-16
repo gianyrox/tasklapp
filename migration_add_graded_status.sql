@@ -1,5 +1,16 @@
 -- Migration script to add GRADED status to tasks table
 
+-- First, drop the existing constraint that's causing the issue
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'tasks_status_check' AND conrelid = 'tasks'::regclass
+  ) THEN
+    EXECUTE 'ALTER TABLE tasks DROP CONSTRAINT tasks_status_check';
+  END IF;
+END $$;
+
 -- Check if any tasks exist with status other than allowed values
 DO $$
 BEGIN
@@ -13,7 +24,7 @@ END $$;
 
 -- Add check constraint to ensure status is one of the allowed values
 ALTER TABLE tasks
-  ADD CONSTRAINT check_task_status
+  ADD CONSTRAINT tasks_status_check
   CHECK (status IN ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'OVERDUE', 'GRADED'));
 
 -- Update the get_leaderboard function to consider GRADED status in calculations
@@ -65,4 +76,4 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Add comments to explain the changes
-COMMENT ON CONSTRAINT check_task_status ON tasks IS 'Ensures task status is one of: PENDING, IN_PROGRESS, COMPLETED, OVERDUE, or GRADED'; 
+COMMENT ON CONSTRAINT tasks_status_check ON tasks IS 'Ensures task status is one of: PENDING, IN_PROGRESS, COMPLETED, OVERDUE, or GRADED'; 
