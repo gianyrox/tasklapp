@@ -1,43 +1,56 @@
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem 0;
+  padding: 2rem 1.5rem;
 }
 
 .header {
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
+  border-bottom: 1px solid #eaeaea;
+  padding-bottom: 1.5rem;
 }
 
 .title {
-  font-size: 2rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: #333;
 }
 
 .subtitle {
-  font-size: 1rem;
+  font-size: 1.1rem;
   color: #666;
+  max-width: 600px;
 }
 
 .card {
   background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
-  margin-bottom: 2rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 1.75rem;
+  margin-bottom: 2.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
 .cardTitle {
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   font-weight: 600;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
   display: flex;
   align-items: center;
+  color: #333;
 }
 
 .cardDescription {
   color: #666;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.75rem;
+  font-size: 1.05rem;
+  line-height: 1.5;
 }
 
 .searchContainer {
@@ -48,75 +61,97 @@
 
 .searchInput {
   flex: 1;
-  padding: 0.75rem;
+  padding: 0.9rem 1.1rem;
   border: 1px solid #ddd;
-  border-radius: 0.25rem;
+  border-radius: 0.5rem;
   font-size: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.searchInput:focus {
+  border-color: #6B46C1;
+  box-shadow: 0 0 0 3px rgba(107, 70, 193, 0.2);
+  outline: none;
 }
 
 .searchResults {
-  margin-top: 2rem;
+  margin-top: 2.5rem;
 }
 
 .sectionTitle {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 500;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
   color: #444;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
 }
 
 .userGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.75rem;
 }
 
 .userCard {
   display: flex;
   align-items: center;
-  padding: 1rem;
+  padding: 1.25rem;
   border: 1px solid #eee;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   background: #f9f9f9;
+  transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+
+.userCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  background-color: #fff;
 }
 
 .userAvatarContainer {
-  margin-right: 1rem;
+  margin-right: 1.25rem;
 }
 
 .userAvatar {
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   object-fit: cover;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .userAvatarPlaceholder {
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   background-color: #6B46C1;
   color: white;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: 500;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .userInfo {
   flex: 1;
+  padding-right: 1rem;
 }
 
 .userName {
   font-weight: 600;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.4rem;
+  font-size: 1.1rem;
+  color: #333;
 }
 
 .userEmail {
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   color: #666;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .pendingStatus {
@@ -124,21 +159,26 @@
   font-size: 0.75rem;
   background-color: #F59E0B;
   color: white;
-  padding: 0.2rem 0.5rem;
+  padding: 0.3rem 0.6rem;
   border-radius: 0.25rem;
+  font-weight: 500;
+  margin-top: 0.25rem;
 }
 
 .userActions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
   flex-direction: column;
-  min-width: 120px;
+  min-width: 130px;
 }
 
 .emptyState {
   text-align: center;
-  padding: 2rem;
+  padding: 3rem 2rem;
   color: #666;
+  background-color: #f9f9f9;
+  border-radius: 0.5rem;
+  border: 1px dashed #ddd;
 }
 
 .badgeCount {
@@ -147,28 +187,31 @@
   justify-content: center;
   background-color: #6B46C1;
   color: white;
-  font-size: 0.75rem;
-  width: 1.5rem;
-  height: 1.5rem;
+  font-size: 0.8rem;
+  width: 1.75rem;
+  height: 1.75rem;
   border-radius: 50%;
-  margin-left: 0.5rem;
+  margin-left: 0.75rem;
+  box-shadow: 0 2px 4px rgba(107, 70, 193, 0.3);
 }
 
 .message {
-  padding: 1rem;
-  border-radius: 0.5rem;
-  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  margin-bottom: 2rem;
   display: flex;
   align-items: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .message::before {
   content: '';
   display: inline-block;
-  width: 12px;
-  height: 12px;
-  margin-right: 0.75rem;
+  width: 14px;
+  height: 14px;
+  margin-right: 0.9rem;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .success {
@@ -196,8 +239,10 @@
   font-size: 0.75rem;
   background-color: #10B981;
   color: white;
-  padding: 0.2rem 0.5rem;
+  padding: 0.3rem 0.6rem;
   border-radius: 0.25rem;
+  font-weight: 500;
+  margin-top: 0.25rem;
 }
 
 /* Responsive adjustments */
@@ -208,5 +253,41 @@
   
   .searchContainer {
     flex-direction: column;
+  }
+  
+  .container {
+    padding: 1.5rem 1rem;
+  }
+  
+  .userActions {
+    min-width: 110px;
+  }
+}
+
+@media (max-width: 576px) {
+  .userCard {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: center;
+  }
+  
+  .userAvatarContainer {
+    margin-right: 0;
+    margin-bottom: 1rem;
+    align-self: center;
+  }
+  
+  .userInfo {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 1rem;
+    padding-right: 0;
+  }
+  
+  .userActions {
+    width: 100%;
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
   }
 } 
