@@ -25,6 +25,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [dueTime, setDueTime] = useState('');
   const [priority, setPriority] = useState<TaskPriority>(TaskPriority.MEDIUM);
   const [estimatedTimeMinutes, setEstimatedTimeMinutes] = useState<number | undefined>();
   const [submissionType, setSubmissionType] = useState<SubmissionType>(SubmissionType.FORM);
@@ -37,6 +38,12 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     return tomorrow.toISOString().split('T')[0];
+  };
+  
+  // Get current time for default value
+  const getCurrentTime = () => {
+    const now = new Date();
+    return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   };
   
   const handleSubmit = async (e: FormEvent) => {
@@ -53,11 +60,14 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
         throw new Error('Please fill all required fields');
       }
       
+      // Create a proper date object with the selected date and time
+      const dueDateObj = new Date(`${dueDate}T${dueTime || '23:59'}:00`);
+      
       // Create task object
       const newTask = {
         title,
         description,
-        dueDate: new Date(dueDate),
+        dueDate: dueDateObj,
         assignerId: user.id,
         assigneeId,
         status: TaskStatus.PENDING,
