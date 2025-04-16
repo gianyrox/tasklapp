@@ -358,35 +358,45 @@ const TaskDetailPage: React.FC = () => {
                     
                     {task.qualityRating && (
                       <div className={styles.detailItem}>
-                        <span className={styles.detailLabel}>Quality Rating</span>
+                        <span className={styles.detailLabel}>
+                          <span className={styles.ratingIcon}>✨</span> Quality Rating
+                        </span>
                         <span className={styles.detailValue}>{task.qualityRating}/5</span>
                       </div>
                     )}
                     
                     {task.timelinessRating && (
                       <div className={styles.detailItem}>
-                        <span className={styles.detailLabel}>Timeliness Rating</span>
+                        <span className={styles.detailLabel}>
+                          <span className={styles.ratingIcon}>⏱️</span> Timeliness Rating
+                        </span>
                         <span className={styles.detailValue}>{task.timelinessRating}/5</span>
                       </div>
                     )}
                     
                     {task.effortRating && (
                       <div className={styles.detailItem}>
-                        <span className={styles.detailLabel}>Effort Rating</span>
+                        <span className={styles.detailLabel}>
+                          <span className={styles.ratingIcon}>💪</span> Effort Rating
+                        </span>
                         <span className={styles.detailValue}>{task.effortRating}/5</span>
                       </div>
                     )}
                     
                     {task.accuracyRating && (
                       <div className={styles.detailItem}>
-                        <span className={styles.detailLabel}>Accuracy Rating</span>
+                        <span className={styles.detailLabel}>
+                          <span className={styles.ratingIcon}>🎯</span> Accuracy Rating
+                        </span>
                         <span className={styles.detailValue}>{task.accuracyRating}/5</span>
                       </div>
                     )}
                     
                     {task.qualityRating && task.timelinessRating && task.effortRating && task.accuracyRating && (
                       <div className={styles.detailItem}>
-                        <span className={styles.detailLabel}>Average Rating</span>
+                        <span className={styles.detailLabel}>
+                          <span className={styles.ratingIcon}>⭐</span> Average Rating
+                        </span>
                         <span className={styles.detailValue}>
                           {calculateAverageRating(task)}/5
                         </span>
