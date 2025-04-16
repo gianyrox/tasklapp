@@ -513,6 +513,36 @@
   align-items: center;
 }
 
+.ratingDisplay {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.numericRating {
+  font-weight: 600;
+  font-size: 1.25rem;
+  color: #4338ca;
+}
+
+.starsDisplay {
+  display: flex;
+  align-items: center;
+}
+
+.smallStar, .smallStarFilled {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.smallStar {
+  color: #D1D5DB;
+}
+
+.smallStarFilled {
+  color: #FFD700;
+}
+
 .feedbackText {
   margin: 0;
   font-size: 1rem;
