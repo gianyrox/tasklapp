@@ -109,6 +109,8 @@ export const getFriendships = async (status?: FriendshipStatus): Promise<Friends
     return [];
   }
   
+  console.log('Fetching friendships for user:', session.user.id, 'with status:', status || 'all');
+  
   let query = supabase
     .from('friendships')
     .select(`
@@ -127,6 +129,8 @@ export const getFriendships = async (status?: FriendshipStatus): Promise<Friends
     console.error('Error fetching friendships:', error);
     return [];
   }
+  
+  console.log('Friendships data from DB:', data.length, 'records');
   
   return data.map(friendship => {
     // Determine which user is the friend (not the current user)
@@ -234,6 +238,8 @@ export const searchUsers = async (query: string): Promise<User[]> => {
 
 // Task API functions
 export const getUserTasks = async (userId: string, filter?: 'assigned' | 'received'): Promise<Task[]> => {
+  console.log('Fetching tasks for user:', userId, 'with filter:', filter || 'none');
+  
   const { data, error } = await supabase
     .from('tasks')
     .select(`
@@ -247,6 +253,8 @@ export const getUserTasks = async (userId: string, filter?: 'assigned' | 'receiv
     console.error('Error fetching user tasks:', error);
     return [];
   }
+  
+  console.log('Tasks data from DB:', data.length, 'records', 'filter:', filter);
   
   return data.map(transformTaskFromDb);
 };
@@ -284,6 +292,8 @@ export const getTasksFromFriends = async (): Promise<Task[]> => {
     return [];
   }
   
+  console.log('Fetching tasks from friends for user:', session.user.id);
+  
   // First get accepted friendships
   const { data: friendships, error: friendError } = await supabase
     .from('friendships')
@@ -300,6 +310,8 @@ export const getTasksFromFriends = async (): Promise<Task[]> => {
   const friendIds = friendships.map(f => 
     f.user_id === session.user.id ? f.friend_id : f.user_id
   );
+  
+  console.log('Found friend IDs:', friendIds.length, friendIds);
   
   if (friendIds.length === 0) {
     return [];
@@ -320,6 +332,8 @@ export const getTasksFromFriends = async (): Promise<Task[]> => {
     console.error('Error fetching tasks from friends:', error);
     return [];
   }
+  
+  console.log('Tasks from friends data from DB:', data.length, 'records');
   
   return data.map(transformTaskFromDb);
 };
