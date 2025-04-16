@@ -400,7 +400,19 @@ const TaskDetailPage: React.FC = () => {
               )}
             </div>
 
-            
+            <div className={styles.sidebar}>
+              <div className={styles.actions}>
+                <h3 className={styles.actionsTitle}>Additional Actions</h3>
+                {needsGrading && !showGradingSection && (
+                  <button 
+                    onClick={() => setShowGradingSection(true)}
+                    className={`${styles.actionButton} ${styles.primaryAction}`}
+                  >
+                    ⭐ Grade This Task
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </AppLayout>
