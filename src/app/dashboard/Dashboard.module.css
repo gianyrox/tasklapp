@@ -453,7 +453,7 @@
 
 @media (min-width: 992px) {
   .tasksColumnsContainer {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -528,9 +528,30 @@
 }
 
 .friendTasksGrid .scrollableBoard {
-  max-height: 65vh; /* Medium - 65% of viewport height */
+  max-height: 75vh; /* Increased from 65vh to 75vh */
 }
 
 .leaderboardBoard .scrollableBoard {
   max-height: 50vh; /* Small - 50% of viewport height */
+}
+
+/* Task section styling for combined column */
+.taskSection {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.taskSection:last-of-type {
+  margin-bottom: 1rem;
+  border-bottom: none;
+}
+
+.taskSectionTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #4b5563;
+  margin-bottom: 1rem;
+  padding-left: 0.5rem;
+  border-left: 3px solid #4338ca;
 } 
