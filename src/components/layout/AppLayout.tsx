@@ -58,6 +58,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                     Leaderboard
                   </Link>
                 </li>
+                <li className={styles.navItem}></li>
               </ul>
             </nav>
           </div>
