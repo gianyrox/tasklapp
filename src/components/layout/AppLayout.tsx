@@ -30,6 +30,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           <Link href="/dashboard" className={styles.logo}>
             Taskl
           </Link>
+          
           <Link href="/leaderboard" className={styles.leaderboardLink}>
             Leaderboard
           </Link>
