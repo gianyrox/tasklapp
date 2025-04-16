@@ -501,6 +501,11 @@
   margin-top: 0.5rem;
 }
 
+.submissionIcon {
+  margin-right: 0.25rem;
+  font-size: 1em;
+}
+
 .feedbackText {
   margin: 0;
   font-size: 1rem;
