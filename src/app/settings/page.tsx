@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import AppLayout from '../../components/layout/AppLayout';
 import ProtectedRoute from '../../components/layout/ProtectedRoute';
-import { updateUserProfile } from '../../lib/api/supabase';
+import { updateUserProfile, supabase } from '../../lib/api/supabase';
 
 // Import CSS modules
 import styles from './Settings.module.css';
@@ -37,6 +37,8 @@ const SettingsPage: React.FC = () => {
   };
 
   const handleSave = async () => {
+    if (!user) return;
+    
     setIsUpdating(true);
     setMessage(null);
     
@@ -44,8 +46,8 @@ const SettingsPage: React.FC = () => {
       // Only update what's changed
       const updateData: { name?: string; avatarUrl?: string } = {};
       
-      if (name !== user?.name) updateData.name = name;
-      if (avatarUrl !== user?.avatarUrl) updateData.avatarUrl = avatarUrl;
+      if (name !== user.name) updateData.name = name;
+      if (avatarUrl !== user.avatarUrl) updateData.avatarUrl = avatarUrl;
       
       if (Object.keys(updateData).length === 0) {
         setMessage({ type: 'success', text: 'No changes to save' });
@@ -53,12 +55,25 @@ const SettingsPage: React.FC = () => {
         return;
       }
       
+      // First update the Auth metadata to ensure consistency
+      await supabase.auth.updateUser({
+        data: {
+          name: updateData.name,
+          avatar_url: updateData.avatarUrl
+        }
+      });
+      
+      // Then update the profile in the database
       const success = await updateUserProfile(updateData);
       
       if (success) {
         setMessage({ type: 'success', text: 'Profile updated successfully' });
-        // Refresh page after successful update to see the changes
-        setTimeout(() => router.refresh(), 1500);
+        
+        // Force a hard reload to ensure all components get the updated user data
+        // This is more reliable than just refreshing the router
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } else {
         setMessage({ type: 'error', text: 'Failed to update profile' });
       }
