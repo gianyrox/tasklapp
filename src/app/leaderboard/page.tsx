@@ -193,6 +193,7 @@ const LeaderboardPage: React.FC = () => {
                     {activeLeaderboard === 'speed-demons' && 'Avg. Time'}
                     {activeLeaderboard === 'consistency' && 'Tasks Overdue'}
                   </div>
+                  <div className={styles.extendedStatsColumn}></div>
                   <div className={styles.actionColumn}></div>
                 </div>
                 
@@ -241,6 +242,38 @@ const LeaderboardPage: React.FC = () => {
                       )}
                       {activeLeaderboard === 'consistency' && (
                         <div className={styles.statValue}>{entry.tasksOverdue}</div>
+                      )}
+                    </div>
+                    <div className={styles.extendedStatsColumn}>
+                      {activeLeaderboard === 'tasks-completed' && entry.avgQualityRating && (
+                        <div className={styles.miniStat}>
+                          <span className={styles.miniStatLabel}>Quality:</span>
+                          <span className={styles.miniStatValue}>{formatRating(entry.avgQualityRating)}</span>
+                        </div>
+                      )}
+                      {activeLeaderboard === 'quality-rating' && entry.avgTimelinessRating && (
+                        <div className={styles.miniStat}>
+                          <span className={styles.miniStatLabel}>Timeliness:</span>
+                          <span className={styles.miniStatValue}>{formatRating(entry.avgTimelinessRating)}</span>
+                        </div>
+                      )}
+                      {activeLeaderboard === 'quality-rating' && entry.avgEffortRating && (
+                        <div className={styles.miniStat}>
+                          <span className={styles.miniStatLabel}>Effort:</span>
+                          <span className={styles.miniStatValue}>{formatRating(entry.avgEffortRating)}</span>
+                        </div>
+                      )}
+                      {activeLeaderboard === 'speed-demons' && (
+                        <div className={styles.miniStat}>
+                          <span className={styles.miniStatLabel}>Tasks:</span>
+                          <span className={styles.miniStatValue}>{entry.tasksCompleted}</span>
+                        </div>
+                      )}
+                      {activeLeaderboard === 'consistency' && entry.avgQualityRating && (
+                        <div className={styles.miniStat}>
+                          <span className={styles.miniStatLabel}>Quality:</span>
+                          <span className={styles.miniStatValue}>{formatRating(entry.avgQualityRating)}</span>
+                        </div>
                       )}
                     </div>
                     <div className={styles.actionColumn}>
