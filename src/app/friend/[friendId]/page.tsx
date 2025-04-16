@@ -90,6 +90,8 @@ const FriendProfilePage: React.FC = () => {
       <ProtectedRoute>
         <AppLayout>
           <div className={styles.container}>
+            <BackButton route="/friend" />
+            
             <div className={styles.errorMessage}>
               <p>{error}</p>
               <Button variant="primary" onClick={fetchFriendData}>
@@ -107,9 +109,10 @@ const FriendProfilePage: React.FC = () => {
       <ProtectedRoute>
         <AppLayout>
           <div className={styles.container}>
+            <BackButton route="/friend" />
+            
             <div className={styles.errorMessage}>
               <p>Friend not found</p>
-              <BackButton route="/friend" />
             </div>
           </div>
         </AppLayout>
