@@ -27,18 +27,24 @@
   height: 70px;
 }
 
+.leftSection {
+  display: flex;
+  align-items: center;
+}
+
 .logo {
   font-size: var(--font-size-xl);
   font-weight: 700;
   color: var(--primary);
   text-decoration: none;
   letter-spacing: -0.5px;
+  margin-right: var(--spacing-lg);
 }
 
 /* Navigation styles */
 .navigation {
-  margin-left: auto;
-  margin-right: auto;
+  display: flex;
+  align-items: center;
 }
 
 .navList {
@@ -49,46 +55,53 @@
 }
 
 .navItem {
-  margin: 0 4px;
+  margin: 0 2px;
 }
 
 .navLink {
-  display: block;
-  padding: 10px 20px;
-  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  color: var(--text-secondary);
   text-decoration: none;
-  font-weight: 500;
-  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 8px;
   transition: all 0.2s ease;
   position: relative;
+  height: 36px;
+  overflow: hidden;
 }
 
 .navLink:hover {
   color: var(--primary);
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: rgba(var(--primary-rgb), 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
 .navLink.active {
-  color: var(--primary);
-  background-color: rgba(var(--primary-rgb), 0.1);
+  color: white;
+  background-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
 }
 
-.navLink.active::after {
+.navLink.active::before {
   content: '';
   position: absolute;
-  bottom: -2px;
-  left: 20%;
-  width: 60%;
-  height: 3px;
-  background-color: var(--primary);
-  border-radius: 3px;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.5), rgba(255,255,255,0));
 }
 
 .userMenu {
   display: flex;
   align-items: center;
   position: relative;
-  margin-left: var(--spacing-lg);
 }
 
 .userInfo {
@@ -114,6 +127,7 @@
   cursor: pointer;
   transition: transform var(--transition-fast);
   overflow: hidden;
+  box-shadow: 0 4px 10px rgba(var(--primary-rgb), 0.2);
 }
 
 .avatar img {
@@ -188,6 +202,7 @@
   
   .logo {
     font-size: var(--font-size-lg);
+    margin-right: var(--spacing-sm);
   }
   
   .userInfo {
@@ -195,12 +210,13 @@
   }
   
   .navList {
-    gap: 5px;
+    gap: 1px;
   }
   
   .navLink {
-    padding: 8px 12px;
+    padding: 6px 10px;
     font-size: var(--font-size-sm);
+    height: 30px;
   }
   
   .main {
