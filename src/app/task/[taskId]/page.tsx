@@ -18,6 +18,11 @@ const TaskDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [task, setTask] = useState<Task | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  
+  // States for task grading
+  const [qualityRating, setQualityRating] = useState<number>(0);
+  const [feedback, setFeedback] = useState<string>('');
+  const [showGradingSection, setShowGradingSection] = useState(false);
 
   useEffect(() => {
     if (user && taskId) {
@@ -54,6 +59,44 @@ const TaskDetailPage: React.FC = () => {
     } finally {
       setIsUpdating(false);
     }
+  };
+  
+  // Handle task grading submission
+  const handleSubmitGrade = async () => {
+    if (!task) return;
+    
+    setIsUpdating(true);
+    try {
+      await updateTaskStatus(task.id, TaskStatus.COMPLETED, {
+        qualityRating: qualityRating,
+        feedback: feedback
+      });
+      // Refresh task data and hide grading section
+      await fetchTaskData();
+      setShowGradingSection(false);
+    } catch (err) {
+      console.error('Error submitting grade:', err);
+      setError('Failed to submit grade. Please try again.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+  
+  // Render star rating component
+  const renderRatingStars = () => {
+    return (
+      <div className={styles.ratingStars}>
+        {[1, 2, 3, 4, 5].map(star => (
+          <span
+            key={star}
+            className={`${styles.ratingStar} ${star <= qualityRating ? styles.ratingStarFilled : ''}`}
+            onClick={() => setQualityRating(star)}
+          >
+            ★
+          </span>
+        ))}
+      </div>
+    );
   };
 
   if (isLoading) {
@@ -107,6 +150,7 @@ const TaskDetailPage: React.FC = () => {
   const isTaskAssigner = user?.id === task.assignerId;
   const canUpdate = isTaskAssignee || isTaskAssigner;
   const isDue = new Date(task.dueDate) < new Date() && task.status !== TaskStatus.COMPLETED;
+  const needsGrading = isTaskAssigner && task.status === TaskStatus.COMPLETED && !task.qualityRating;
 
   // Set icons for each section
   const sectionIcons = {
@@ -166,6 +210,20 @@ const TaskDetailPage: React.FC = () => {
                       </span>
                     </div>
                   )}
+                  
+                  {task.qualityRating && (
+                    <div className={styles.detailItem}>
+                      <span className={styles.detailLabel}>Quality Rating</span>
+                      <span className={styles.detailValue}>{task.qualityRating}/5</span>
+                    </div>
+                  )}
+                  
+                  {task.feedback && (
+                    <div className={styles.feedbackDetail}>
+                      <span className={styles.detailLabel}>Feedback</span>
+                      <p className={styles.feedbackText}>{task.feedback}</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -201,6 +259,59 @@ const TaskDetailPage: React.FC = () => {
                   </div>
                 </div>
               </div>
+              
+              {/* Task Grading Section */}
+              {needsGrading && (
+                <div className={styles.section}>
+                  <h2 className={`${styles.sectionTitle} ${styles.gradingIcon}`}>Review & Grade</h2>
+                  
+                  {showGradingSection ? (
+                    <div className={styles.gradingForm}>
+                      <div className={styles.gradingField}>
+                        <label className={styles.gradingLabel}>Quality Rating:</label>
+                        {renderRatingStars()}
+                      </div>
+                      
+                      <div className={styles.gradingField}>
+                        <label className={styles.gradingLabel}>Feedback:</label>
+                        <textarea 
+                          className={styles.feedbackInput}
+                          value={feedback}
+                          onChange={(e) => setFeedback(e.target.value)}
+                          placeholder="Provide feedback on the completed task..."
+                          rows={4}
+                        />
+                      </div>
+                      
+                      <div className={styles.gradingActions}>
+                        <Button 
+                          variant="primary" 
+                          onClick={handleSubmitGrade}
+                          disabled={isUpdating || qualityRating === 0}
+                        >
+                          {isUpdating ? 'Submitting...' : 'Submit Grade'}
+                        </Button>
+                        <Button 
+                          variant="secondary" 
+                          onClick={() => setShowGradingSection(false)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className={styles.gradingPrompt}>
+                      <p>This task has been completed and is waiting for your review.</p>
+                      <Button 
+                        variant="primary" 
+                        onClick={() => setShowGradingSection(true)}
+                      >
+                        Grade Now
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className={styles.sidebar}>

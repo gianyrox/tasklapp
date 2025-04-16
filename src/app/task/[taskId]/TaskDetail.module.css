@@ -308,4 +308,110 @@
     position: static;
     margin-top: 2rem;
   }
+}
+
+.gradingIcon::before {
+  content: "⭐";
+}
+
+.gradingForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+}
+
+.gradingField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.gradingLabel {
+  font-size: 0.875rem;
+  color: #4B5563;
+  font-weight: 600;
+}
+
+.ratingStars {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.ratingStar {
+  font-size: 2rem;
+  cursor: pointer;
+  color: #D1D5DB;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.ratingStar:hover {
+  transform: scale(1.2);
+}
+
+.ratingStarFilled {
+  color: #FFD700;
+}
+
+.feedbackInput {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #D1D5DB;
+  border-radius: 0.5rem;
+  resize: vertical;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+  background-color: white;
+}
+
+.feedbackInput:focus {
+  outline: none;
+  border-color: #6366F1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.gradingActions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.gradingPrompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+  padding: 2rem;
+  background-color: #f9fafb;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+}
+
+.gradingPrompt p {
+  font-size: 1.125rem;
+  color: #4B5563;
+  margin: 0;
+}
+
+.feedbackDetail {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  background-color: #f9fafb;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+}
+
+.feedbackText {
+  margin: 0;
+  font-size: 1rem;
+  color: #4B5563;
+  line-height: 1.6;
+  white-space: pre-wrap;
 } 
