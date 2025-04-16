@@ -5,14 +5,23 @@ import React from 'react';
 
 interface BackButtonProps {
   className?: string;
+  route?: string; // Optional specific route to navigate to
 }
 
-const BackButton: React.FC<BackButtonProps> = ({ className = '' }) => {
+const BackButton: React.FC<BackButtonProps> = ({ className = '', route }) => {
   const router = useRouter();
+  
+  const handleClick = () => {
+    if (route) {
+      router.push(route);
+    } else {
+      router.back();
+    }
+  };
   
   return (
     <button
-      onClick={() => router.back()}
+      onClick={handleClick}
       className={`back-button ${className}`}
       aria-label="Go back"
     >
