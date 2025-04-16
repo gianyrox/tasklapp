@@ -443,6 +443,7 @@ const FriendPage: React.FC = () => {
                       <div className={styles.userInfo}>
                         <h4 className={styles.userName}>{friendUser.name}</h4>
                         <p className={styles.userEmail}>{friendUser.email}</p>
+                        <span className={styles.friendStatus}>Friend</span>
                       </div>
                       <div className={styles.userActions}>
                         <Button 
