@@ -8,6 +8,9 @@ import { useAuth } from '../../../context/AuthContext';
 import Button from '../../../components/ui/Button';
 import { getLeaderboardDetail } from '../../../lib/api/supabase';
 import { LeaderboardEntry } from '../../../types';
+import { FaTrophy, FaArrowLeft, FaMedal, FaCheckCircle, FaCalendarAlt, FaStopwatch } from 'react-icons/fa';
+import { MdTimer, MdOutlineStar, MdLocalFireDepartment, MdTaskAlt } from 'react-icons/md';
+import Link from 'next/link';
 
 import styles from './LeaderboardDetail.module.css';
 
@@ -17,7 +20,7 @@ const LEADERBOARD_TYPES = {
     id: 'tasks-completed',
     name: 'Tasks Completed',
     description: 'Users who have completed the most tasks',
-    icon: '🏆',
+    icon: <MdTaskAlt />,
     statKey: 'tasksCompleted',
     statLabel: 'Tasks Completed',
     higherIsBetter: true,
@@ -27,7 +30,7 @@ const LEADERBOARD_TYPES = {
     id: 'quality-rating',
     name: 'Quality Rating',
     description: 'Users with the highest average task quality rating',
-    icon: '⭐',
+    icon: <MdOutlineStar />,
     statKey: 'avgQualityRating',
     statLabel: 'Avg. Quality Rating',
     higherIsBetter: true,
@@ -37,7 +40,7 @@ const LEADERBOARD_TYPES = {
     id: 'speed-demons',
     name: 'Speed Demons',
     description: 'Users with the fastest average task completion time',
-    icon: '⚡',
+    icon: <FaStopwatch />,
     statKey: 'avgCompletionTime',
     statLabel: 'Avg. Completion Time',
     higherIsBetter: false,
@@ -62,7 +65,7 @@ const LEADERBOARD_TYPES = {
     id: 'consistency',
     name: 'Most Consistent',
     description: 'Users who consistently complete tasks on time',
-    icon: '📊',
+    icon: <FaCalendarAlt />,
     statKey: 'tasksOverdue',
     statLabel: 'Tasks Overdue',
     higherIsBetter: false,
@@ -155,20 +158,39 @@ const LeaderboardDetailPage: React.FC = () => {
 
   const leaderboardType = LEADERBOARD_TYPES[leaderboardId as keyof typeof LEADERBOARD_TYPES];
 
+  // If the leaderboard type is not valid, show an error
+  if (leaderboardId && !LEADERBOARD_TYPES[leaderboardId as keyof typeof LEADERBOARD_TYPES]) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <Link href="/leaderboard" className={styles.backButton}>
+            <FaArrowLeft style={{ marginRight: '0.5rem' }} /> Back to Leaderboards
+          </Link>
+          <h1 className={styles.title}>Invalid Leaderboard</h1>
+        </div>
+        <div className={styles.error}>
+          <p>The requested leaderboard does not exist.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <ProtectedRoute>
       <AppLayout>
         <div className={styles.container}>
           <div className={styles.header}>
-            <button className={styles.backButton} onClick={() => router.push('/leaderboard')}>
-              ← Back to Leaderboards
-            </button>
+            <Link href="/leaderboard" className={styles.backButton}>
+              <FaArrowLeft style={{ marginRight: '0.5rem' }} /> Back to Leaderboards
+            </Link>
             
             <div className={styles.titleWrapper}>
-              <div className={styles.icon}>{leaderboardType?.icon}</div>
+              <div className={styles.icon}>
+                {leaderboardType?.icon || <FaTrophy />}
+              </div>
               <div>
-                <h1 className={styles.title}>{leaderboardType?.name} Leaderboard</h1>
-                <p className={styles.subtitle}>{leaderboardType?.description}</p>
+                <h1 className={styles.title}>{leaderboardType?.name || 'Leaderboard'}</h1>
+                <p className={styles.subtitle}>{leaderboardType?.description || 'View top performing users'}</p>
               </div>
             </div>
             
