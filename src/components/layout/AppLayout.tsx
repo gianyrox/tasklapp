@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
@@ -14,6 +14,34 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const pathname = usePathname();
   const { user, signOut } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  
+  // Close menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowDropdown(false);
+      setShowMobileMenu(false);
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
+  
+  // Prevent scroll when mobile menu is open
+  useEffect(() => {
+    if (showMobileMenu) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [showMobileMenu]);
   
   // Get user initials for avatar
   const getInitials = () => {
@@ -21,6 +49,16 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     const nameParts = user.name.split(' ');
     if (nameParts.length === 1) return nameParts[0][0].toUpperCase();
     return (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
+  };
+
+  const handleMenuToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowMobileMenu(!showMobileMenu);
+  };
+  
+  const handleUserMenuToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDropdown(!showDropdown);
   };
 
   return (
@@ -68,6 +106,20 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 </li>
               </ul>
             </nav>
+            
+            <button 
+              className={styles.mobileMenuButton} 
+              onClick={handleMenuToggle}
+              aria-label="Toggle menu"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {showMobileMenu ? (
+                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                ) : (
+                  <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                )}
+              </svg>
+            </button>
           </div>
           
           <div className={styles.userMenu}>
@@ -76,7 +128,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             </div>
             <div 
               className={styles.avatar} 
-              onClick={() => setShowDropdown(!showDropdown)}
+              onClick={handleUserMenuToggle}
             >
               {user?.avatarUrl ? (
                 <img src={user.avatarUrl} alt={user.name} />
@@ -108,6 +160,57 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           </div>
         </div>
       </header>
+      
+      {/* Mobile Navigation */}
+      <div className={`${styles.mobileNavigation} ${showMobileMenu ? styles.active : ''}`}>
+        <ul className={styles.mobileNavList}>
+          <li className={styles.mobileNavItem}>
+            <Link 
+              href="/dashboard" 
+              className={`${styles.mobileNavLink} ${pathname.startsWith('/dashboard') ? styles.active : ''}`}
+              onClick={() => setShowMobileMenu(false)}
+            >
+              Dashboard
+            </Link>
+          </li>
+          <li className={styles.mobileNavItem}>
+            <Link 
+              href="/friend" 
+              className={`${styles.mobileNavLink} ${pathname.startsWith('/friend') ? styles.active : ''}`}
+              onClick={() => setShowMobileMenu(false)}
+            >
+              Friends
+            </Link>
+          </li>
+          <li className={styles.mobileNavItem}>
+            <Link 
+              href="/leaderboard" 
+              className={`${styles.mobileNavLink} ${pathname.startsWith('/leaderboard') ? styles.active : ''}`}
+              onClick={() => setShowMobileMenu(false)}
+            >
+              Leaderboard
+            </Link>
+          </li>
+          <li className={styles.mobileNavItem}>
+            <Link 
+              href="/task" 
+              className={`${styles.mobileNavLink} ${pathname.startsWith('/task') ? styles.active : ''}`}
+              onClick={() => setShowMobileMenu(false)}
+            >
+              Tasks
+            </Link>
+          </li>
+          <li className={styles.mobileNavItem}>
+            <Link 
+              href="/settings" 
+              className={`${styles.mobileNavLink} ${pathname.startsWith('/settings') ? styles.active : ''}`}
+              onClick={() => setShowMobileMenu(false)}
+            >
+              Settings
+            </Link>
+          </li>
+        </ul>
+      </div>
       
       <main className={styles.main}>
         <div className={styles.container}>
