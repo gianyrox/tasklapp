@@ -310,12 +310,44 @@ const TaskDetailPage: React.FC = () => {
               </div>
               
               {/* New Grade Section */}
-              {(task.status === TaskStatus.GRADED || task.qualityRating) && (
+              {(task.status === TaskStatus.GRADED || task.qualityRating || 
+                task.estimatedTimeMinutes || task.actualTimeMinutes || 
+                task.submissionDate || task.submissionContent) && (
                 <div className={styles.section}>
                   <h2 className={`${styles.sectionTitle} ${styles.gradeIcon}`}>
                     {sectionIcons.grade} Grade
                   </h2>
                   <div className={styles.detailsGrid}>
+                    {task.estimatedTimeMinutes && (
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Estimated Time</span>
+                        <span className={styles.detailValue}>{task.estimatedTimeMinutes} minutes</span>
+                      </div>
+                    )}
+                    
+                    {task.actualTimeMinutes && (
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Actual Time</span>
+                        <span className={styles.detailValue}>{task.actualTimeMinutes} minutes</span>
+                      </div>
+                    )}
+
+                    {task.submissionDate && (
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Submitted</span>
+                        <span className={styles.detailValue}>
+                          {new Date(task.submissionDate).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {task.submissionContent && (
+                      <div className={`${styles.detailItem} ${styles.feedbackDetail}`}>
+                        <span className={styles.detailLabel}>Submission</span>
+                        <p className={styles.feedbackText}>{task.submissionContent}</p>
+                      </div>
+                    )}
+                    
                     {task.qualityRating && (
                       <div className={styles.detailItem}>
                         <span className={styles.detailLabel}>Quality Rating</span>
