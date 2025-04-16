@@ -106,6 +106,19 @@ const getSelfAssignedTasks = async (userId: string): Promise<Task[]> => {
   return data.map(transformTaskFromDb);
 };
 
+// Add this function to group and filter tasks
+const filterTasksFromFriends = (tasks: Task[], userId: string): Task[] => {
+  return tasks.filter(task => task.assigneeId === userId && task.assignerId !== userId);
+};
+
+const filterTasksAssignedToOthers = (tasks: Task[], userId: string): Task[] => {
+  return tasks.filter(task => task.assignerId === userId && task.assigneeId !== userId);
+};
+
+const filterSelfAssignedTasks = (tasks: Task[], userId: string): Task[] => {
+  return tasks.filter(task => task.assigneeId === userId && task.assignerId === userId);
+};
+
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const router = useRouter();
@@ -118,6 +131,9 @@ const DashboardPage: React.FC = () => {
   const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
   const [selectedAssigneeId, setSelectedAssigneeId] = useState<string>('');
   const [selectedAssigneeName, setSelectedAssigneeName] = useState<string>('');
+  const [tasksFromFriends, setTasksFromFriends] = useState<Task[]>([]);
+  const [tasksAssignedToOthers, setTasksAssignedToOthers] = useState<Task[]>([]);
+  const [selfAssignedTasks, setSelfAssignedTasks] = useState<Task[]>([]);
 
   // Fetch data when component mounts or user changes
   useEffect(() => {
@@ -132,14 +148,23 @@ const DashboardPage: React.FC = () => {
 
     try {
       // Fetch tasks assigned by friends
-      const tasksFromFriends = await getTasksFromFriends();
+      const allTasksFromFriends = await getTasksFromFriends();
       
       // Fetch self-assigned tasks
-      const selfTasks = await getSelfAssignedTasks(user?.id || '');
+      const allSelfTasks = await getSelfAssignedTasks(user?.id || '');
       
       // Combine both types of tasks
-      const allMyTasks = [...tasksFromFriends, ...selfTasks];
+      const allMyTasks = [...allTasksFromFriends, ...allSelfTasks];
       setMyTasks(allMyTasks);
+      
+      // Filter tasks into different categories
+      const fromFriends = filterTasksFromFriends(allMyTasks, user?.id || '');
+      const assignedToOthers = await getTasksByFriend(''); // This will get all tasks assigned by the user to others
+      const selfAssigned = filterSelfAssignedTasks(allMyTasks, user?.id || '');
+      
+      setTasksFromFriends(fromFriends);
+      setTasksAssignedToOthers(assignedToOthers);
+      setSelfAssignedTasks(selfAssigned);
       
       // Fetch accepted friendships
       const friendships = await getFriendships(FriendshipStatus.ACCEPTED);
@@ -280,93 +305,88 @@ const DashboardPage: React.FC = () => {
             ))}
           </div>
 
-          {/* My Tasks (Both self-assigned and from friends) */}
-          <Board 
-            title="My Tasks" 
-            isLoading={isLoading}
-            className={styles.tasksBoard}
-            actionButton={
-              <button 
-                onClick={() => handleAddTask()} 
-                className={styles.addTaskButton}
+          {/* Three-column Task Layout */}
+          <div className={styles.tasksColumnsContainer}>
+            {/* Column 1: My Tasks */}
+            <div className={styles.taskColumn}>
+              <h2 className={styles.taskColumnTitle}>My Tasks</h2>
+              <Board 
+                title="Tasks I Created" 
+                isLoading={isLoading}
+                className={styles.taskColumnBoard}
+                emptyState={
+                  <div className={styles.emptyState}>
+                    <p>You don't have any tasks yet</p>
+                  </div>
+                }
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-                </svg>
-                Add Task
-              </button>
-            }
-            emptyState={
-              <div className={styles.emptyState}>
-                <p>You don't have any tasks yet</p>
-                <Button size="sm" variant="outline" onClick={() => handleAddTask()}>
-                  Create Task
-                </Button>
-              </div>
-            }
-          >
-            <TaskList tasks={myTasks} onStatusChange={handleStatusChange} showDetails={true} ownership="self" />
-          </Board>
-
-          {/* Friends' Task Lists */}
-          <div className={styles.friendsSection}>
-            <div className={styles.sectionHeader}>
-              <h2>Friends' Task Lists</h2>
-              <Button size="sm" variant="primary" onClick={handleFindFriends}>
-                Find Friends
-              </Button>
+                <div>
+                  <TaskList tasks={selfAssignedTasks} onStatusChange={handleStatusChange} showDetails={true} ownership="self" />
+                  <div 
+                    className={styles.addTaskCard}
+                    onClick={() => handleAddTask()}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                    </svg>
+                    Add New Task
+                  </div>
+                </div>
+              </Board>
             </div>
-            {friends.length === 0 && !isLoading ? (
-              <div className={styles.emptyState}>
-                <p>You haven't connected with any friends yet</p>
-                <Button size="sm" variant="primary" onClick={handleFindFriends}>
-                  Find Friends
-                </Button>
-              </div>
-            ) : (
-              <div className={styles.friendTasksGrid}>
-                {friends.map(friendship => {
-                  const friendId = friendship.userId === user?.id ? friendship.friendId : friendship.userId;
-                  const friendName = friendship.friend?.name || 'Friend';
-                  const tasks = friendTasks[friendId] || [];
-                  
-                  return (
-                    <Board 
-                      key={friendId}
-                      title={`${friendName}'s Tasks`}
-                      isLoading={isLoading}
-                      actionButton={
-                        <button 
-                          onClick={() => handleAddTaskToFriend(friendId, friendName)} 
-                          className={styles.addTaskButton}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-                          </svg>
-                          Assign Task
-                        </button>
+
+            {/* Column 2: Tasks Assigned to Me by Friends */}
+            <div className={styles.taskColumn}>
+              <h2 className={styles.taskColumnTitle}>Friends' Assigned Tasks</h2>
+              <Board 
+                title="Tasks Assigned to Me" 
+                isLoading={isLoading}
+                className={styles.taskColumnBoard}
+                emptyState={
+                  <div className={styles.emptyState}>
+                    <p>No friends have assigned you tasks yet</p>
+                  </div>
+                }
+              >
+                <TaskList tasks={tasksFromFriends} onStatusChange={handleStatusChange} showDetails={true} ownership="self" />
+              </Board>
+            </div>
+
+            {/* Column 3: Tasks I Assigned to Others */}
+            <div className={styles.taskColumn}>
+              <h2 className={styles.taskColumnTitle}>Tasks Assigned to Others</h2>
+              <Board 
+                title="Tasks I Delegated" 
+                isLoading={isLoading}
+                className={styles.taskColumnBoard}
+                emptyState={
+                  <div className={styles.emptyState}>
+                    <p>You haven't assigned tasks to anyone yet</p>
+                  </div>
+                }
+              >
+                <div>
+                  <TaskList tasks={tasksAssignedToOthers} showDetails={false} ownership="friend" />
+                  <div 
+                    className={styles.addTaskCard}
+                    onClick={() => {
+                      if (friends.length > 0) {
+                        const friendId = friends[0].userId === user?.id ? friends[0].friendId : friends[0].userId;
+                        const friendName = friends[0].friend?.name || 'Friend';
+                        handleAddTaskToFriend(friendId, friendName);
+                      } else {
+                        handleFindFriends();
                       }
-                      emptyState={
-                        <div className={styles.emptyState}>
-                          <p>You haven't assigned any tasks to {friendName} yet</p>
-                          <button 
-                            onClick={() => handleAddTaskToFriend(friendId, friendName)} 
-                            className={styles.addTaskButton}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-                            </svg>
-                            Assign Task
-                          </button>
-                        </div>
-                      }
-                    >
-                      <TaskList tasks={tasks} showDetails={false} ownership="friend" />
-                    </Board>
-                  );
-                })}
-              </div>
-            )}
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                    </svg>
+                    Assign New Task
+                  </div>
+                </div>
+              </Board>
+            </div>
           </div>
 
           {/* Leaderboard */}
