@@ -121,6 +121,8 @@ const FriendProfilePage: React.FC = () => {
     <ProtectedRoute>
       <AppLayout>
         <div className={styles.container}>
+          <BackButton route="/friend" />
+        
           <div className={styles.header}>
             <div className={styles.profileInfo}>
               {friend.avatarUrl && (
@@ -149,7 +151,6 @@ const FriendProfilePage: React.FC = () => {
                   Assign Task
                 </Button>
               )}
-              <BackButton route="/friend" />
             </div>
           </div>
 
