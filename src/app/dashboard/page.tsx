@@ -345,12 +345,16 @@ const DashboardPage: React.FC = () => {
                     <div key={entry.id} className={`${styles.leaderboardEntry} ${entry.id === user?.id ? styles.currentUser : ''} ${entry.isFriend ? styles.friendUser : ''}`}>
                       <div className={styles.leaderboardRank}>{entry.rank}</div>
                       <div className={styles.leaderboardUser}>
-                        {entry.avatarUrl && (
+                        {entry.avatarUrl ? (
                           <img 
                             src={entry.avatarUrl} 
                             alt={entry.name} 
                             className={styles.leaderboardAvatar} 
                           />
+                        ) : (
+                          <div className={styles.leaderboardAvatarPlaceholder}>
+                            {entry.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()}
+                          </div>
                         )}
                         <span className={styles.leaderboardName}>{entry.name}</span>
                         {entry.id === user?.id && <span className={styles.leaderboardCurrentUser}>(You)</span>}
