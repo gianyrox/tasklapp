@@ -12,7 +12,7 @@ DECLARE
   existing_user_id UUID;
 BEGIN
   -- Check if user already exists in auth.users
-  SELECT id INTO existing_user_id FROM auth.users WHERE email = add_test_user.email;
+  SELECT id INTO existing_user_id FROM auth.users WHERE auth.users.email = add_test_user.email;
   
   IF existing_user_id IS NOT NULL THEN
     -- User already exists, return existing ID
@@ -43,14 +43,14 @@ BEGIN
     uuid_generate_v4(),
     'authenticated',
     'authenticated',
-    email,
+    add_test_user.email,
     -- This is a hashed password 'password123'
     '$2a$10$ffEiXwvuEJTGKgUAGmswNeE4iUGdDDB1P.z9yWJ9Xvb0EgFGnKEwi',
     NOW(),
     NOW(),
     NOW(),
     '{"provider":"email","providers":["email"]}',
-    jsonb_build_object('name', name),
+    jsonb_build_object('name', add_test_user.name),
     NOW(),
     NOW(),
     '',
@@ -60,13 +60,13 @@ BEGIN
   ) RETURNING id INTO user_id;
 
   -- Check if user already exists in public.users
-  IF EXISTS (SELECT 1 FROM public.users WHERE email = add_test_user.email) THEN
+  IF EXISTS (SELECT 1 FROM public.users WHERE public.users.email = add_test_user.email) THEN
     -- Update the existing user with the new auth ID
     UPDATE public.users 
     SET id = user_id, 
         name = add_test_user.name, 
         avatar_url = add_test_user.avatar_url
-    WHERE email = add_test_user.email;
+    WHERE public.users.email = add_test_user.email;
   ELSE
     -- Insert into public.users if not exists
     INSERT INTO public.users (
@@ -77,9 +77,9 @@ BEGIN
       created_at
     ) VALUES (
       user_id,
-      name,
-      email,
-      avatar_url,
+      add_test_user.name,
+      add_test_user.email,
+      add_test_user.avatar_url,
       NOW()
     );
   END IF;
