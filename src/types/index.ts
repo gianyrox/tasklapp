@@ -4,6 +4,12 @@ export interface User {
   email: string;
   avatarUrl?: string;
   createdAt: Date;
+  stats: {
+    rank: number;
+    tasksCompleted: number;
+    completionRate: number;
+    averageCompletionTime: number;
+  };
 }
 
 export interface Friendship {
