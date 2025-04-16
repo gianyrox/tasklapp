@@ -189,6 +189,15 @@
   background-color: #DC2626;
 }
 
+.friendStatus {
+  display: inline-block;
+  font-size: 0.75rem;
+  background-color: #10B981;
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .userGrid {
