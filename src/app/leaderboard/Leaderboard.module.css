@@ -6,12 +6,38 @@
 
 .header {
   margin-bottom: 2rem;
+  position: relative;
+}
+
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 80px;
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--track-curb-red) 0px,
+    var(--track-curb-red) 10px,
+    var(--track-curb-white) 10px,
+    var(--track-curb-white) 20px
+  );
+  border-radius: 2px;
 }
 
 .title {
   font-size: 2rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.title::before {
+  content: '🏆';
+  margin-right: 10px;
+  font-size: 2rem;
 }
 
 .subtitle {
@@ -25,6 +51,26 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
   margin-bottom: 2rem;
+  border-top: 4px solid var(--track-asphalt);
+  position: relative;
+  overflow: hidden;
+}
+
+.card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--track-curb-red) 0px,
+    var(--track-curb-red) 20px,
+    var(--track-curb-white) 20px,
+    var(--track-curb-white) 40px
+  );
+  opacity: 0.7;
 }
 
 .cardHeader {
@@ -40,7 +86,7 @@
   margin: 0;
 }
 
-/* Leaderboard Type Cards */
+/* Leaderboard Type Cards - Race Categories */
 .leaderboardTypes {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -56,6 +102,20 @@
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.leaderboardTypeCard::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(to right, var(--track-curb-red), var(--track-curb-white), var(--track-curb-red));
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
 .leaderboardTypeCard:hover {
@@ -64,9 +124,18 @@
   border-color: #ddd;
 }
 
+.leaderboardTypeCard:hover::after {
+  opacity: 1;
+}
+
 .leaderboardTypeCard.active {
   border-color: #6B46C1;
   background-color: #f9f5ff;
+}
+
+.leaderboardTypeCard.active::after {
+  opacity: 1;
+  background: var(--primary);
 }
 
 .leaderboardIcon {
@@ -85,21 +154,22 @@
   color: #666;
 }
 
-/* Leaderboard Table */
+/* Leaderboard Table - Victory Podium */
 .leaderboardTable {
   width: 100%;
   border-radius: 0.5rem;
   overflow: hidden;
   border: 1px solid #eee;
+  background: linear-gradient(to bottom, rgba(247, 247, 247, 0.5), white);
 }
 
 .tableHeader {
   display: flex;
   align-items: center;
   padding: 1rem;
-  background-color: #f5f5f5;
+  background-color: var(--track-asphalt);
   font-weight: 600;
-  color: #333;
+  color: white;
   border-bottom: 1px solid #eee;
 }
 
@@ -109,6 +179,7 @@
   padding: 1rem;
   border-bottom: 1px solid #eee;
   transition: background-color 0.2s ease;
+  position: relative;
 }
 
 .tableRow:last-child {
@@ -119,8 +190,22 @@
   background-color: #f9f9f9;
 }
 
+/* Add trophy highlight to top 3 */
+.tableRow:nth-child(1) {
+  background-color: rgba(255, 215, 0, 0.1); /* Gold */
+}
+
+.tableRow:nth-child(2) {
+  background-color: rgba(192, 192, 192, 0.1); /* Silver */
+}
+
+.tableRow:nth-child(3) {
+  background-color: rgba(205, 127, 50, 0.1); /* Bronze */
+}
+
 .tableRow.currentUser {
   background-color: #f8f4ff;
+  border-left: 3px solid var(--primary);
 }
 
 .rankColumn {
@@ -139,6 +224,7 @@
 .statsColumn {
   width: 150px;
   text-align: center;
+  font-weight: 500;
 }
 
 .actionColumn {
@@ -150,9 +236,49 @@
   font-size: 1.5rem;
 }
 
+.goldMedal {
+  color: #FFD700; /* Gold */
+  text-shadow: 0 0 3px rgba(255, 215, 0, 0.5);
+}
+
+.silverMedal {
+  color: #C0C0C0; /* Silver */
+  text-shadow: 0 0 3px rgba(192, 192, 192, 0.5);
+}
+
+.bronzeMedal {
+  color: #CD7F32; /* Bronze */
+  text-shadow: 0 0 3px rgba(205, 127, 50, 0.5);
+}
+
 .rank {
   font-weight: 600;
   color: #666;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #f1f1f1;
+}
+
+.tableRow:nth-child(1) .rank,
+.tableRow:nth-child(2) .rank,
+.tableRow:nth-child(3) .rank {
+  color: white;
+}
+
+.tableRow:nth-child(1) .rank {
+  background-color: #FFD700; /* Gold */
+}
+
+.tableRow:nth-child(2) .rank {
+  background-color: #C0C0C0; /* Silver */
+}
+
+.tableRow:nth-child(3) .rank {
+  background-color: #CD7F32; /* Bronze */
 }
 
 .userAvatarContainer {
@@ -164,19 +290,23 @@
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .userAvatarPlaceholder {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #6B46C1;
+  background-color: var(--primary);
   color: white;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 1rem;
   font-weight: 500;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .userInfo {
@@ -204,7 +334,7 @@
 .youBadge {
   display: inline-block;
   font-size: 0.7rem;
-  background-color: #6B46C1;
+  background-color: var(--primary);
   color: white;
   padding: 0.1rem 0.4rem;
   border-radius: 0.25rem;
@@ -214,6 +344,16 @@
 .statValue {
   font-weight: 600;
   color: #333;
+  position: relative;
+  display: inline-block;
+}
+
+/* Add speedometer icon for stats */
+.statValue::before {
+  content: '🔥';
+  font-size: 12px;
+  margin-right: 4px;
+  opacity: 0.8;
 }
 
 .loading, .emptyState {
@@ -238,6 +378,14 @@
   align-items: center;
 }
 
+/* Add checkered flag pattern to empty state */
+.emptyState::before {
+  content: '🏁';
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .leaderboardTypes {
@@ -250,35 +398,38 @@
   
   .tableRow {
     flex-direction: column;
-    align-items: flex-start;
-    padding: 1rem;
+    padding: 1rem 0.5rem;
+    position: relative;
   }
   
   .rankColumn {
-    width: 100%;
-    justify-content: flex-start;
-    margin-bottom: 0.5rem;
+    position: absolute;
+    top: 1rem;
+    left: 0.5rem;
+    width: 30px;
   }
   
   .userColumn {
     width: 100%;
+    padding-left: 2.5rem;
     margin-bottom: 0.5rem;
   }
   
   .statsColumn {
     width: 100%;
     text-align: left;
+    padding-left: 2.5rem;
     margin-bottom: 0.5rem;
   }
   
   .actionColumn {
     width: 100%;
-    text-align: left;
+    text-align: center;
   }
   
   .cardHeader {
     flex-direction: column;
-    align-items: flex-start;
     gap: 1rem;
+    align-items: flex-start;
   }
 } 
