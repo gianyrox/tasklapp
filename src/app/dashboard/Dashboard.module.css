@@ -641,4 +641,140 @@
   padding: 1rem;
   color: #6b7280;
   font-style: italic;
+}
+
+/* Task Submission Review styles */
+.reviewTask {
+  background-color: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
+}
+
+.reviewTaskHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.reviewTaskHeader h3 {
+  font-size: 1.1rem;
+  color: #111827;
+  margin: 0;
+  font-weight: 600;
+}
+
+.taskAssignee {
+  font-size: 0.9rem;
+  background-color: #e0e7ff;
+  color: #4338ca;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-weight: 500;
+}
+
+.reviewTaskDetails {
+  margin-bottom: 1.25rem;
+}
+
+.reviewTaskDetails p {
+  font-size: 0.95rem;
+  color: #4b5563;
+  margin: 0 0 1rem 0;
+  line-height: 1.5;
+}
+
+.reviewTaskMeta {
+  display: flex;
+  gap: 2rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.reviewTaskLabel {
+  font-weight: 500;
+  margin-right: 0.5rem;
+  color: #4b5563;
+}
+
+.reviewTaskActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.emptyReviewState {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #6b7280;
+}
+
+.emptyReviewState p:first-child {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  color: #4b5563;
+}
+
+.reviewSubtext {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.gradedTasksSection {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px dashed #e5e7eb;
+}
+
+.gradedTasksTitle {
+  font-size: 1.1rem;
+  color: #4b5563;
+  margin-bottom: 1.25rem;
+  font-weight: 600;
+}
+
+.gradedTask {
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #e5e7eb;
+}
+
+.gradedTaskTitle {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.gradedTaskDetails {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.gradedTaskAssignee {
+  color: #6b7280;
+}
+
+.gradedTaskRating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.gradedTaskLabel {
+  color: #6b7280;
+}
+
+.gradedTaskValue {
+  font-weight: 600;
+  color: #4338ca;
 } 
