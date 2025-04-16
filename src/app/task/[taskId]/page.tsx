@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState,
+ useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AppLayout from '../../../components/layout/AppLayout';
 import { Task, TaskStatus } from '../../../types';
@@ -13,16 +14,16 @@ import styles from './TaskDetail.module.css';
 
 // Helper function to calculate average rating
 const calculateAverageRating = (task: Task): string => {
-  if (!task.qualityRating) return '0.0';
-  
+  // Get all available ratings
   const ratings = [
-    task.qualityRating,
-    task.timelinessRating,
+    task.qualityRating || 0,
+    task.timelinessRating || 0,
     task.effortRating || 0,
     task.accuracyRating || 0
-  ];
+  ].filter(rating => rating > 0);
   
-  const average = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
+  // If no ratings, return 0
+  if (rage = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
   return average.toFixed(1);
 };
 
