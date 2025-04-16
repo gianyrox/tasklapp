@@ -6,6 +6,7 @@ import AppLayout from '../../../components/layout/AppLayout';
 import ProtectedRoute from '../../../components/layout/ProtectedRoute';
 import { useAuth } from '../../../context/AuthContext';
 import Button from '../../../components/ui/Button';
+import BackButton from '../../../components/ui/BackButton';
 import { getLeaderboardDetail } from '../../../lib/api/supabase';
 import { LeaderboardEntry } from '../../../types';
 import { FaTrophy, FaArrowLeft, FaMedal, FaCheckCircle, FaCalendarAlt, FaStopwatch } from 'react-icons/fa';
@@ -165,9 +166,7 @@ const LeaderboardDetailPage: React.FC = () => {
         <AppLayout>
           <div className={styles.container}>
             <div className={styles.header}>
-              <Link href="/leaderboard" className={styles.backButton}>
-                <FaArrowLeft style={{ marginRight: '0.5rem' }} /> Back to Leaderboards
-              </Link>
+              <BackButton route="/leaderboard" />
               <h1 className={styles.title}>Invalid Leaderboard</h1>
             </div>
             <div className={styles.error}>
@@ -184,9 +183,7 @@ const LeaderboardDetailPage: React.FC = () => {
       <AppLayout>
         <div className={styles.container}>
           <div className={styles.header}>
-            <Link href="/leaderboard" className={styles.backButton}>
-              <FaArrowLeft style={{ marginRight: '0.5rem' }} /> Back to Leaderboards
-            </Link>
+            <BackButton route="/leaderboard" />
             
             <div className={styles.titleWrapper}>
               <div className={styles.icon}>
