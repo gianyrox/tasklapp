@@ -458,15 +458,21 @@ const TasksPage: React.FC = () => {
             <div className={styles.tabs}>
               <button 
                 className={`${styles.tab} ${activeTab === 'active' ? styles.activeTab : ''}`}
-                onClick={() => setActiveTab('active')}
+                onClick={() => {
+                  setActiveTab('active');
+                  setActiveFilter('all'); // Reset filter when changing tabs
+                }}
               >
                 Active Tasks
               </button>
               <button 
                 className={`${styles.tab} ${activeTab === 'archived' ? styles.activeTab : ''}`}
-                onClick={() => setActiveTab('archived')}
+                onClick={() => {
+                  setActiveTab('archived');
+                  setActiveFilter('all'); // Reset filter when changing tabs
+                }}
               >
-                Archive
+                Archived Tasks
               </button>
             </div>
           </div>
@@ -479,30 +485,46 @@ const TasksPage: React.FC = () => {
               >
                 All
               </button>
-              <button 
-                className={`${styles.filter} ${activeFilter === TaskStatus.PENDING ? styles.activeFilter : ''}`}
-                onClick={() => setActiveFilter(TaskStatus.PENDING)}
-              >
-                Pending
-              </button>
-              <button 
-                className={`${styles.filter} ${activeFilter === TaskStatus.IN_PROGRESS ? styles.activeFilter : ''}`}
-                onClick={() => setActiveFilter(TaskStatus.IN_PROGRESS)}
-              >
-                In Progress
-              </button>
-              <button 
-                className={`${styles.filter} ${activeFilter === TaskStatus.COMPLETED ? styles.activeFilter : ''}`}
-                onClick={() => setActiveFilter(TaskStatus.COMPLETED)}
-              >
-                Completed
-              </button>
-              <button 
-                className={`${styles.filter} ${activeFilter === TaskStatus.GRADED ? styles.activeFilter : ''}`}
-                onClick={() => setActiveFilter(TaskStatus.GRADED)}
-              >
-                Graded
-              </button>
+              
+              {activeTab === 'active' && (
+                <>
+                  <button 
+                    className={`${styles.filter} ${activeFilter === TaskStatus.PENDING ? styles.activeFilter : ''}`}
+                    onClick={() => setActiveFilter(TaskStatus.PENDING)}
+                  >
+                    Pending
+                  </button>
+                  <button 
+                    className={`${styles.filter} ${activeFilter === TaskStatus.IN_PROGRESS ? styles.activeFilter : ''}`}
+                    onClick={() => setActiveFilter(TaskStatus.IN_PROGRESS)}
+                  >
+                    In Progress
+                  </button>
+                  <button 
+                    className={`${styles.filter} ${activeFilter === TaskStatus.OVERDUE ? styles.activeFilter : ''}`}
+                    onClick={() => setActiveFilter(TaskStatus.OVERDUE)}
+                  >
+                    Overdue
+                  </button>
+                </>
+              )}
+              
+              {activeTab === 'archived' && (
+                <>
+                  <button 
+                    className={`${styles.filter} ${activeFilter === TaskStatus.COMPLETED ? styles.activeFilter : ''}`}
+                    onClick={() => setActiveFilter(TaskStatus.COMPLETED)}
+                  >
+                    Completed
+                  </button>
+                  <button 
+                    className={`${styles.filter} ${activeFilter === TaskStatus.GRADED ? styles.activeFilter : ''}`}
+                    onClick={() => setActiveFilter(TaskStatus.GRADED)}
+                  >
+                    Graded
+                  </button>
+                </>
+              )}
             </div>
           </div>
           
