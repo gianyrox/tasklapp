@@ -515,4 +515,22 @@
   width: 1.5rem;
   height: 1.5rem;
   margin-right: 0.5rem;
+}
+
+.scrollableBoard {
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 5px; /* Add padding for scrollbar */
+}
+
+.taskColumnBoard .scrollableBoard {
+  max-height: 450px;
+}
+
+.friendTasksGrid .scrollableBoard {
+  max-height: 350px;
+}
+
+.leaderboardBoard .scrollableBoard {
+  max-height: 400px;
 } 
