@@ -151,7 +151,7 @@ const FriendProfilePage: React.FC = () => {
                   Assign Task
                 </Button>
               )}
-              <BackButton />
+              <BackButton route="/friend" />
             </div>
           </div>
 
