@@ -110,8 +110,9 @@ const SettingsPage: React.FC = () => {
     <ProtectedRoute>
       <AppLayout>
         <div className={styles.container}>
+          <BackButton route="/dashboard" />
+          
           <div className={styles.header}>
-            <BackButton route="/dashboard" />
             <h1 className={styles.title}>Settings</h1>
             <p className={styles.subtitle}>Manage your account settings and profile</p>
           </div>
