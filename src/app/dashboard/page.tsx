@@ -9,6 +9,7 @@ import ProtectedRoute from '../../components/layout/ProtectedRoute';
 import { useAuth } from '../../context/AuthContext';
 import Board from '../../components/ui/Board';
 import Button from '../../components/ui/Button';
+import CreateTaskModal from '../../components/task/CreateTaskModal';
 import { getFriendships, getTasksFromFriends, getTasksByFriend, updateTaskStatus, createTask } from '../../lib/api/supabase';
 import { getLeaderboard } from '../../lib/api/supabase';
 
@@ -20,6 +21,9 @@ const DashboardPage: React.FC = () => {
   const [friends, setFriends] = useState<Friendship[]>([]);
   const [friendTasks, setFriendTasks] = useState<{[friendId: string]: Task[]}>({});
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
+  const [selectedAssigneeId, setSelectedAssigneeId] = useState<string>('');
+  const [selectedAssigneeName, setSelectedAssigneeName] = useState<string>('');
 
   // Fetch data when component mounts or user changes
   useEffect(() => {
@@ -72,32 +76,38 @@ const DashboardPage: React.FC = () => {
     }
   };
 
-  const handleAddTask = async (friendId: string, taskData: any) => {
-    try {
-      if (!user) return;
-      
-      const newTask = {
-        title: taskData.title,
-        description: taskData.description,
-        dueDate: new Date(taskData.dueDate),
-        assignerId: user.id,
-        assigneeId: friendId,
-        status: TaskStatus.PENDING,
-        priority: taskData.priority,
-        estimatedTimeMinutes: taskData.estimatedTimeMinutes
-      };
-      
-      await createTask(newTask);
-      // Refresh task list for this friend
-      const updatedTasks = await getTasksByFriend(friendId);
+  const handleAddTask = async () => {
+    setShowCreateTaskModal(true);
+    
+    // If it's for current user, use their ID
+    if (!selectedAssigneeId) {
+      setSelectedAssigneeId(user?.id || '');
+      setSelectedAssigneeName('Yourself');
+    }
+  };
+  
+  const handleAddTaskToFriend = (friendId: string, friendName: string) => {
+    setSelectedAssigneeId(friendId);
+    setSelectedAssigneeName(friendName);
+    setShowCreateTaskModal(true);
+  };
+
+  const handleTaskCreated = async () => {
+    // Refresh task list based on who the task was assigned to
+    if (selectedAssigneeId === user?.id) {
+      // It was a self-assigned task, no need to fetch from friends
+      // We could fetch here but this is optimizing for fewer API calls 
+    } else {
+      // It was assigned to a friend
+      const updatedFriendTasks = await getTasksByFriend(selectedAssigneeId);
       setFriendTasks(prev => ({
         ...prev,
-        [friendId]: updatedTasks
+        [selectedAssigneeId]: updatedFriendTasks
       }));
-    } catch (err) {
-      console.error('Error creating task:', err);
-      setError('Failed to create task. Please try again.');
     }
+    
+    // Refresh overall dashboard data
+    fetchDashboardData();
   };
 
   // Display error if data loading failed
@@ -124,6 +134,25 @@ const DashboardPage: React.FC = () => {
     );
   }
 
+  // Quick stats widgets
+  const statsWidgets = [
+    {
+      title: "My Tasks",
+      value: myTasks.length,
+      description: "Total tasks assigned to you"
+    },
+    {
+      title: "Completed",
+      value: myTasks.filter(task => task.status === TaskStatus.COMPLETED).length,
+      description: "Tasks you've completed"
+    },
+    {
+      title: "Friends",
+      value: friends.length,
+      description: "Active connections"
+    }
+  ];
+
   return (
     <ProtectedRoute>
       <AppLayout>
@@ -135,13 +164,32 @@ const DashboardPage: React.FC = () => {
             </p>
           </div>
 
+          {/* Stats Widgets */}
+          <div className={styles.widgetsGrid}>
+            {statsWidgets.map((stat, index) => (
+              <div key={index} className={styles.statsCard}>
+                <h3>{stat.title}</h3>
+                <div className={styles.statValue}>{stat.value}</div>
+                <div className={styles.statDescription}>{stat.description}</div>
+              </div>
+            ))}
+          </div>
+
           {/* My Tasks (Assigned by Friends) */}
           <Board 
             title="My Tasks (Assigned by Friends)" 
             isLoading={isLoading}
             className={styles.tasksBoard}
             actionButton={
-              <Button size="sm" variant="outline">View All</Button>
+              <button 
+                onClick={() => handleAddTask()} 
+                className={styles.addTaskButton}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                </svg>
+                Add Task
+              </button>
             }
             emptyState={
               <div className={styles.emptyState}>
@@ -178,16 +226,28 @@ const DashboardPage: React.FC = () => {
                       title={`${friendName}'s Tasks`}
                       isLoading={isLoading}
                       actionButton={
-                        <Button size="sm" variant="outline" onClick={() => {/* Open add task modal */}}>
-                          Add Task
-                        </Button>
+                        <button 
+                          onClick={() => handleAddTaskToFriend(friendId, friendName)} 
+                          className={styles.addTaskButton}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                          </svg>
+                          Assign Task
+                        </button>
                       }
                       emptyState={
                         <div className={styles.emptyState}>
                           <p>You haven't assigned any tasks to {friendName} yet</p>
-                          <Button size="sm" variant="outline" onClick={() => {/* Open add task modal */}}>
+                          <button 
+                            onClick={() => handleAddTaskToFriend(friendId, friendName)} 
+                            className={styles.addTaskButton}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                            </svg>
                             Assign Task
-                          </Button>
+                          </button>
                         </div>
                       }
                     >
@@ -244,6 +304,16 @@ const DashboardPage: React.FC = () => {
               ))}
             </div>
           </Board>
+          
+          {/* Task Creation Modal */}
+          {showCreateTaskModal && (
+            <CreateTaskModal
+              assigneeId={selectedAssigneeId}
+              assigneeName={selectedAssigneeName}
+              onClose={() => setShowCreateTaskModal(false)}
+              onCreated={handleTaskCreated}
+            />
+          )}
         </div>
       </AppLayout>
     </ProtectedRoute>
