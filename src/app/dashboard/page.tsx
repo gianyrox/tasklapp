@@ -52,14 +52,26 @@ const transformTaskFromDb = (task: any): Task => {
       name: task.assigner.name,
       email: task.assigner.email,
       avatarUrl: task.assigner.avatar_url,
-      createdAt: new Date(task.assigner.created_at || Date.now())
+      createdAt: new Date(task.assigner.created_at || Date.now()),
+      stats: {
+        rank: 0,
+        tasksCompleted: 0,
+        completionRate: 0,
+        averageCompletionTime: 0
+      }
     } : undefined,
     assignee: task.assignee ? {
       id: task.assignee.id,
       name: task.assignee.name,
       email: task.assignee.email,
       avatarUrl: task.assignee.avatar_url,
-      createdAt: new Date(task.assignee.created_at || Date.now())
+      createdAt: new Date(task.assignee.created_at || Date.now()),
+      stats: {
+        rank: 0,
+        tasksCompleted: 0,
+        completionRate: 0,
+        averageCompletionTime: 0
+      }
     } : undefined
   };
 };
