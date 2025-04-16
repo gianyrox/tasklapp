@@ -723,4 +723,33 @@
 .addTaskButton svg {
   width: 1.25rem;
   height: 1.25rem;
+}
+
+/* Add Task Card */
+.addTaskCard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #4338CA10 0%, #8B5CF610 100%);
+  border: 2px dashed #c7d2fe;
+  color: #4338ca;
+  padding: 1.5rem;
+  height: 100px;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+}
+
+.addTaskCard:hover {
+  background: linear-gradient(135deg, #4338CA20 0%, #8B5CF620 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(67, 56, 202, 0.2);
+}
+
+.addTaskCard svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-right: 0.5rem;
 } 
