@@ -437,13 +437,7 @@ const TasksPage: React.FC = () => {
                 {viewMode === 'my-tasks' ? 'My Tasks' : 'Tasks I\'ve Assigned'}
               </h1>
             </div>
-            <Button 
-              variant="primary" 
-              onClick={() => router.push('/dashboard')}
-              className={styles.dashboardButton}
-            >
-              Dashboard
-            </Button>
+
           </div>
           
           <div className={styles.viewModeContainer}>
