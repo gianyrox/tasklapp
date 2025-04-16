@@ -19,7 +19,6 @@
 
 .backButton:hover {
   background-color: #E5E7EB;
-  transform: translateX(-2px);
 }
 
 .backButton:active {
