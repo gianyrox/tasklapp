@@ -437,7 +437,6 @@ const TasksPage: React.FC = () => {
                 {viewMode === 'my-tasks' ? 'My Tasks' : 'Tasks I\'ve Assigned'}
               </h1>
             </div>
-
           </div>
           
           <div className={styles.viewModeContainer}>
