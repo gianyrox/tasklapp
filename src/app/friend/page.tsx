@@ -502,6 +502,16 @@ const FriendPage: React.FC = () => {
                           )}
                         </div>
                         <div className={styles.userActions}>
+                          {/* View Profile button for all users */}
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => handleViewFriend(otherUser.id)}
+                          >
+                            View Profile
+                          </Button>
+                          
+                          {/* Add Friend button for users who are not friends or have pending requests */}
                           {relationshipStatus === 'none' && (
                             <Button 
                               variant="primary" 
@@ -512,16 +522,7 @@ const FriendPage: React.FC = () => {
                             </Button>
                           )}
                           
-                          {relationshipStatus === 'friend' && (
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => handleViewFriend(otherUser.id)}
-                            >
-                              View Profile
-                            </Button>
-                          )}
-                          
+                          {/* Accept/Decline buttons for pending friend requests */}
                           {relationshipStatus === 'pending' && (
                             <>
                               <Button 
