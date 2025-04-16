@@ -411,7 +411,7 @@ const DashboardPage: React.FC = () => {
               >
                 <div className={styles.scrollableBoard}>
                   <div className={styles.leaderboardPreview}>
-                    {leaderboard.slice(0, 5).map((entry: any) => (
+                    {leaderboard.map((entry: any) => (
                       <div key={entry.id} className={`${styles.leaderboardEntry} ${entry.id === user?.id ? styles.currentUser : ''} ${entry.isFriend ? styles.friendUser : ''}`}>
                         <div className={styles.leaderboardRank}>{entry.rank}</div>
                         <div className={styles.leaderboardUser}>
