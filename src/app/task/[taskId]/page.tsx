@@ -71,7 +71,7 @@ const TaskDetailPage: React.FC = () => {
     
     setIsUpdating(true);
     try {
-      await updateTaskStatus(task.id, TaskStatus.COMPLETED, {
+      await updateTaskStatus(task.id, TaskStatus.GRADED, {
         qualityRating: qualityRating,
         timelinessRating: timelinessRating,
         effortRating: effortRating,
@@ -174,7 +174,17 @@ const TaskDetailPage: React.FC = () => {
           <BackButton route="/task" />
         
           <div className={styles.header}>
-            <h1 className={styles.title}>{task.title}</h1>
+            <h1 className={styles.title}>
+              {task.title}
+              {task.status === TaskStatus.GRADED && task.qualityRating && (
+                <span className={styles.gradeIndicator}>
+                  Grade: {((task.qualityRating + 
+                    (task.timelinessRating || 0) + 
+                    (task.effortRating || 0) + 
+                    (task.accuracyRating || 0)) / 4).toFixed(1)}/5
+                </span>
+              )}
+            </h1>
             <div className={styles.meta}>
               <span className={`${styles.status} ${styles[task.status.toLowerCase()]}`}>
                 {task.status}
