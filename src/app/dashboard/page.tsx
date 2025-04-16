@@ -20,6 +20,7 @@ import {
   getTaskById
 } from '../../lib/api/supabase';
 import { getLeaderboard } from '../../lib/api/supabase';
+import { useRouter } from 'next/navigation';
 
 // Helper function to transform task data from Supabase format to our app format
 const transformTaskFromDb = (task: any): Task => {
@@ -107,6 +108,7 @@ const getSelfAssignedTasks = async (userId: string): Promise<Task[]> => {
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [myTasks, setMyTasks] = useState<Task[]>([]);
@@ -208,6 +210,11 @@ const DashboardPage: React.FC = () => {
     fetchDashboardData();
   };
 
+  // Add Find Friends handler
+  const handleFindFriends = () => {
+    router.push('/friend');
+  };
+
   // Display error if data loading failed
   if (error) {
     return (
@@ -305,13 +312,16 @@ const DashboardPage: React.FC = () => {
           <div className={styles.friendsSection}>
             <div className={styles.sectionHeader}>
               <h2>Friends' Task Lists</h2>
-              <Button size="sm" variant="primary" onClick={() => {/* Navigate to find friends */}}>
+              <button className={styles.findFriendsButton} onClick={handleFindFriends}>
                 Find Friends
-              </Button>
+              </button>
             </div>
             {friends.length === 0 && !isLoading ? (
               <div className={styles.emptyState}>
                 <p>You haven't connected with any friends yet</p>
+                <button className={styles.findFriendsButton} onClick={handleFindFriends}>
+                  Find Friends
+                </button>
               </div>
             ) : (
               <div className={styles.friendTasksGrid}>
