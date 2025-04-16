@@ -291,13 +291,15 @@ const DashboardPage: React.FC = () => {
 
           {/* Friends' Task Lists */}
           <div className={styles.friendsSection}>
-            <h2>Friends' Task Lists</h2>
+            <div className={styles.sectionHeader}>
+              <h2>Friends' Task Lists</h2>
+              <Button size="sm" variant="primary" onClick={() => {/* Navigate to find friends */}}>
+                Find Friends
+              </Button>
+            </div>
             {friends.length === 0 && !isLoading ? (
               <div className={styles.emptyState}>
                 <p>You haven't connected with any friends yet</p>
-                <Button size="sm" variant="primary" onClick={() => {/* Navigate to find friends */}}>
-                  Find Friends
-                </Button>
               </div>
             ) : (
               <div className={styles.friendTasksGrid}>
