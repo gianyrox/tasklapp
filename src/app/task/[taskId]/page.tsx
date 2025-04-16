@@ -406,47 +406,15 @@ const TaskDetailPage: React.FC = () => {
 
             <div className={styles.sidebar}>
               <div className={styles.actions}>
-                <h3 className={styles.actionsTitle}>Actions</h3>
-                {canUpdate && (
-                  <div className={styles.statusButtons}>
-                    {task.status !== TaskStatus.PENDING && (
-                      <button 
-                        onClick={() => handleStatusChange(TaskStatus.PENDING)}
-                        disabled={isUpdating}
-                        className={styles.actionButton}
-                      >
-                        Mark as Pending
-                      </button>
-                    )}
-                    
-                    {task.status !== TaskStatus.IN_PROGRESS && (
-                      <button 
-                        onClick={() => handleStatusChange(TaskStatus.IN_PROGRESS)}
-                        disabled={isUpdating}
-                        className={styles.actionButton}
-                      >
-                        Mark as In Progress
-                      </button>
-                    )}
-                    
-                    {task.status !== TaskStatus.COMPLETED && (
-                      <button 
-                        onClick={() => handleStatusChange(TaskStatus.COMPLETED)}
-                        disabled={isUpdating}
-                        className={`${styles.actionButton} ${styles.primaryAction}`}
-                      >
-                        ✅ Mark as Completed
-                      </button>
-                    )}
-                  </div>
+                <h3 className={styles.actionsTitle}>Additional Actions</h3>
+                {needsGrading && !showGradingSection && (
+                  <button 
+                    onClick={() => setShowGradingSection(true)}
+                    className={`${styles.actionButton} ${styles.primaryAction}`}
+                  >
+                    ⭐ Grade This Task
+                  </button>
                 )}
-                
-                <button 
-                  onClick={() => router.back()}
-                  className={styles.actionButton}
-                >
-                  ⬅️ Go Back
-                </button>
               </div>
             </div>
           </div>
