@@ -319,7 +319,6 @@ const DashboardPage: React.FC = () => {
       <AppLayout>
         <div className={styles.dashboard}>
           <div className={styles.header}>
-            <h1>Dashboard</h1>
             <p className={styles.welcomeMessage}>
               Welcome back, <span className={styles.userName}>{user?.name}</span>
             </p>
