@@ -1,26 +1,26 @@
 :root {
-  /* Color palette - EdTech focused theme */
-  --primary: #4338CA; /* Indigo */
-  --primary-dark: #312E81; /* Darker Indigo */
-  --secondary: #8B5CF6; /* Purple */
-  --success: #10B981; /* Emerald */
-  --danger: #EF4444; /* Red */
-  --warning: #F59E0B; /* Amber */
-  --info: #3B82F6; /* Blue */
+  /* Color palette - Track & Race focused theme */
+  --primary: #4338CA; /* Track Blue */
+  --primary-dark: #312E81; /* Darker Track Blue */
+  --secondary: #8B5CF6; /* Lap Purple */
+  --success: #10B981; /* Finish Line Green */
+  --danger: #EF4444; /* Pit Stop Red */
+  --warning: #F59E0B; /* Caution Flag Amber */
+  --info: #3B82F6; /* Pace Car Blue */
   
-  /* Neutrals with higher contrast */
-  --background: #F8FAFC; /* Very light blue-gray */
-  --surface: #ffffff;
-  --text-primary: #111827; /* Very dark gray for high contrast */
-  --text-secondary: #4B5563; /* Darker secondary text for better readability */
-  --border: #D1D5DB; /* More visible border */
-  --track-asphalt: #2d3436;
-  --track-line: #ffffff;
-  --track-curb-red: #e53935;
-  --track-curb-white: #ffffff;
-  --accent-yellow: #FCD34D; /* For highlights */
-  --accent-green: #10B981; /* For progress elements */
-  --accent-blue: #60A5FA; /* For interactive elements */
+  /* Track Surface Colors */
+  --background: #F8FAFC; /* Track Surface Light */
+  --surface: #ffffff; /* Smooth Track Surface */
+  --text-primary: #111827; /* Asphalt Dark */
+  --text-secondary: #4B5563; /* Track Marking Gray */
+  --border: #D1D5DB; /* Lane Divider */
+  --track-asphalt: #2d3436; /* Racing Asphalt */
+  --track-line: #ffffff; /* Track Marking White */
+  --track-curb-red: #e53935; /* Track Curb Red */
+  --track-curb-white: #ffffff; /* Track Curb White */
+  --accent-yellow: #FCD34D; /* Victory Gold */
+  --accent-green: #10B981; /* Lap Completion Green */
+  --accent-blue: #60A5FA; /* Racer Blue */
   
   /* Layout */
   --spacing-xs: 0.25rem;
@@ -40,7 +40,7 @@
   --font-size-xl: 1.5rem;
   --font-size-xxl: 2.25rem; /* Slightly larger for higher impact */
   
-  /* Borders and shadows for more definition */
+  /* Track Elements - Borders and shadows */
   --border-radius-sm: 0.25rem;
   --border-radius-md: 0.5rem;
   --border-radius-lg: 1rem;
@@ -48,7 +48,7 @@
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.18);
   
-  /* Animation */
+  /* Race Transitions */
   --transition-fast: 150ms ease;
   --transition-normal: 300ms ease;
   --transition-slow: 500ms ease;
@@ -116,50 +116,50 @@ button {
   font-weight: 500; /* Slightly bolder buttons */
 }
 
-/* Status colors for tasks - with higher contrast */
+/* Lap status indicators - with higher contrast */
 .status-pending {
-  background-color: #DBEAFE; /* Light blue background */
-  color: #1E40AF; /* Darker blue text */
+  background-color: #DBEAFE; /* Start Line Blue */
+  color: #1E40AF; /* Starter Blue */
   font-weight: 600;
   border: 1px solid #BFDBFE; /* Visible border */
 }
 
 .status-in-progress {
-  background-color: #FEF3C7; /* Light amber background */
-  color: #92400E; /* Darker amber text */
+  background-color: #FEF3C7; /* Midway Yellow */
+  color: #92400E; /* Pacing Amber */
   font-weight: 600;
   border: 1px solid #FDE68A; /* Visible border */
 }
 
 .status-completed {
-  background-color: #D1FAE5; /* Light green background */
-  color: #065F46; /* Darker green text */
+  background-color: #D1FAE5; /* Finish Line Green */
+  color: #065F46; /* Victory Green */
   font-weight: 600;
   border: 1px solid #A7F3D0; /* Visible border */
 }
 
 .status-overdue {
-  background-color: #FEE2E2; /* Light red background */
-  color: #B91C1C; /* Darker red text */
+  background-color: #FEE2E2; /* Penalty Red */
+  color: #B91C1C; /* Flag Red */
   font-weight: 600;
   border: 1px solid #FECACA; /* Visible border */
 }
 
-/* Priority indicators with better visibility */
+/* Lap priority indicators */
 .priority-low {
-  border-left: 4px solid var(--info);
+  border-left: 4px solid var(--info); /* Practice Lap */
 }
 
 .priority-medium {
-  border-left: 4px solid var(--warning);
+  border-left: 4px solid var(--warning); /* Qualifying Lap */
 }
 
 .priority-high {
-  border-left: 4px solid var(--secondary);
+  border-left: 4px solid var(--secondary); /* Race Lap */
 }
 
 .priority-urgent {
-  border-left: 4px solid var(--danger);
+  border-left: 4px solid var(--danger); /* Final Lap */
 }
 
 /* Container */
