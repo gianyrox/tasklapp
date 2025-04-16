@@ -7,6 +7,8 @@
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
   border-left-width: 3px;
   border-left-style: solid;
+  position: relative;
+  overflow: hidden;
 }
 
 .taskCard:hover {
@@ -14,7 +16,20 @@
   box-shadow: var(--shadow-md);
 }
 
-/* Ownership styles */
+/* Add racing track curve to corner */
+.taskCard::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 50px;
+  height: 50px;
+  background: radial-gradient(circle at bottom right, transparent 70%, var(--track-asphalt) 70%);
+  opacity: 0.1;
+  z-index: 0;
+}
+
+/* Ownership styles - track lanes */
 .ownership-self {
   border-top: 3px solid #6366f1;
   position: relative;
@@ -76,6 +91,8 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: var(--spacing-sm);
+  position: relative;
+  z-index: 1;
 }
 
 .title {
@@ -95,6 +112,9 @@
   border-radius: var(--border-radius-sm);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  /* Add subtle race flag checkered pattern to status badges */
+  background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.1) 75%, transparent 75%, transparent);
+  background-size: 8px 8px;
 }
 
 .dates {
@@ -103,11 +123,24 @@
   margin-bottom: var(--spacing-md);
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
+  position: relative;
+  z-index: 1;
 }
 
 .dateItem {
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+/* Add lap timer icons */
+.dateItem::before {
+  content: '⏱️';
+  position: absolute;
+  left: -20px;
+  top: 2px;
+  font-size: 14px;
+  opacity: 0.6;
 }
 
 .dateLabel {
@@ -118,6 +151,23 @@
 .overdue {
   color: var(--danger);
   font-weight: 600;
+  /* Add caution flag effect */
+  position: relative;
+}
+
+.overdue::after {
+  content: '🏁';
+  margin-left: 4px;
+  font-size: 12px;
+  animation: waveFlag 1s ease-in-out infinite;
+  display: inline-block;
+}
+
+@keyframes waveFlag {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(5deg); }
+  75% { transform: rotate(-5deg); }
+  100% { transform: rotate(0deg); }
 }
 
 .description {
@@ -126,6 +176,8 @@
   background-color: var(--background);
   border-radius: var(--border-radius-sm);
   border-left: 2px solid var(--border);
+  position: relative;
+  z-index: 1;
 }
 
 .description p {
@@ -137,6 +189,8 @@
   display: flex;
   justify-content: flex-end;
   gap: var(--spacing-sm);
+  position: relative;
+  z-index: 1;
 }
 
 .detailsButton {
