@@ -27,38 +27,40 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     <div className={styles.layout}>
       <header className={styles.header}>
         <div className={styles.container}>
-          <Link href="/dashboard" className={styles.logo}>
-            Taskl
-          </Link>
-          
-          <nav className={styles.navigation}>
-            <ul className={styles.navList}>
-              <li className={styles.navItem}>
-                <Link 
-                  href="/dashboard" 
-                  className={`${styles.navLink} ${pathname.startsWith('/dashboard') ? styles.active : ''}`}
-                >
-                  Dashboard
-                </Link>
-              </li>
-              <li className={styles.navItem}>
-                <Link 
-                  href="/friend" 
-                  className={`${styles.navLink} ${pathname.startsWith('/friend') ? styles.active : ''}`}
-                >
-                  Friends
-                </Link>
-              </li>
-              <li className={styles.navItem}>
-                <Link 
-                  href="/leaderboard" 
-                  className={`${styles.navLink} ${pathname.startsWith('/leaderboard') ? styles.active : ''}`}
-                >
-                  Leaderboard
-                </Link>
-              </li>
-            </ul>
-          </nav>
+          <div className={styles.leftSection}>
+            <Link href="/dashboard" className={styles.logo}>
+              Taskl
+            </Link>
+            
+            <nav className={styles.navigation}>
+              <ul className={styles.navList}>
+                <li className={styles.navItem}>
+                  <Link 
+                    href="/dashboard" 
+                    className={`${styles.navLink} ${pathname.startsWith('/dashboard') ? styles.active : ''}`}
+                  >
+                    Dashboard
+                  </Link>
+                </li>
+                <li className={styles.navItem}>
+                  <Link 
+                    href="/friend" 
+                    className={`${styles.navLink} ${pathname.startsWith('/friend') ? styles.active : ''}`}
+                  >
+                    Friends
+                  </Link>
+                </li>
+                <li className={styles.navItem}>
+                  <Link 
+                    href="/leaderboard" 
+                    className={`${styles.navLink} ${pathname.startsWith('/leaderboard') ? styles.active : ''}`}
+                  >
+                    Leaderboard
+                  </Link>
+                </li>
+              </ul>
+            </nav>
+          </div>
           
           <div className={styles.userMenu}>
             <div className={styles.userInfo}>
