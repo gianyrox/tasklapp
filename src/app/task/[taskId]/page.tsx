@@ -125,6 +125,25 @@ const TaskDetailPage: React.FC = () => {
     );
   };
 
+  // Render a compact visual display of stars for ratings
+  const renderRatingDisplay = (rating: number) => {
+    return (
+      <div className={styles.ratingDisplay}>
+        <span className={styles.numericRating}>{rating}</span>
+        <span className={styles.starsDisplay}>
+          {[1, 2, 3, 4, 5].map(star => (
+            <span 
+              key={star} 
+              className={star <= rating ? styles.smallStarFilled : styles.smallStar}
+            >
+              ★
+            </span>
+          ))}
+        </span>
+      </div>
+    );
+  };
+
   if (isLoading) {
     return (
       <ProtectedRoute>
@@ -361,7 +380,9 @@ const TaskDetailPage: React.FC = () => {
                         <span className={styles.detailLabel}>
                           <span className={styles.ratingIcon}>✨</span> Quality Rating
                         </span>
-                        <span className={styles.detailValue}>{task.qualityRating}/5</span>
+                        <span className={styles.detailValue}>
+                          {renderRatingDisplay(task.qualityRating)}
+                        </span>
                       </div>
                     )}
                     
@@ -370,7 +391,9 @@ const TaskDetailPage: React.FC = () => {
                         <span className={styles.detailLabel}>
                           <span className={styles.ratingIcon}>⏱️</span> Timeliness Rating
                         </span>
-                        <span className={styles.detailValue}>{task.timelinessRating}/5</span>
+                        <span className={styles.detailValue}>
+                          {renderRatingDisplay(task.timelinessRating)}
+                        </span>
                       </div>
                     )}
                     
@@ -379,7 +402,9 @@ const TaskDetailPage: React.FC = () => {
                         <span className={styles.detailLabel}>
                           <span className={styles.ratingIcon}>💪</span> Effort Rating
                         </span>
-                        <span className={styles.detailValue}>{task.effortRating}/5</span>
+                        <span className={styles.detailValue}>
+                          {renderRatingDisplay(task.effortRating)}
+                        </span>
                       </div>
                     )}
                     
@@ -388,7 +413,9 @@ const TaskDetailPage: React.FC = () => {
                         <span className={styles.detailLabel}>
                           <span className={styles.ratingIcon}>🎯</span> Accuracy Rating
                         </span>
-                        <span className={styles.detailValue}>{task.accuracyRating}/5</span>
+                        <span className={styles.detailValue}>
+                          {renderRatingDisplay(task.accuracyRating)}
+                        </span>
                       </div>
                     )}
                     
@@ -398,7 +425,7 @@ const TaskDetailPage: React.FC = () => {
                           <span className={styles.ratingIcon}>⭐</span> Average Rating
                         </span>
                         <span className={styles.detailValue}>
-                          {calculateAverageRating(task)}/5
+                          {renderRatingDisplay(Number(calculateAverageRating(task)))}
                         </span>
                       </div>
                     )}
