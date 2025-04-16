@@ -108,6 +108,13 @@ const TaskDetailPage: React.FC = () => {
   const canUpdate = isTaskAssignee || isTaskAssigner;
   const isDue = new Date(task.dueDate) < new Date() && task.status !== TaskStatus.COMPLETED;
 
+  // Set icons for each section
+  const sectionIcons = {
+    description: "✏️",
+    details: "📋",
+    people: "👥"
+  };
+
   return (
     <ProtectedRoute>
       <AppLayout>
@@ -125,12 +132,12 @@ const TaskDetailPage: React.FC = () => {
           <div className={styles.content}>
             <div className={styles.mainContent}>
               <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>Description</h2>
+                <h2 className={`${styles.sectionTitle} ${styles.descriptionIcon}`}>Description</h2>
                 <p className={styles.description}>{task.description || 'No description provided.'}</p>
               </div>
 
               <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>Details</h2>
+                <h2 className={`${styles.sectionTitle} ${styles.detailsIcon}`}>Details</h2>
                 <div className={styles.detailsGrid}>
                   <div className={styles.detailItem}>
                     <span className={styles.detailLabel}>Due Date</span>
@@ -163,7 +170,7 @@ const TaskDetailPage: React.FC = () => {
               </div>
 
               <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>People</h2>
+                <h2 className={`${styles.sectionTitle} ${styles.peopleIcon}`}>People</h2>
                 <div className={styles.people}>
                   <div className={styles.person}>
                     <span className={styles.personRole}>Assigned by</span>
@@ -202,47 +209,43 @@ const TaskDetailPage: React.FC = () => {
                 {canUpdate && (
                   <div className={styles.statusButtons}>
                     {task.status !== TaskStatus.PENDING && (
-                      <Button 
-                        variant="outline" 
+                      <button 
                         onClick={() => handleStatusChange(TaskStatus.PENDING)}
                         disabled={isUpdating}
                         className={styles.actionButton}
                       >
                         Mark as Pending
-                      </Button>
+                      </button>
                     )}
                     
                     {task.status !== TaskStatus.IN_PROGRESS && (
-                      <Button 
-                        variant="outline" 
+                      <button 
                         onClick={() => handleStatusChange(TaskStatus.IN_PROGRESS)}
                         disabled={isUpdating}
                         className={styles.actionButton}
                       >
                         Mark as In Progress
-                      </Button>
+                      </button>
                     )}
                     
                     {task.status !== TaskStatus.COMPLETED && (
-                      <Button 
-                        variant="primary"
+                      <button 
                         onClick={() => handleStatusChange(TaskStatus.COMPLETED)}
                         disabled={isUpdating}
-                        className={styles.actionButton}
+                        className={`${styles.actionButton} ${styles.primaryAction}`}
                       >
-                        Mark as Completed
-                      </Button>
+                        ✅ Mark as Completed
+                      </button>
                     )}
                   </div>
                 )}
                 
-                <Button 
-                  variant="outline"
+                <button 
                   onClick={() => router.back()}
                   className={styles.actionButton}
                 >
-                  Go Back
-                </Button>
+                  ⬅️ Go Back
+                </button>
               </div>
             </div>
           </div>
