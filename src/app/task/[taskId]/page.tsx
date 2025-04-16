@@ -534,7 +534,7 @@ const TaskDetailPage: React.FC = () => {
                     <Button 
                       variant="primary" 
                       onClick={handleSubmitGrade}
-                      disabled={isUpdating || qualityRating === 0}
+                      disabled={isUpdating || (!qualityRating && !timelinessRating && !effortRating && !accuracyRating)}
                     >
                       {isUpdating ? 'Submitting...' : 'Submit Grade'}
                     </Button>
