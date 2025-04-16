@@ -25,8 +25,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   if (isLoading) {
     return (
       <div className={styles.loadingContainer}>
-        <div className={styles.loadingSpinner}></div>
-        <p>Loading...</p>
+        <div className={styles.loadingSpinnerWrapper}>
+          <div className={styles.loadingSpinner}></div>
+        </div>
+        <p className={styles.loadingText}>Loading your account...</p>
       </div>
     );
   }

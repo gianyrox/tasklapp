@@ -5,7 +5,16 @@ import { Task, TaskStatus, TaskPriority, User, Friendship, FriendshipStatus, Lea
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: false // We'll handle this manually for better performance
+  },
+  global: {
+    fetch: fetch.bind(globalThis)
+  }
+});
 
 // User API functions
 export const getCurrentUser = async (): Promise<User | null> => {
@@ -15,10 +24,16 @@ export const getCurrentUser = async (): Promise<User | null> => {
     return null;
   }
   
+  const userId = session.user.id;
+  
+  // Use a more efficient query that fetches user and their stats in one go
   const { data, error } = await supabase
     .from('users')
-    .select('*')
-    .eq('id', session.user.id)
+    .select(`
+      *,
+      stats:user_stats(*)
+    `)
+    .eq('id', userId)
     .single();
     
   if (error || !data) {
@@ -33,10 +48,10 @@ export const getCurrentUser = async (): Promise<User | null> => {
     avatarUrl: data.avatar_url,
     createdAt: new Date(data.created_at),
     stats: {
-      rank: 0,
-      tasksCompleted: 0,
-      completionRate: 0,
-      averageCompletionTime: 0
+      rank: data.stats?.rank || 0,
+      tasksCompleted: data.stats?.tasks_completed || 0,
+      completionRate: data.stats?.completion_rate || 0,
+      averageCompletionTime: data.stats?.average_completion_time || 0
     }
   };
 };
