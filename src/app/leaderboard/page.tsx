@@ -193,7 +193,12 @@ const LeaderboardPage: React.FC = () => {
                     {activeLeaderboard === 'speed-demons' && 'Avg. Time'}
                     {activeLeaderboard === 'consistency' && 'Tasks Overdue'}
                   </div>
-                  <div className={styles.extendedStatsColumn}></div>
+                  <div className={styles.extendedStatsColumn}>
+                    {activeLeaderboard === 'tasks-completed' && 'Additional Stats'}
+                    {activeLeaderboard === 'quality-rating' && 'Rating Breakdown'}
+                    {activeLeaderboard === 'speed-demons' && 'Performance'}
+                    {activeLeaderboard === 'consistency' && 'Quality Metrics'}
+                  </div>
                   <div className={styles.actionColumn}></div>
                 </div>
                 
