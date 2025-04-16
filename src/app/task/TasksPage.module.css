@@ -249,6 +249,32 @@
   color: #ef4444;
 }
 
+/* Task card status styles */
+.pending {
+  background-color: #f8fafc;
+  border-color: #64748b;
+}
+
+.in_progress {
+  background-color: #eff6ff;
+  border-color: #3b82f6;
+}
+
+.completed {
+  background-color: #e6f7ee;
+  border-color: #48bb78;
+}
+
+.graded {
+  background-color: #e6f0ff;
+  border-color: #4299e1;
+}
+
+.overdue {
+  background-color: #fff5f5;
+  border-color: #f56565;
+}
+
 .taskDetails {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
