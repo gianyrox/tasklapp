@@ -121,7 +121,8 @@ export const getFriendships = async (status?: FriendshipStatus): Promise<Friends
     .from('friendships')
     .select(`
       *,
-      friend:users!friendships_friend_id_fkey(id, name, email, avatar_url, created_at)
+      requester:users!friendships_user_id_fkey(id, name, email, avatar_url, created_at),
+      recipient:users!friendships_friend_id_fkey(id, name, email, avatar_url, created_at)
     `)
     .or(`user_id.eq.${session.user.id},friend_id.eq.${session.user.id}`);
   
@@ -140,10 +141,10 @@ export const getFriendships = async (status?: FriendshipStatus): Promise<Friends
   
   return data.map(friendship => {
     // Determine which user is the friend (not the current user)
-    const isFriendRequester = friendship.user_id === session.user.id;
-    const friendData = isFriendRequester 
-      ? friendship.friend 
-      : friendship.user;
+    const isUserRequester = friendship.user_id === session.user.id;
+    const friendData = isUserRequester 
+      ? friendship.recipient 
+      : friendship.requester;
     
     return {
       id: friendship.id,
