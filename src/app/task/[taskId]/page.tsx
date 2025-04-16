@@ -143,7 +143,7 @@ const TaskDetailPage: React.FC = () => {
           <div className={styles.container}>
             <div className={styles.errorMessage}>
               <p>Task not found</p>
-              <BackButton />
+              <BackButton route="/task" />
             </div>
           </div>
         </AppLayout>
@@ -179,7 +179,7 @@ const TaskDetailPage: React.FC = () => {
           </div>
 
           <div className={styles.actions}>
-            <BackButton />
+            <BackButton route="/task" />
             
             {canUpdate && (
               <div className={styles.statusButtons}>
