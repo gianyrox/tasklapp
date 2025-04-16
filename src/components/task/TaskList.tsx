@@ -7,12 +7,14 @@ interface TaskListProps {
   tasks: Task[];
   onStatusChange?: (taskId: string, newStatus: any) => void;
   showDetails?: boolean;
+  ownership?: 'self' | 'friend';
 }
 
 export const TaskList: React.FC<TaskListProps> = ({ 
   tasks,
   onStatusChange,
-  showDetails = false
+  showDetails = false,
+  ownership = 'self'
 }) => {
   return (
     <div className={styles.taskList}>
@@ -22,6 +24,7 @@ export const TaskList: React.FC<TaskListProps> = ({
           task={task}
           onStatusChange={onStatusChange}
           showDetails={showDetails}
+          ownership={ownership}
         />
       ))}
     </div>

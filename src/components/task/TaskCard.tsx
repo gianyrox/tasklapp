@@ -7,6 +7,7 @@ interface TaskCardProps {
   task: Task;
   onStatusChange?: (taskId: string, newStatus: TaskStatus) => void;
   showDetails?: boolean;
+  ownership?: 'self' | 'friend';
 }
 
 export const formatDate = (date: Date): string => {
@@ -50,7 +51,8 @@ export const getPriorityClassName = (priority: TaskPriority): string => {
 export const TaskCard: React.FC<TaskCardProps> = ({
   task,
   onStatusChange,
-  showDetails = false
+  showDetails = false,
+  ownership = 'self'
 }) => {
   const statusClass = getStatusClassName(task.status);
   const priorityClass = getPriorityClassName(task.priority);
@@ -64,9 +66,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const isOverdue = task.dueDate < new Date() && task.status !== TaskStatus.COMPLETED;
   
   return (
-    <div className={`${styles.taskCard} ${priorityClass}`}>
+    <div className={`${styles.taskCard} ${priorityClass} ${styles[`ownership-${ownership}`]}`}>
       <div className={styles.header}>
-        <h3 className={styles.title}>{task.title}</h3>
+        <h3 className={styles.title}>
+          {task.title}
+          {ownership === 'self' && <span className={styles.ownershipBadge}>My Task</span>}
+          {ownership === 'friend' && <span className={styles.ownershipBadge}>Friend's Task</span>}
+        </h3>
         <span className={`${styles.status} ${statusClass}`}>
           {task.status}
         </span>
@@ -92,23 +98,37 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       )}
       
       <div className={styles.actions}>
-        {task.status === TaskStatus.PENDING && (
-          <Button 
-            size="sm" 
-            variant="info" 
-            onClick={() => handleStatusChange(TaskStatus.IN_PROGRESS)}
-          >
-            Start Task
-          </Button>
+        {ownership === 'self' && (
+          <>
+            {task.status === TaskStatus.PENDING && (
+              <Button 
+                size="sm" 
+                variant="info" 
+                onClick={() => handleStatusChange(TaskStatus.IN_PROGRESS)}
+              >
+                Start Task
+              </Button>
+            )}
+            
+            {task.status === TaskStatus.IN_PROGRESS && (
+              <Button 
+                size="sm" 
+                variant="success" 
+                onClick={() => handleStatusChange(TaskStatus.COMPLETED)}
+              >
+                Complete
+              </Button>
+            )}
+          </>
         )}
         
-        {task.status === TaskStatus.IN_PROGRESS && (
+        {ownership === 'friend' && (
           <Button 
             size="sm" 
-            variant="success" 
-            onClick={() => handleStatusChange(TaskStatus.COMPLETED)}
+            variant="primary"
+            className={styles.detailsButton}
           >
-            Complete
+            View Progress
           </Button>
         )}
         

@@ -200,7 +200,7 @@ const DashboardPage: React.FC = () => {
               </div>
             }
           >
-            <TaskList tasks={myTasks} onStatusChange={handleStatusChange} showDetails={true} />
+            <TaskList tasks={myTasks} onStatusChange={handleStatusChange} showDetails={true} ownership="self" />
           </Board>
 
           {/* Friends' Task Lists */}
@@ -251,7 +251,7 @@ const DashboardPage: React.FC = () => {
                         </div>
                       }
                     >
-                      <TaskList tasks={tasks} showDetails={false} />
+                      <TaskList tasks={tasks} showDetails={false} ownership="friend" />
                     </Board>
                   );
                 })}
