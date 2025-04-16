@@ -1,24 +1,27 @@
 :root {
-  /* Color palette - Racing track theme */
-  --primary: #ff6a00;
-  --primary-dark: #e05a00;
-  --secondary: #00897b;
-  --success: #43a047;
-  --danger: #e53935;
-  --warning: #fdd835;
-  --info: #039be5;
+  /* Color palette - EdTech focused theme */
+  --primary: #4338CA; /* Indigo */
+  --primary-dark: #312E81; /* Darker Indigo */
+  --secondary: #8B5CF6; /* Purple */
+  --success: #10B981; /* Emerald */
+  --danger: #EF4444; /* Red */
+  --warning: #F59E0B; /* Amber */
+  --info: #3B82F6; /* Blue */
   
-  /* Neutrals */
-  --background: #f8f9fa;
+  /* Neutrals with higher contrast */
+  --background: #F8FAFC; /* Very light blue-gray */
   --surface: #ffffff;
-  --text-primary: #212121;
-  --text-secondary: #757575;
-  --border: #e0e0e0;
+  --text-primary: #111827; /* Very dark gray for high contrast */
+  --text-secondary: #4B5563; /* Darker secondary text for better readability */
+  --border: #D1D5DB; /* More visible border */
   --track-asphalt: #2d3436;
   --track-line: #ffffff;
   --track-curb-red: #e53935;
   --track-curb-white: #ffffff;
-
+  --accent-yellow: #FCD34D; /* For highlights */
+  --accent-green: #10B981; /* For progress elements */
+  --accent-blue: #60A5FA; /* For interactive elements */
+  
   /* Layout */
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
@@ -28,22 +31,22 @@
   --spacing-xxl: 3rem;
   
   /* Typography */
-  --font-family-heading: 'Racing Sans One', sans-serif;
+  --font-family-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   --font-family-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   --font-family: var(--font-family-body);
   --font-size-sm: 0.875rem;
   --font-size-md: 1rem;
   --font-size-lg: 1.25rem;
   --font-size-xl: 1.5rem;
-  --font-size-xxl: 2rem;
+  --font-size-xxl: 2.25rem; /* Slightly larger for higher impact */
   
-  /* Borders and shadows */
+  /* Borders and shadows for more definition */
   --border-radius-sm: 0.25rem;
   --border-radius-md: 0.5rem;
   --border-radius-lg: 1rem;
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.12);
-  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.15);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.18);
   
   /* Animation */
   --transition-fast: 150ms ease;
@@ -63,16 +66,18 @@ body {
   background-color: var(--background);
   color: var(--text-primary);
   font-size: var(--font-size-md);
-  line-height: 1.5;
+  line-height: 1.6; /* Increased line height for better readability */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  letter-spacing: 0.01em; /* Slightly increased letter spacing */
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-weight: 600;
+  font-weight: 700; /* Bolder headings for higher contrast */
   line-height: 1.2;
   margin-bottom: var(--spacing-md);
   color: var(--text-primary);
+  letter-spacing: -0.02em; /* Tighter letter spacing for headings */
 }
 
 h1 {
@@ -89,55 +94,72 @@ h3 {
 
 p {
   margin-bottom: var(--spacing-md);
+  color: var(--text-primary); /* Ensuring high contrast for all text */
 }
 
 a {
   color: var(--primary);
   text-decoration: none;
   transition: color var(--transition-fast);
+  font-weight: 500; /* Medium weight for links */
+  border-bottom: 1px solid transparent; /* Bottom border for better visibility */
 }
 
 a:hover {
   color: var(--primary-dark);
+  border-bottom-color: var(--primary-dark); /* Show border on hover */
 }
 
 button {
   font-family: inherit;
   cursor: pointer;
+  font-weight: 500; /* Slightly bolder buttons */
 }
 
-/* Status colors for tasks */
+/* Status colors for tasks - with higher contrast */
 .status-pending {
-  color: var(--info);
+  background-color: #DBEAFE; /* Light blue background */
+  color: #1E40AF; /* Darker blue text */
+  font-weight: 600;
+  border: 1px solid #BFDBFE; /* Visible border */
 }
 
 .status-in-progress {
-  color: var(--warning);
+  background-color: #FEF3C7; /* Light amber background */
+  color: #92400E; /* Darker amber text */
+  font-weight: 600;
+  border: 1px solid #FDE68A; /* Visible border */
 }
 
 .status-completed {
-  color: var(--success);
+  background-color: #D1FAE5; /* Light green background */
+  color: #065F46; /* Darker green text */
+  font-weight: 600;
+  border: 1px solid #A7F3D0; /* Visible border */
 }
 
 .status-overdue {
-  color: var(--danger);
+  background-color: #FEE2E2; /* Light red background */
+  color: #B91C1C; /* Darker red text */
+  font-weight: 600;
+  border: 1px solid #FECACA; /* Visible border */
 }
 
-/* Priority indicators */
+/* Priority indicators with better visibility */
 .priority-low {
-  border-left: 3px solid var(--info);
+  border-left: 4px solid var(--info);
 }
 
 .priority-medium {
-  border-left: 3px solid var(--warning);
+  border-left: 4px solid var(--warning);
 }
 
 .priority-high {
-  border-left: 3px solid var(--secondary);
+  border-left: 4px solid var(--secondary);
 }
 
 .priority-urgent {
-  border-left: 3px solid var(--danger);
+  border-left: 4px solid var(--danger);
 }
 
 /* Container */
