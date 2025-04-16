@@ -559,61 +559,6 @@
 }
 
 /* Extra small screens */
-@media (max-width: 400px) {
-  .leaderboardStats {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.2rem;
-    padding: 0;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  
-  .leaderboardStat {
-    padding: 0.25rem;
-    min-width: 0;
-    width: 100%;
-    box-sizing: border-box;
-    overflow: hidden;
-    border-radius: 0.35rem;
-  }
-  
-  .leaderboardStatValue {
-    font-size: 0.75rem;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  
-  /* Style for N/A values on extra small screens */
-  .leaderboardStatValue:empty::before,
-  .leaderboardStatValue:contains('N/A') {
-    font-size: 0.7rem;
-  }
-  
-  .leaderboardStatLabel {
-    font-size: 0.6rem;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  
-  .leaderboardEntry {
-    padding: 0.6rem;
-  }
-  
-  .leaderboardUser {
-    width: 100%;
-    overflow: hidden;
-  }
-  
-  .leaderboardName {
-    font-size: 1rem;
-    max-width: calc(100% - 30px);
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-}
-
 .leaderboardSection {
   grid-area: leaderboard;
   display: flex;
