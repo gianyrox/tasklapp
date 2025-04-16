@@ -518,21 +518,21 @@
 }
 
 .scrollableBoard {
-  max-height: 65vh; /* Medium size as default */
+  max-height: 80vh; /* Increased from 65vh */
   overflow-y: auto;
   padding-right: 5px; /* Add padding for scrollbar */
 }
 
 .taskColumnBoard .scrollableBoard {
-  max-height: 80vh; /* Large - 80% of viewport height */
+  max-height: 90vh; /* Increased from 80vh */
 }
 
 .friendTasksGrid .scrollableBoard {
-  max-height: 75vh; /* Increased from 65vh to 75vh */
+  max-height: 85vh; /* Increased from 75vh */
 }
 
 .leaderboardBoard .scrollableBoard {
-  max-height: 70vh; /* Increased from 50vh to 70vh to show more users */
+  max-height: 85vh; /* Increased from 70vh */
 }
 
 /* Task section styling for combined column */
