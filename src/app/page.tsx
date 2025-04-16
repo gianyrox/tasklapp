@@ -110,7 +110,8 @@ const HomePage: React.FC = () => {
           <div className={styles.heroContent}>
             <h1 className={styles.title}>Complete Tasks. Do Laps. Compete.</h1>
             <p className={styles.subtitle}>
-              A competitive task management platform where you can assign tasks, track performance, and rise through the ranks.
+              Taskl.app transforms ordinary task management into a competitive experience. 
+              Assign tasks, track performance, and race to the top of the leaderboard.
             </p>
             <div className={styles.cta}>
               {isLoggedIn ? (
@@ -119,7 +120,7 @@ const HomePage: React.FC = () => {
                 </Link>
               ) : (
                 <Link href="/signup">
-                  <Button size="lg" variant="primary">Get Started</Button>
+                  <Button size="lg" variant="primary">Start Racing</Button>
                 </Link>
               )}
               {!isLoggedIn && (
@@ -130,7 +131,7 @@ const HomePage: React.FC = () => {
             </div>
           </div>
           <div className={styles.heroImage}>
-            <div className={styles.imagePlaceholder}></div>
+            <div className={styles.trackImage}></div>
           </div>
         </section>
 
@@ -139,23 +140,23 @@ const HomePage: React.FC = () => {
           <div className={styles.featureGrid}>
             <div className={styles.featureCard}>
               <div className={styles.featureIcon} style={{ backgroundColor: 'var(--primary)' }}></div>
-              <h3>Task Assignment</h3>
-              <p>Assign tasks to team members and track their progress in real-time.</p>
+              <h3>Competitive Task Assignment</h3>
+              <p>Create challenges and assign tasks to team members with customizable difficulty levels.</p>
             </div>
             <div className={styles.featureCard}>
               <div className={styles.featureIcon} style={{ backgroundColor: 'var(--secondary)' }}></div>
-              <h3>Performance Tracking</h3>
-              <p>Monitor completion rates, speed, and consistency across your team.</p>
+              <h3>Real-time Performance Tracking</h3>
+              <p>Monitor completion rates, speed, and consistency with our racing-inspired dashboard.</p>
             </div>
             <div className={styles.featureCard}>
               <div className={styles.featureIcon} style={{ backgroundColor: 'var(--success)' }}></div>
-              <h3>Competitive Rankings</h3>
-              <p>Foster healthy competition with performance-based leaderboards.</p>
+              <h3>Leaderboard Rankings</h3>
+              <p>Foster healthy competition with performance-based rankings and achievement badges.</p>
             </div>
             <div className={styles.featureCard}>
               <div className={styles.featureIcon} style={{ backgroundColor: 'var(--info)' }}></div>
-              <h3>Detailed Analytics</h3>
-              <p>Access comprehensive statistics to improve productivity.</p>
+              <h3>Racing Analytics</h3>
+              <p>Gain insights with comprehensive statistics and visualize your productivity journey.</p>
             </div>
           </div>
         </section>
