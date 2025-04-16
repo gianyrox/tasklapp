@@ -293,6 +293,13 @@
   }
 }
 
+/* Medium-large screen adjustments - keep at 2 columns */
+@media (min-width: 1293px) and (max-width: 1599px) {
+  .userGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 /* Large screen adjustments */
 @media (min-width: 1600px) {
   .userGrid {
