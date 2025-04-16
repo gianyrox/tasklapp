@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import AppLayout from '../../components/layout/AppLayout';
-import { TaskStatus, Friendship, FriendshipStatus } from '../../types';
+import { TaskStatus, Friendship, FriendshipStatus, Task } from '../../types';
 import styles from './Dashboard.module.css';
 import ProtectedRoute from '../../components/layout/ProtectedRoute';
 import { useAuth } from '../../context/AuthContext';
@@ -25,15 +25,79 @@ import TasksSection from '../../components/dashboard/TasksSection';
 import LeaderboardSection from '../../components/dashboard/LeaderboardSection';
 import FriendsSection from '../../components/dashboard/FriendsSection';
 
-// Helper functions remain the same
-import { 
-  transformTaskFromDb, 
-  getSelfAssignedTasks, 
-  filterTasksFromFriends, 
-  filterTasksAssignedToOthers, 
-  filterSelfAssignedTasks, 
-  getTasksAssignedToOthers
-} from '../../lib/utils/taskHelpers';
+// Helper functions since we can't import from taskHelpers
+// Function to filter tasks from friends
+const filterTasksFromFriends = (tasks: Task[], userId: string): Task[] => {
+  return tasks.filter(task => task.assigneeId === userId && task.assignerId !== userId);
+};
+
+// Function to filter tasks assigned to others
+const filterTasksAssignedToOthers = (tasks: Task[], userId: string): Task[] => {
+  return tasks.filter(task => task.assignerId === userId && task.assigneeId !== userId);
+};
+
+// Function to filter self-assigned tasks
+const filterSelfAssignedTasks = (tasks: Task[], userId: string): Task[] => {
+  return tasks.filter(task => task.assigneeId === userId && task.assignerId === userId);
+};
+
+// Function to get self-assigned tasks
+const getSelfAssignedTasks = async (userId: string): Promise<Task[]> => {
+  // Use the Supabase client to get tasks where user is both assignee and assigner
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from('tasks')
+    .select(`
+      *,
+      attachments:task_attachments(*),
+      assigner:users!tasks_assigner_id_fkey(id, name, email, avatar_url, created_at),
+      assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url, created_at)
+    `)
+    .eq('assignee_id', userId)
+    .eq('assigner_id', userId)
+    .order('due_date');
+    
+  if (error || !data) {
+    console.error('Error fetching self-assigned tasks:', error);
+    return [];
+  }
+  
+  return data;
+};
+
+// Function to get all tasks assigned by the user to others
+const getTasksAssignedToOthers = async (userId: string): Promise<Task[]> => {
+  // Use the Supabase client to get tasks where user is the assigner but not the assignee
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from('tasks')
+    .select(`
+      *,
+      attachments:task_attachments(*),
+      assigner:users!tasks_assigner_id_fkey(id, name, email, avatar_url, created_at),
+      assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url, created_at)
+    `)
+    .eq('assigner_id', userId)
+    .neq('assignee_id', userId)
+    .order('due_date');
+    
+  if (error || !data) {
+    console.error('Error fetching tasks assigned to others:', error);
+    return [];
+  }
+  
+  return data;
+};
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -155,33 +219,29 @@ const DashboardPage: React.FC = () => {
           {/* Stats Overview */}
           <StatsSection tasks={myTasks} isLoading={isLoading} />
           
-          {/* Tasks assigned to you by friends */}
-          <TasksSection
-            title="Tasks From Friends"
-            tasks={tasksFromFriends}
-            isLoading={isLoading}
-            onStatusChange={handleStatusChange}
-            emptyMessage="No tasks assigned to you by friends"
-          />
-          
-          {/* Self-assigned tasks */}
-          <TasksSection
-            title="Your Tasks"
-            tasks={selfAssignedTasks}
-            isLoading={isLoading}
-            onStatusChange={handleStatusChange}
-            onAddTask={handleAddTask}
-            emptyMessage="You haven't created any tasks for yourself"
-          />
-          
-          {/* Tasks you assigned to others */}
-          <TasksSection
-            title="Tasks Assigned to Others"
-            tasks={tasksAssignedToOthers}
-            isLoading={isLoading}
-            onStatusChange={handleStatusChange}
-            emptyMessage="You haven't assigned tasks to others"
-          />
+          {/* Task Columns Layout */}
+          <div className={styles.tasksColumnsContainer}>
+            {/* Column 1: Tasks from Friends and Self-Assigned Tasks */}
+            <TasksSection
+              title="All My Tasks"
+              tasks={[...tasksFromFriends, ...selfAssignedTasks]}
+              isLoading={isLoading}
+              onStatusChange={handleStatusChange}
+              onAddTask={handleAddTask}
+              emptyMessage="You don't have any tasks yet"
+              columnLayout={true}
+            />
+            
+            {/* Column 2: Tasks Assigned to Others */}
+            <TasksSection
+              title="Tasks I've Assigned"
+              tasks={tasksAssignedToOthers}
+              isLoading={isLoading}
+              onStatusChange={handleStatusChange}
+              emptyMessage="You haven't assigned tasks to others"
+              columnLayout={true}
+            />
+          </div>
           
           {/* Friends section */}
           <FriendsSection

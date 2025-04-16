@@ -41,20 +41,30 @@ const FriendsSection: React.FC<FriendsSectionProps> = ({
       ) : friends.length > 0 ? (
         <div className={styles.friendTasksGrid}>
           {friends.map(friend => {
-            const friendId = friend.userId === friend.friendId ? friend.userId : friend.friendId;
+            // Determine which ID corresponds to the friend
+            const friendId = friend.userId === friend.friendId 
+              ? friend.userId 
+              : friend.friendId;
+              
+            // Get friend name from friendship object
+            const friendName = friend.friend?.name || 'Friend';
+            
+            // Get tasks associated with this friend
             const tasks = friendTasks[friendId] || [];
+            
+            console.log('Friend tasks for', friendName, ':', tasks);
             
             return (
               <div key={friendId} className={styles.friendCard}>
                 <div className={styles.friendHeader}>
                   <div className={styles.friendAvatar}>
                     {friend.friend?.avatarUrl ? (
-                      <img src={friend.friend.avatarUrl} alt={friend.friend.name} />
+                      <img src={friend.friend.avatarUrl} alt={friendName} />
                     ) : (
-                      friend.friend?.name.charAt(0)
+                      friendName.charAt(0)
                     )}
                   </div>
-                  <h3 className={styles.friendName}>{friend.friend?.name}</h3>
+                  <h3 className={styles.friendName}>{friendName}</h3>
                 </div>
                 
                 <div className={styles.taskPreview}>
@@ -87,7 +97,7 @@ const FriendsSection: React.FC<FriendsSectionProps> = ({
                   <Button 
                     variant="primary" 
                     size="sm"
-                    onClick={() => onAddTaskToFriend(friendId, friend.friend?.name || 'Friend')}
+                    onClick={() => onAddTaskToFriend(friendId, friendName)}
                   >
                     Assign Task
                   </Button>

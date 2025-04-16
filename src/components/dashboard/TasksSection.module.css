@@ -6,6 +6,12 @@
   margin-bottom: 0;
 }
 
+.taskColumn {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
 .sectionHeader {
   display: flex;
   justify-content: space-between;
@@ -24,6 +30,13 @@
   margin: 0;
 }
 
+.taskColumnTitle {
+  font-size: 1.35rem !important;
+  color: #4338ca;
+  font-weight: 700;
+  margin: 0;
+}
+
 .tasksBoard {
   margin-bottom: 2rem;
   background-color: white;
@@ -34,7 +47,20 @@
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.tasksBoard:hover {
+.taskColumnBoard {
+  flex: 1;
+  min-height: 400px;
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  border: 1px solid #d4d4d8;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.tasksBoard:hover, .taskColumnBoard:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
 }
@@ -45,6 +71,7 @@
   padding: 0.5rem;
   scrollbar-width: thin;
   scrollbar-color: #c7d2fe transparent;
+  flex: 1;
 }
 
 .scrollableBoard::-webkit-scrollbar {
@@ -89,6 +116,31 @@
   transform: translateY(-2px);
 }
 
+.addTaskCard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  margin-top: 1rem;
+  background-color: #f5f7ff;
+  border: 1px dashed #c7d2fe;
+  border-radius: 0.5rem;
+  color: #4338ca;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-weight: 600;
+}
+
+.addTaskCard:hover {
+  background-color: #eef2ff;
+}
+
+.addTaskCard svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
 .loadingSpinner {
   display: block;
   width: 40px;
@@ -103,4 +155,22 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+.tasksColumnsContainer {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 992px) {
+  .tasksColumnsContainer {
+    flex-direction: row;
+  }
+}
+
+@media (max-width: 991px) {
+  .tasksColumnsContainer {
+    flex-direction: column;
+  }
 } 
