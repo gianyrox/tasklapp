@@ -86,6 +86,8 @@ const FriendsSection: React.FC<FriendsSectionProps> = ({
                           tasks={tasks.slice(0, 3)} 
                           onStatusChange={onStatusChange}
                           showDetails={false}
+                          ownership="friend"
+                          compact={true}
                         />
                       </div>
                       {tasks.length > 3 && (
