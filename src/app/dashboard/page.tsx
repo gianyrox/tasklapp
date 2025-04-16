@@ -574,7 +574,7 @@ const DashboardPage: React.FC = () => {
             {friends.length === 0 && !isLoading ? (
               <div className={styles.emptyState}>
                 <p>You haven't connected with any friends yet</p>
-                <Button size="sm" variant="primary" onClick={handleFindFriends}>
+                <Button size="xs" variant="primary" onClick={handleFindFriends}>
                   Find Friends
                 </Button>
               </div>
