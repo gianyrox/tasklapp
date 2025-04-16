@@ -521,6 +521,15 @@
   max-height: 80vh; /* Increased from 65vh */
   overflow-y: auto;
   padding-right: 5px; /* Add padding for scrollbar */
+  
+  /* Hide scrollbar but allow scrolling */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.scrollableBoard::-webkit-scrollbar {
+  display: none;
 }
 
 .taskColumnBoard .scrollableBoard {
