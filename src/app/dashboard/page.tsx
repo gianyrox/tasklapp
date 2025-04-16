@@ -10,8 +10,88 @@ import { useAuth } from '../../context/AuthContext';
 import Board from '../../components/ui/Board';
 import Button from '../../components/ui/Button';
 import CreateTaskModal from '../../components/task/CreateTaskModal';
-import { getFriendships, getTasksFromFriends, getTasksByFriend, updateTaskStatus, createTask } from '../../lib/api/supabase';
+import { 
+  getFriendships, 
+  getTasksFromFriends, 
+  getTasksByFriend, 
+  updateTaskStatus, 
+  createTask,
+  supabase,
+  getTaskById
+} from '../../lib/api/supabase';
 import { getLeaderboard } from '../../lib/api/supabase';
+
+// Helper function to transform task data from Supabase format to our app format
+const transformTaskFromDb = (task: any): Task => {
+  return {
+    id: task.id,
+    title: task.title,
+    description: task.description,
+    createdAt: new Date(task.created_at),
+    dueDate: new Date(task.due_date),
+    assignerId: task.assigner_id,
+    assigneeId: task.assignee_id,
+    status: task.status as TaskStatus,
+    priority: task.priority,
+    completedAt: task.completed_at ? new Date(task.completed_at) : undefined,
+    estimatedTimeMinutes: task.estimated_time_minutes,
+    actualTimeMinutes: task.actual_time_minutes,
+    submissionDate: task.submission_date ? new Date(task.submission_date) : undefined,
+    qualityRating: task.quality_rating,
+    feedback: task.feedback,
+    attachments: task.attachments ? task.attachments.map((attachment: any) => ({
+      id: attachment.id,
+      taskId: attachment.task_id,
+      fileUrl: attachment.file_url,
+      fileType: attachment.file_type,
+      fileName: attachment.file_name,
+      createdAt: new Date(attachment.created_at)
+    })) : [],
+    assigner: task.assigner ? {
+      id: task.assigner.id,
+      name: task.assigner.name,
+      email: task.assigner.email,
+      avatarUrl: task.assigner.avatar_url,
+      createdAt: new Date(task.assigner.created_at || Date.now())
+    } : undefined,
+    assignee: task.assignee ? {
+      id: task.assignee.id,
+      name: task.assignee.name,
+      email: task.assignee.email,
+      avatarUrl: task.assignee.avatar_url,
+      createdAt: new Date(task.assignee.created_at || Date.now())
+    } : undefined
+  };
+};
+
+// Function to get self-assigned tasks
+const getSelfAssignedTasks = async (userId: string): Promise<Task[]> => {
+  // Use the Supabase client to get tasks where user is both assignee and assigner
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from('tasks')
+    .select(`
+      *,
+      attachments:task_attachments(*),
+      assigner:users!tasks_assigner_id_fkey(id, name, email, avatar_url, created_at),
+      assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url, created_at)
+    `)
+    .eq('assignee_id', userId)
+    .eq('assigner_id', userId)
+    .order('due_date');
+    
+  if (error || !data) {
+    console.error('Error fetching self-assigned tasks:', error);
+    return [];
+  }
+  
+  return data.map(transformTaskFromDb);
+};
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -38,8 +118,14 @@ const DashboardPage: React.FC = () => {
 
     try {
       // Fetch tasks assigned by friends
-      const tasks = await getTasksFromFriends();
-      setMyTasks(tasks);
+      const tasksFromFriends = await getTasksFromFriends();
+      
+      // Fetch self-assigned tasks
+      const selfTasks = await getSelfAssignedTasks(user?.id || '');
+      
+      // Combine both types of tasks
+      const allMyTasks = [...tasksFromFriends, ...selfTasks];
+      setMyTasks(allMyTasks);
       
       // Fetch accepted friendships
       const friendships = await getFriendships(FriendshipStatus.ACCEPTED);
@@ -77,13 +163,10 @@ const DashboardPage: React.FC = () => {
   };
 
   const handleAddTask = async () => {
+    // Always set this to the current user when adding your own task
+    setSelectedAssigneeId(user?.id || '');
+    setSelectedAssigneeName('Yourself');
     setShowCreateTaskModal(true);
-    
-    // If it's for current user, use their ID
-    if (!selectedAssigneeId) {
-      setSelectedAssigneeId(user?.id || '');
-      setSelectedAssigneeName('Yourself');
-    }
   };
   
   const handleAddTaskToFriend = (friendId: string, friendName: string) => {
@@ -95,8 +178,11 @@ const DashboardPage: React.FC = () => {
   const handleTaskCreated = async () => {
     // Refresh task list based on who the task was assigned to
     if (selectedAssigneeId === user?.id) {
-      // It was a self-assigned task, no need to fetch from friends
-      // We could fetch here but this is optimizing for fewer API calls 
+      // It was a self-assigned task, need to refresh my tasks
+      const tasksFromFriends = await getTasksFromFriends();
+      const selfTasks = await getSelfAssignedTasks(user?.id || '');
+      const allMyTasks = [...tasksFromFriends, ...selfTasks];
+      setMyTasks(allMyTasks);
     } else {
       // It was assigned to a friend
       const updatedFriendTasks = await getTasksByFriend(selectedAssigneeId);
@@ -175,9 +261,9 @@ const DashboardPage: React.FC = () => {
             ))}
           </div>
 
-          {/* My Tasks (Assigned by Friends) */}
+          {/* My Tasks (Both self-assigned and from friends) */}
           <Board 
-            title="My Tasks (Assigned by Friends)" 
+            title="My Tasks" 
             isLoading={isLoading}
             className={styles.tasksBoard}
             actionButton={
@@ -193,9 +279,9 @@ const DashboardPage: React.FC = () => {
             }
             emptyState={
               <div className={styles.emptyState}>
-                <p>You don't have any tasks assigned by friends yet</p>
-                <Button size="sm" variant="outline" onClick={() => {/* Navigate to find friends */}}>
-                  Find Friends
+                <p>You don't have any tasks yet</p>
+                <Button size="sm" variant="outline" onClick={() => handleAddTask()}>
+                  Create Task
                 </Button>
               </div>
             }
