@@ -51,8 +51,9 @@ const UserPage: React.FC = () => {
     <ProtectedRoute>
       <AppLayout>
         <div className={styles.userProfile}>
+          <BackButton route="/dashboard" />
+        
           <div className={styles.userHeader}>
-            <BackButton route="/dashboard" />
             <h1>{userProfile?.name || 'User'}'s Profile</h1>
             <p className={styles.userEmail}>{userProfile?.email || ''}</p>
           </div>
