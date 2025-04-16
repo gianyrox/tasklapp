@@ -2,20 +2,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--border-radius-md);
+  border-radius: 20px;
   font-weight: 600;
   transition: all var(--transition-fast);
   white-space: nowrap;
   cursor: pointer;
   border: none;
   position: relative;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 0 #1a56db;
   letter-spacing: 0.01em;
-  background-color: #4285f4;
+  background-color: #3b82f6;
   color: white;
-  background-image: linear-gradient(rgba(255, 255, 255, 0.15) 0%, rgba(0, 0, 0, 0.1) 100%);
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  padding-bottom: 0.25rem;
 }
 
 .button::before {
@@ -25,7 +23,7 @@
   top: 0;
   width: 100%;
   height: 100%;
-  background-image: linear-gradient(rgba(255, 255, 255, 0.1), transparent);
+  background-image: none;
   opacity: 0;
   transition: opacity var(--transition-fast);
 }
@@ -36,7 +34,7 @@
 
 /* Button variants */
 .variant-primary {
-  background-color: #4285f4;
+  background-color: #3b82f6;
   color: white;
   position: relative;
 }
@@ -49,104 +47,110 @@
   bottom: 0;
   height: 2px;
   background-color: rgba(0, 0, 0, 0.15);
+  border-radius: 0 0 20px 20px;
 }
 
 .variant-primary:hover:not(:disabled) {
-  background-color: #3b78e7;
+  background-color: #2563eb;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(66, 133, 244, 0.2);
+  box-shadow: 0 3px 0 #1a56db;
 }
 
 .variant-secondary {
-  background-color: #5c6bc0;
+  background-color: #6366f1;
   color: white;
+  box-shadow: 0 2px 0 #4338ca;
 }
 
 .variant-secondary:hover:not(:disabled) {
-  filter: brightness(90%);
+  background-color: #4f46e5;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(92, 107, 192, 0.2);
+  box-shadow: 0 3px 0 #4338ca;
 }
 
 .variant-success {
-  background-color: #34a853;
+  background-color: #10b981;
   color: white;
+  box-shadow: 0 2px 0 #059669;
 }
 
 .variant-success:hover:not(:disabled) {
-  filter: brightness(90%);
+  background-color: #059669;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(52, 168, 83, 0.2);
+  box-shadow: 0 3px 0 #047857;
 }
 
 .variant-danger {
-  background-color: #ea4335;
+  background-color: #ef4444;
   color: white;
+  box-shadow: 0 2px 0 #dc2626;
 }
 
 .variant-danger:hover:not(:disabled) {
-  filter: brightness(90%);
+  background-color: #dc2626;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(234, 67, 53, 0.2);
+  box-shadow: 0 3px 0 #b91c1c;
 }
 
 .variant-warning {
-  background-color: #fbbc05;
-  color: var(--text-primary);
+  background-color: #f59e0b;
+  color: white;
+  box-shadow: 0 2px 0 #d97706;
 }
 
 .variant-warning:hover:not(:disabled) {
-  filter: brightness(95%);
+  background-color: #d97706;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(251, 188, 5, 0.2);
+  box-shadow: 0 3px 0 #b45309;
 }
 
 .variant-info {
-  background-color: #4285f4;
+  background-color: #3b82f6;
   color: white;
+  box-shadow: 0 2px 0 #2563eb;
 }
 
 .variant-info:hover:not(:disabled) {
-  filter: brightness(90%);
+  background-color: #2563eb;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(66, 133, 244, 0.2);
+  box-shadow: 0 3px 0 #1d4ed8;
 }
 
 .variant-outline {
   background-color: transparent;
-  color: #4285f4;
-  border: 2px solid #4285f4;
-  position: relative;
+  color: #3b82f6;
+  border: 2px solid #3b82f6;
+  box-shadow: 0 2px 0 rgba(37, 99, 235, 0.2);
 }
 
 .variant-outline:hover:not(:disabled) {
-  background-color: rgba(66, 133, 244, 0.05);
+  background-color: rgba(59, 130, 246, 0.05);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(66, 133, 244, 0.1);
+  box-shadow: 0 3px 0 rgba(37, 99, 235, 0.2);
 }
 
 /* Button sizes */
 .size-xs {
   font-size: var(--font-size-xs, 0.75rem);
-  padding: 0.25rem 0.5rem;
+  padding: 0.25rem 0.75rem;
   height: 1.5rem;
 }
 
 .size-sm {
   font-size: var(--font-size-sm);
-  padding: 0.25rem 0.5rem;
+  padding: 0.25rem 0.75rem;
   height: 1.75rem;
 }
 
 .size-md {
   font-size: var(--font-size-md);
-  padding: 0.375rem 0.75rem;
+  padding: 0.375rem 1rem;
   height: 2.25rem;
 }
 
 .size-lg {
   font-size: var(--font-size-lg);
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1.25rem;
   height: 2.75rem;
   font-weight: 600;
 }
@@ -177,12 +181,12 @@
 .button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  box-shadow: none;
+  box-shadow: 0 2px 0 rgba(37, 99, 235, 0.3);
 }
 
 .button:active:not(:disabled) {
-  transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #1a56db;
 }
 
 /* Icons */
