@@ -143,9 +143,7 @@ const TaskDetailPage: React.FC = () => {
           <div className={styles.container}>
             <div className={styles.errorMessage}>
               <p>Task not found</p>
-              <Button variant="primary" onClick={() => router.back()}>
-                Go Back
-              </Button>
+              <BackButton />
             </div>
           </div>
         </AppLayout>
