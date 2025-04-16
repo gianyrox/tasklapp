@@ -11,6 +11,21 @@ import BackButton from '../../../components/ui/BackButton';
 import { getTaskById, updateTaskStatus } from '../../../lib/api/supabase';
 import styles from './TaskDetail.module.css';
 
+// Helper function to calculate average rating
+const calculateAverageRating = (task: Task): string => {
+  if (!task.qualityRating) return '0.0';
+  
+  const ratings = [
+    task.qualityRating,
+    task.timelinessRating || 0,
+    task.effortRating || 0,
+    task.accuracyRating || 0
+  ];
+  
+  const average = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
+  return average.toFixed(1);
+};
+
 const TaskDetailPage: React.FC = () => {
   const { taskId } = useParams();
   const router = useRouter();
@@ -179,10 +194,7 @@ const TaskDetailPage: React.FC = () => {
               {task.title}
               {task.status === TaskStatus.GRADED && task.qualityRating && (
                 <span className={styles.gradeIndicator}>
-                  Grade: {((task.qualityRating + 
-                    (task.timelinessRating || 0) + 
-                    (task.effortRating || 0) + 
-                    (task.accuracyRating || 0)) / 4).toFixed(1)}/5
+                  Grade: {calculateAverageRating(task)}/5
                 </span>
               )}
             </h1>
@@ -336,7 +348,7 @@ const TaskDetailPage: React.FC = () => {
                       <div className={styles.detailItem}>
                         <span className={styles.detailLabel}>Average Rating</span>
                         <span className={styles.detailValue}>
-                          {((task.qualityRating + task.timelinessRating + task.effortRating + task.accuracyRating) / 4).toFixed(1)}/5
+                          {calculateAverageRating(task)}/5
                         </span>
                       </div>
                     )}
