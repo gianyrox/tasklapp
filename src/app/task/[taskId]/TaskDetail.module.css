@@ -22,11 +22,12 @@
 }
 
 .title {
-  font-size: 2rem;
-  color: white;
-  margin-bottom: 0.75rem;
-  margin-top: 0;
-  font-weight: 700;
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0;
+  color: #1a202c;
+  line-height: 1.2;
+  position: relative;
 }
 
 .meta {
@@ -58,13 +59,18 @@
 }
 
 .completed {
-  background-color: #A7F3D0;
-  color: #065F46;
+  background-color: #48bb78;
+  color: white;
+}
+
+.graded {
+  background-color: #4299e1;
+  color: white;
 }
 
 .overdue {
-  background-color: #FEE2E2;
-  color: #B91C1C;
+  background-color: #f56565;
+  color: white;
 }
 
 .overdueTag {
@@ -463,4 +469,16 @@
   color: #4B5563;
   line-height: 1.7;
   white-space: pre-wrap;
+}
+
+.gradeIndicator {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #4299e1;
+  margin-left: 10px;
+  padding: 3px 8px;
+  background-color: #ebf8ff;
+  border-radius: 4px;
+  display: inline-block;
+  vertical-align: middle;
 } 
