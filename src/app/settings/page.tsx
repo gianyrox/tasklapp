@@ -36,6 +36,11 @@ const SettingsPage: React.FC = () => {
     return (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
   };
 
+  const handleFindFriends = () => {
+    // Navigate to the friend search page
+    router.push('/friend');
+  };
+
   const handleSave = async () => {
     if (!user) return;
     
@@ -188,6 +193,18 @@ const SettingsPage: React.FC = () => {
                 disabled={isUpdating}
               >
                 {isUpdating ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+          
+          <div className={styles.card}>
+            <h2 className={styles.cardTitle}>Social Connections</h2>
+            <p className={styles.inputHint}>
+              Connect with friends to assign tasks and compete on the leaderboard.
+            </p>
+            <div className={styles.socialActions}>
+              <button onClick={handleFindFriends} className={styles.findFriendsButton}>
+                Find Friends
               </button>
             </div>
           </div>
