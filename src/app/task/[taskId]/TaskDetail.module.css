@@ -493,6 +493,14 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
+.submissionWrapper {
+  background-color: #f3f4f6;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border-left: 4px solid #8b5cf6;
+  margin-top: 0.5rem;
+}
+
 .feedbackText {
   margin: 0;
   font-size: 1rem;
