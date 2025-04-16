@@ -57,26 +57,19 @@ const TasksPage: React.FC = () => {
     
     if (activeTab === 'active') {
       filteredTasks = tasks.filter(task => 
-        task.status !== TaskStatus.COMPLETED || 
-        !task.qualityRating // Tasks completed but not yet graded
+        task.status !== TaskStatus.COMPLETED && 
+        task.status !== TaskStatus.GRADED
       );
     } else if (activeTab === 'archived') {
       filteredTasks = tasks.filter(task => 
-        task.status === TaskStatus.COMPLETED && 
-        task.qualityRating // Only show completed AND graded tasks in archive
+        task.status === TaskStatus.COMPLETED || 
+        task.status === TaskStatus.GRADED
       );
     }
     
     // Then filter by status if not showing 'all'
     if (activeFilter !== 'all') {
-      if (activeFilter === 'graded') {
-        filteredTasks = filteredTasks.filter(task => 
-          task.status === TaskStatus.COMPLETED && 
-          task.qualityRating
-        );
-      } else {
-        filteredTasks = filteredTasks.filter(task => task.status === activeFilter);
-      }
+      filteredTasks = filteredTasks.filter(task => task.status === activeFilter);
     }
     
     return filteredTasks;
@@ -100,14 +93,7 @@ const TasksPage: React.FC = () => {
     
     // Then filter by status if not showing 'all'
     if (activeFilter !== 'all') {
-      if (activeFilter === 'graded') {
-        filteredTasks = filteredTasks.filter(task => 
-          task.status === TaskStatus.COMPLETED && 
-          task.qualityRating
-        );
-      } else {
-        filteredTasks = filteredTasks.filter(task => task.status === activeFilter);
-      }
+      filteredTasks = filteredTasks.filter(task => task.status === activeFilter);
     }
     
     return filteredTasks;
@@ -257,17 +243,15 @@ const TasksPage: React.FC = () => {
             </div>
           )}
           
-          {activeTab === 'archived' && (
-            <div className={styles.taskSection}>
-              <h2 className={styles.sectionTitle}>Completed & Graded</h2>
-              <div className={styles.taskCards}>
-                {getTasks('graded').map(renderTaskCard)}
-                {getTasks('graded').length === 0 && (
-                  <p className={styles.noTasksMessage}>No graded tasks</p>
-                )}
-              </div>
+          <div className={styles.taskSection}>
+            <h2 className={styles.sectionTitle}>Graded</h2>
+            <div className={styles.taskCards}>
+              {getTasks(TaskStatus.GRADED).map(renderTaskCard)}
+              {getTasks(TaskStatus.GRADED).length === 0 && (
+                <p className={styles.noTasksMessage}>No graded tasks</p>
+              )}
             </div>
-          )}
+          </div>
           
           <div className={styles.taskSection}>
             <h2 className={styles.sectionTitle}>Overdue</h2>
@@ -276,13 +260,15 @@ const TasksPage: React.FC = () => {
               {tasks
                 .filter(task => 
                   new Date(task.dueDate) < new Date() && 
-                  task.status !== TaskStatus.COMPLETED
+                  task.status !== TaskStatus.COMPLETED &&
+                  task.status !== TaskStatus.GRADED
                 )
                 .map(renderTaskCard)}
               {getTasks(TaskStatus.OVERDUE).length === 0 && 
                tasks.filter(task => 
                  new Date(task.dueDate) < new Date() && 
-                 task.status !== TaskStatus.COMPLETED
+                 task.status !== TaskStatus.COMPLETED &&
+                 task.status !== TaskStatus.GRADED
                ).length === 0 && (
                 <p className={styles.noTasksMessage}>No overdue tasks</p>
               )}
@@ -349,10 +335,10 @@ const TasksPage: React.FC = () => {
           </div>
           
           <div className={styles.taskSection}>
-            <h2 className={styles.sectionTitle}>Completed & Graded</h2>
+            <h2 className={styles.sectionTitle}>Graded</h2>
             <div className={styles.taskCards}>
-              {getFriendTasks('graded').map(renderTaskCard)}
-              {getFriendTasks('graded').length === 0 && (
+              {getFriendTasks(TaskStatus.GRADED).map(renderTaskCard)}
+              {getFriendTasks(TaskStatus.GRADED).length === 0 && (
                 <p className={styles.noTasksMessage}>No graded tasks</p>
               )}
             </div>
@@ -365,13 +351,15 @@ const TasksPage: React.FC = () => {
               {friendTasks
                 .filter(task => 
                   new Date(task.dueDate) < new Date() && 
-                  task.status !== TaskStatus.COMPLETED
+                  task.status !== TaskStatus.COMPLETED &&
+                  task.status !== TaskStatus.GRADED
                 )
                 .map(renderTaskCard)}
               {getFriendTasks(TaskStatus.OVERDUE).length === 0 && 
                friendTasks.filter(task => 
                  new Date(task.dueDate) < new Date() && 
-                 task.status !== TaskStatus.COMPLETED
+                 task.status !== TaskStatus.COMPLETED &&
+                 task.status !== TaskStatus.GRADED
                ).length === 0 && (
                 <p className={styles.noTasksMessage}>No overdue tasks</p>
               )}
@@ -500,8 +488,8 @@ const TasksPage: React.FC = () => {
                 Completed
               </button>
               <button 
-                className={`${styles.filter} ${activeFilter === 'graded' ? styles.activeFilter : ''}`}
-                onClick={() => setActiveFilter('graded')}
+                className={`${styles.filter} ${activeFilter === TaskStatus.GRADED ? styles.activeFilter : ''}`}
+                onClick={() => setActiveFilter(TaskStatus.GRADED)}
               >
                 Graded
               </button>
