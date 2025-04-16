@@ -1,1 +1,21 @@
- 
+/* Add the back button styles to globals.css */
+
+.back-button {
+  padding: 0.5rem 1rem;
+  background-color: #F3F4F6;
+  color: #4B5563;
+  border: 1px solid #E5E7EB;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.back-button:hover {
+  background-color: #E5E7EB;
+  transform: translateX(-2px);
+} 
