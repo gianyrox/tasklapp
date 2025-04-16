@@ -1,12 +1,24 @@
-# Supabase Test User Seed Files
+# Supabase Test Data Seed Files
 
-This directory contains SQL scripts for creating test users in the Supabase Auth system and the application's users table.
+This directory contains SQL scripts for creating test data in the Supabase database, including users, friendships, and tasks.
 
 ## File Structure
 
+### User Seed Files
 - `function.sql` - Contains the function definition for adding test users
 - `user1.sql` to `user15.sql` - Individual files for adding each test user
 - `all_users.sql` - A file that includes all individual user files to add all users at once
+
+### Friendship Seed Files
+- `friendships_function.sql` - Contains the function definition for adding friendships
+- `friendships.sql` - Creates a network of friendships between test users
+
+### Task Seed Files
+- `tasks_function.sql` - Contains the function definition for adding tasks
+- `tasks.sql` - Creates a variety of tasks with different statuses and priorities
+
+### Master Seed File
+- `all_data.sql` - Runs all seed files in the correct order to populate the entire database
 
 ## Using the Seed Files
 
@@ -15,35 +27,49 @@ This directory contains SQL scripts for creating test users in the Supabase Auth
 - Access to your Supabase PostgreSQL database with admin privileges
 - psql client installed or Supabase SQL Editor access
 
-### Adding All Test Users
+### Setting Up Complete Test Environment
 
-To add all test users at once:
+To add all test data at once (users, friendships, and tasks):
 
 ```bash
-psql -h YOUR_SUPABASE_HOST -U postgres -d postgres -f src/database/seeds/all_users.sql
+psql -h YOUR_SUPABASE_HOST -U postgres -d postgres -f src/database/seeds/all_data.sql
 ```
 
 Or in the Supabase SQL Editor, run:
+
+```sql
+\i src/database/seeds/all_data.sql
+```
+
+### Adding Just Users
+
+To add all users:
 
 ```sql
 \i src/database/seeds/all_users.sql
 ```
 
-### Adding Individual Users
-
 To add just one specific user:
-
-```bash
-psql -h YOUR_SUPABASE_HOST -U postgres -d postgres -f src/database/seeds/user1.sql
-```
-
-Or in the Supabase SQL Editor, run:
 
 ```sql
 \i src/database/seeds/user1.sql
 ```
 
-Replace `user1.sql` with any user file (user1.sql through user15.sql).
+### Adding Just Friendships
+
+To create friendship relationships:
+
+```sql
+\i src/database/seeds/friendships.sql
+```
+
+### Adding Just Tasks
+
+To create task assignments:
+
+```sql
+\i src/database/seeds/tasks.sql
+```
 
 ## Test User Credentials
 
