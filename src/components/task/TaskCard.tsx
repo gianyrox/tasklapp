@@ -8,7 +8,6 @@ interface TaskCardProps {
   onStatusChange?: (taskId: string, newStatus: TaskStatus) => void;
   showDetails?: boolean;
   ownership?: 'self' | 'friend';
-  compact?: boolean;
 }
 
 export const formatDate = (date: Date): string => {
@@ -53,8 +52,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   task,
   onStatusChange,
   showDetails = false,
-  ownership = 'self',
-  compact = false
+  ownership = 'self'
 }) => {
   const statusClass = getStatusClassName(task.status);
   const priorityClass = getPriorityClassName(task.priority);
@@ -68,19 +66,19 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const isOverdue = task.dueDate < new Date() && task.status !== TaskStatus.COMPLETED;
   
   return (
-    <div className={`${styles.taskCard} ${priorityClass} ${styles[`ownership-${ownership}`]} ${compact ? styles.compactCard : ''}`}>
+    <div className={`${styles.taskCard} ${priorityClass} ${styles[`ownership-${ownership}`]}`}>
       <div className={styles.header}>
         <h3 className={styles.title}>
           {task.title}
-          {!compact && ownership === 'self' && <span className={styles.ownershipBadge}>My Task</span>}
-          {!compact && ownership === 'friend' && <span className={styles.ownershipBadge}>Friend's Task</span>}
+          {ownership === 'self' && <span className={styles.ownershipBadge}>My Task</span>}
+          {ownership === 'friend' && <span className={styles.ownershipBadge}>Friend's Task</span>}
         </h3>
         <span className={`${styles.status} ${statusClass}`}>
           {task.status}
         </span>
       </div>
       
-      {!compact && task.assigner && (
+      {task.assigner && (
         <div className={styles.assignerInfo}>
           <div className={styles.assignerAvatar}>
             {task.assigner.avatarUrl ? (
@@ -97,80 +95,70 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </div>
       )}
       
-      {!compact && (
-        <div className={styles.dates}>
-          <div className={styles.dateItem}>
-            <span className={styles.dateLabel}>Created:</span>
-            <span>{formatDate(task.createdAt)}</span>
-          </div>
-          <div className={styles.dateItem}>
-            <span className={styles.dateLabel}>Due:</span>
-            <span className={isOverdue ? styles.overdue : ''}>
-              {formatDate(task.dueDate)}
-            </span>
-          </div>
+      <div className={styles.dates}>
+        <div className={styles.dateItem}>
+          <span className={styles.dateLabel}>Created:</span>
+          <span>{formatDate(task.createdAt)}</span>
         </div>
-      )}
-      
-      {compact && (
-        <div className={styles.compactDueDate}>
-          Due: <span className={isOverdue ? styles.overdue : ''}>{formatDate(task.dueDate)}</span>
+        <div className={styles.dateItem}>
+          <span className={styles.dateLabel}>Due:</span>
+          <span className={isOverdue ? styles.overdue : ''}>
+            {formatDate(task.dueDate)}
+          </span>
         </div>
-      )}
+      </div>
       
-      {showDetails && !compact && (
+      {showDetails && (
         <div className={styles.description}>
           <p>{task.description}</p>
         </div>
       )}
       
-      {!compact && (
-        <div className={styles.actions}>
-          {ownership === 'self' && (
-            <>
-              {task.status === TaskStatus.PENDING && (
-                <Button 
-                  size="sm" 
-                  variant="info" 
-                  onClick={() => handleStatusChange(TaskStatus.IN_PROGRESS)}
-                >
-                  Start Task
-                </Button>
-              )}
-              
-              {task.status === TaskStatus.IN_PROGRESS && (
-                <Button 
-                  size="sm" 
-                  variant="success" 
-                  onClick={() => handleStatusChange(TaskStatus.COMPLETED)}
-                >
-                  Complete
-                </Button>
-              )}
-            </>
-          )}
-          
-          {ownership === 'friend' && (
-            <Button 
-              size="sm" 
-              variant="primary"
-              className={styles.detailsButton}
-            >
-              View Progress
-            </Button>
-          )}
-          
-          {!showDetails && (
-            <Button 
-              size="sm" 
-              variant="outline"
-              className={styles.detailsButton}
-            >
-              View Details
-            </Button>
-          )}
-        </div>
-      )}
+      <div className={styles.actions}>
+        {ownership === 'self' && (
+          <>
+            {task.status === TaskStatus.PENDING && (
+              <Button 
+                size="sm" 
+                variant="info" 
+                onClick={() => handleStatusChange(TaskStatus.IN_PROGRESS)}
+              >
+                Start Task
+              </Button>
+            )}
+            
+            {task.status === TaskStatus.IN_PROGRESS && (
+              <Button 
+                size="sm" 
+                variant="success" 
+                onClick={() => handleStatusChange(TaskStatus.COMPLETED)}
+              >
+                Complete
+              </Button>
+            )}
+          </>
+        )}
+        
+        {ownership === 'friend' && (
+          <Button 
+            size="sm" 
+            variant="primary"
+            className={styles.detailsButton}
+          >
+            View Progress
+          </Button>
+        )}
+        
+        {!showDetails && (
+          <Button 
+            size="sm" 
+            variant="outline"
+            className={styles.detailsButton}
+          >
+            View Details
+          </Button>
+        )}
+      </div>
     </div>
   );
 };

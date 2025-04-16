@@ -301,13 +301,10 @@ export const getTasksByFriend = async (friendId: string): Promise<Task[]> => {
   const { data: { session } } = await supabase.auth.getSession();
   
   if (!session) {
-    console.log('No session when fetching tasks by friend');
     return [];
   }
   
-  console.log(`Getting tasks for friend ${friendId}, current user: ${session.user.id}`);
-  
-  // Get tasks exchanged between me and this friend (in both directions)
+  // Get tasks that I assigned to this friend
   const { data, error } = await supabase
     .from('tasks')
     .select(`
@@ -316,28 +313,14 @@ export const getTasksByFriend = async (friendId: string): Promise<Task[]> => {
       assigner:users!tasks_assigner_id_fkey(id, name, email, avatar_url, created_at),
       assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url, created_at)
     `)
-    .or(
-      `and(assigner_id.eq.${session.user.id},assignee_id.eq.${friendId}),` +
-      `and(assignee_id.eq.${session.user.id},assigner_id.eq.${friendId})`
-    )
+    .eq('assigner_id', session.user.id)
+    .eq('assignee_id', friendId)
     .order('created_at', { ascending: false });
     
-  if (error) {
+  if (error || !data) {
     console.error('Error fetching tasks by friend:', error);
     return [];
   }
-  
-  if (!data || data.length === 0) {
-    console.log(`No tasks found between user ${session.user.id} and friend ${friendId}`);
-    return [];
-  }
-  
-  console.log(`Found ${data.length} tasks exchanged with friend ${friendId}:`, 
-    data.map(t => ({ 
-      id: t.id, 
-      title: t.title,
-      direction: t.assigner_id === session.user.id ? 'assigned-by-me' : 'assigned-to-me'
-    })));
   
   return data.map(transformTaskFromDb);
 };

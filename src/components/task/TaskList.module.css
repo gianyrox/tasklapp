@@ -1,22 +1,11 @@
 .taskList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.compactList {
-  gap: 0.5rem;
-}
-
-.compactList .taskCard {
-  padding: 0.5rem;
-  margin-bottom: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
 }
 
 @media (min-width: 768px) {
-  .taskList:not(.compactList) {
-    display: grid;
+  .taskList {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1rem;
   }
 } 

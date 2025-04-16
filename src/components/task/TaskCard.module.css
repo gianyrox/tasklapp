@@ -16,35 +16,6 @@
   box-shadow: var(--shadow-md);
 }
 
-/* Compact Card Styles */
-.compactCard {
-  padding: var(--spacing-sm);
-  margin-bottom: var(--spacing-sm);
-}
-
-.compactCard .header {
-  margin-bottom: 0.25rem;
-}
-
-.compactCard .title {
-  font-size: var(--font-size-md);
-}
-
-.compactCard .status {
-  font-size: 0.7rem;
-  padding: 0.15rem 0.35rem;
-}
-
-.compactDueDate {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  margin-bottom: 0;
-}
-
-.compactList .taskCard {
-  margin-bottom: 0.5rem;
-}
-
 /* Subtle track curve indicator */
 .taskCard::after {
   content: '';
