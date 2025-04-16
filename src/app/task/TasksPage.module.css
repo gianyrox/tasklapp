@@ -249,6 +249,21 @@
   color: #B91C1C;
 }
 
+.completed {
+  background-color: #e6f7ee;
+  border-color: #48bb78;
+}
+
+.graded {
+  background-color: #e6f0ff;
+  border-color: #4299e1;
+}
+
+.overdue {
+  background-color: #fff5f5;
+  border-color: #f56565;
+}
+
 .taskDetails {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
