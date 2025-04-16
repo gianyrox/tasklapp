@@ -585,7 +585,7 @@
 .tasksColumnsContainer {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 3rem;
+  gap: 4rem;
   width: 100%;
 }
 
