@@ -16,16 +16,18 @@ const calculateAverageRating = (task: Task): string => {
   if (!task.qualityRating) return '0.0';
   
   const ratings = [
-    task.qualityRating,
-    task.timelinessRating,
-    task.effortRating,
-    task.accuracyRating
+    task.qualityRating || 0,
+    task.timelinessRating || 0,
+    task.effortRating || 0,
+    task.accuracyRating || 0
   ];
   
-  const average = ratings.filter(rating => rating !== undefined)
-                         .reduce((sum, rating) => sum + (rating || 0), 0) / 
-                  ratings.filter(rating => rating !== undefined).length || 1;
-  return average.toFixed(1);
+  // Count how many non-zero ratings we have
+  const validRatings = ratings.filter(rating => rating > 0);
+  const sum = validRatings.reduce((total, rating) => total + rating, 0);
+  const count = validRatings.length || 1; // Avoid division by zero
+  
+  return (sum / count).toFixed(1);
 };
 
 const TaskDetailPage: React.FC = () => {
