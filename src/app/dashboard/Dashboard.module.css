@@ -405,8 +405,58 @@
   text-align: center;
 }
 
+/* Fix for 400-700px range */
+@media (max-width: 700px) {
+  .leaderboardEntry {
+    flex-direction: column;
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+  
+  .leaderboardUser {
+    width: 100%;
+  }
+  
+  .leaderboardStats {
+    width: 100%;
+    margin-left: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+  
+  .leaderboardStat {
+    padding: 0.4rem;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  
+  .leaderboardPreview {
+    padding: 0.75rem;
+  }
+  
+  /* Position rank to upper right corner */
+  .leaderboardRank {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    padding: 0.25rem;
+    min-width: auto;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 /* Row-based layout for medium screens */
-@media (max-width: 768px) {
+@media (max-width: 768px) and (min-width: 701px) {
   .leaderboardStats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -420,10 +470,14 @@
     padding: 0.5rem;
     min-width: auto;
     width: 100%;
+    overflow: hidden;
   }
   
   .leaderboardStatValue {
     font-size: 0.95rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
   }
   
   /* Add style for N/A values */
@@ -447,6 +501,8 @@
     align-items: flex-start;
     padding: 0.75rem;
     gap: 0.75rem;
+    position: relative;
+    overflow: hidden;
   }
   
   .leaderboardRank {
@@ -487,19 +543,26 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 0.35rem;
+    box-sizing: border-box;
+    overflow: hidden;
   }
   
   .leaderboardStat {
     flex: 1;
     padding: 0.35rem;
-    min-width: auto;
+    min-width: 0;
+    max-width: 100%;
     text-align: center;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     border: 1px solid #e5e7eb;
+    overflow: hidden;
   }
   
   .leaderboardStatValue {
     font-size: 0.9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   
   /* Add style for N/A values */
@@ -513,6 +576,9 @@
   
   .leaderboardStatLabel {
     font-size: 0.65rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   
   .leaderboardAvatar,
@@ -527,19 +593,29 @@
 }
 
 /* Extra small screens */
-@media (max-width: 360px) {
+@media (max-width: 400px) {
   .leaderboardStats {
     grid-template-columns: repeat(3, 1fr);
     gap: 0.2rem;
+    padding: 0;
+    width: 100%;
+    box-sizing: border-box;
   }
   
   .leaderboardStat {
     padding: 0.25rem;
-    min-width: auto;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    border-radius: 0.35rem;
   }
   
   .leaderboardStatValue {
     font-size: 0.75rem;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   
   /* Style for N/A values on extra small screens */
@@ -550,6 +626,25 @@
   
   .leaderboardStatLabel {
     font-size: 0.6rem;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .leaderboardEntry {
+    padding: 0.6rem;
+  }
+  
+  .leaderboardUser {
+    width: 100%;
+    overflow: hidden;
+  }
+  
+  .leaderboardName {
+    font-size: 1rem;
+    max-width: calc(100% - 30px);
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
