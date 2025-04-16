@@ -102,6 +102,7 @@
   border-radius: 0.75rem;
   background: #f9f9f9;
   transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+  overflow: hidden;
 }
 
 .userCard:hover {
@@ -289,5 +290,20 @@
     flex-direction: row;
     justify-content: center;
     flex-wrap: wrap;
+  }
+}
+
+/* Large screen adjustments */
+@media (min-width: 1600px) {
+  .userGrid {
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  }
+  
+  .userCard {
+    padding: 1.5rem;
+  }
+  
+  .userActions {
+    min-width: 140px;
   }
 } 
