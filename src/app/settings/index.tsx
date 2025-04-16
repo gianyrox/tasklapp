@@ -5,121 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import AppLayout from '../../components/layout/AppLayout';
 import ProtectedRoute from '../../components/layout/ProtectedRoute';
-import Button from '../../components/ui/Button';
+import styles from './Settings.module.css';
 import { updateUserProfile } from '../../lib/api/supabase';
-
-// Create a CSS module for the settings page
-const styles = {
-  container: {
-    padding: '2rem 0',
-    maxWidth: '800px',
-    margin: '0 auto',
-  },
-  header: {
-    marginBottom: '2rem',
-  },
-  title: {
-    fontSize: '2rem',
-    fontWeight: '600',
-    marginBottom: '0.5rem',
-  },
-  subtitle: {
-    fontSize: '1rem',
-    color: '#666',
-    marginBottom: '2rem',
-  },
-  card: {
-    background: '#fff',
-    borderRadius: '0.5rem',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-    padding: '2rem',
-    marginBottom: '2rem',
-  },
-  cardTitle: {
-    fontSize: '1.25rem',
-    fontWeight: '600',
-    marginBottom: '1.5rem',
-    padding: '0 0 0.75rem 0',
-    borderBottom: '1px solid #eee',
-  },
-  formGroup: {
-    marginBottom: '1.5rem',
-  },
-  label: {
-    display: 'block',
-    marginBottom: '0.5rem',
-    fontWeight: '500',
-  },
-  input: {
-    width: '100%',
-    padding: '0.75rem',
-    borderRadius: '0.25rem',
-    border: '1px solid #ddd',
-    fontSize: '1rem',
-  },
-  avatarSection: {
-    display: 'flex',
-    alignItems: 'center',
-    marginBottom: '1.5rem',
-  },
-  avatar: {
-    width: '80px',
-    height: '80px',
-    borderRadius: '50%',
-    backgroundColor: '#6B46C1',
-    color: '#fff',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '2rem',
-    marginRight: '1.5rem',
-    overflow: 'hidden',
-  },
-  avatarUpload: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-  },
-  buttonGroup: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    gap: '1rem',
-  },
-  saveButton: {
-    backgroundColor: '#6B46C1',
-    color: 'white',
-    padding: '0.5rem 1rem',
-    borderRadius: '0.25rem',
-    border: 'none',
-    cursor: 'pointer',
-    fontSize: '1rem',
-    fontWeight: '500',
-  },
-  cancelButton: {
-    backgroundColor: 'transparent',
-    color: '#666',
-    padding: '0.5rem 1rem',
-    borderRadius: '0.25rem',
-    border: '1px solid #ddd',
-    cursor: 'pointer',
-    fontSize: '1rem',
-    fontWeight: '500',
-  },
-  message: {
-    padding: '1rem',
-    borderRadius: '0.25rem',
-    marginBottom: '1rem',
-  },
-  success: {
-    backgroundColor: '#D1FAE5',
-    color: '#065F46',
-    border: '1px solid #A7F3D0',
-  },
-  error: {
-    backgroundColor: '#FEE2E2',
-    color: '#B91C1C',
-    border: '1px solid #FECACA',
-  },
-};
 
 const SettingsPage: React.FC = () => {
   const { user, isLoading } = useAuth();
@@ -185,10 +72,10 @@ const SettingsPage: React.FC = () => {
     return (
       <ProtectedRoute>
         <AppLayout>
-          <div style={styles.container}>
-            <div style={styles.header}>
-              <h1 style={styles.title}>Settings</h1>
-              <p style={styles.subtitle}>Loading your profile information...</p>
+          <div className={styles.container}>
+            <div className={styles.header}>
+              <h1 className={styles.title}>Settings</h1>
+              <p className={styles.subtitle}>Loading your profile information...</p>
             </div>
           </div>
         </AppLayout>
@@ -199,32 +86,32 @@ const SettingsPage: React.FC = () => {
   return (
     <ProtectedRoute>
       <AppLayout>
-        <div style={styles.container}>
-          <div style={styles.header}>
-            <h1 style={styles.title}>Settings</h1>
-            <p style={styles.subtitle}>Manage your account settings and profile</p>
+        <div className={styles.container}>
+          <div className={styles.header}>
+            <h1 className={styles.title}>Settings</h1>
+            <p className={styles.subtitle}>Manage your account settings and profile</p>
           </div>
           
           {message && (
-            <div style={{ ...styles.message, ...(message.type === 'success' ? styles.success : styles.error) }}>
+            <div className={message.type === 'success' ? styles.success : styles.error}>
               {message.text}
             </div>
           )}
           
-          <div style={styles.card}>
-            <h2 style={styles.cardTitle}>Profile Information</h2>
+          <div className={styles.card}>
+            <h2 className={styles.cardTitle}>Profile Information</h2>
             
-            <div style={styles.avatarSection}>
-              <div style={styles.avatar}>
+            <div className={styles.avatarSection}>
+              <div className={styles.avatar}>
                 {avatarUrl ? (
-                  <img src={avatarUrl} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={avatarUrl} alt={name} className={styles.avatarImage} />
                 ) : (
                   <span>{getInitials()}</span>
                 )}
               </div>
-              <div style={styles.avatarUpload}>
-                <h3 style={{ marginBottom: '0.5rem' }}>Profile Picture</h3>
-                <p style={{ color: '#666', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+              <div className={styles.avatarUpload}>
+                <h3 className={styles.avatarTitle}>Profile Picture</h3>
+                <p className={styles.avatarHint}>
                   Add a URL to your profile picture
                 </p>
                 <input
@@ -232,13 +119,13 @@ const SettingsPage: React.FC = () => {
                   value={avatarUrl || ''}
                   onChange={(e) => setAvatarUrl(e.target.value)}
                   placeholder="https://example.com/avatar.jpg"
-                  style={styles.input}
+                  className={styles.input}
                 />
               </div>
             </div>
             
-            <div style={styles.formGroup}>
-              <label htmlFor="name" style={styles.label}>
+            <div className={styles.formGroup}>
+              <label htmlFor="name" className={styles.label}>
                 Name
               </label>
               <input
@@ -246,12 +133,12 @@ const SettingsPage: React.FC = () => {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                style={styles.input}
+                className={styles.input}
               />
             </div>
             
-            <div style={styles.formGroup}>
-              <label htmlFor="email" style={styles.label}>
+            <div className={styles.formGroup}>
+              <label htmlFor="email" className={styles.label}>
                 Email Address
               </label>
               <input
@@ -259,28 +146,28 @@ const SettingsPage: React.FC = () => {
                 type="email"
                 value={email}
                 disabled
-                style={{ ...styles.input, backgroundColor: '#f9f9f9' }}
+                className={styles.disabledInput}
               />
-              <p style={{ fontSize: '0.875rem', color: '#666', marginTop: '0.5rem' }}>
+              <p className={styles.inputHint}>
                 Email cannot be changed. Contact support for help.
               </p>
             </div>
             
-            <div style={styles.buttonGroup}>
+            <div className={styles.buttonGroup}>
               <button
                 onClick={() => {
                   setName(user?.name || '');
                   setAvatarUrl(user?.avatarUrl || '');
                   setMessage(null);
                 }}
-                style={styles.cancelButton}
+                className={styles.cancelButton}
                 disabled={isUpdating}
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
-                style={styles.saveButton}
+                className={styles.saveButton}
                 disabled={isUpdating}
               >
                 {isUpdating ? 'Saving...' : 'Save Changes'}
@@ -288,10 +175,10 @@ const SettingsPage: React.FC = () => {
             </div>
           </div>
           
-          <div style={styles.card}>
-            <h2 style={styles.cardTitle}>Account Preferences</h2>
+          <div className={styles.card}>
+            <h2 className={styles.cardTitle}>Account Preferences</h2>
             
-            <p style={{ color: '#666', marginBottom: '1rem' }}>
+            <p className={styles.inputHint}>
               Account preferences will be available in a future update.
             </p>
           </div>
