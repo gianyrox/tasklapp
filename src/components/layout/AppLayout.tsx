@@ -30,7 +30,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           <Link href="/dashboard" className={styles.logo}>
             Taskl
           </Link>
-          <Link href="/friend" className={styles.friendLink}></Link>
+          <Link href="/friend" className={styles.friendLink}>
+            Friends
+          </Link>
           <Link href="/leaderboard" className={styles.leaderboardLink}>
             Leaderboard
           </Link>
