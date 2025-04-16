@@ -109,9 +109,7 @@ const FriendProfilePage: React.FC = () => {
           <div className={styles.container}>
             <div className={styles.errorMessage}>
               <p>Friend not found</p>
-              <Button variant="primary" onClick={() => router.back()}>
-                Go Back
-              </Button>
+              <BackButton route="/friend" />
             </div>
           </div>
         </AppLayout>

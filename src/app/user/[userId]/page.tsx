@@ -52,7 +52,7 @@ const UserPage: React.FC = () => {
       <AppLayout>
         <div className={styles.userProfile}>
           <div className={styles.userHeader}>
-            <BackButton />
+            <BackButton route="/dashboard" />
             <h1>{userProfile?.name || 'User'}'s Profile</h1>
             <p className={styles.userEmail}>{userProfile?.email || ''}</p>
           </div>

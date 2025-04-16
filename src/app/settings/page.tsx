@@ -111,7 +111,7 @@ const SettingsPage: React.FC = () => {
       <AppLayout>
         <div className={styles.container}>
           <div className={styles.header}>
-            <BackButton />
+            <BackButton route="/dashboard" />
             <h1 className={styles.title}>Settings</h1>
             <p className={styles.subtitle}>Manage your account settings and profile</p>
           </div>
