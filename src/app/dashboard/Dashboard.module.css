@@ -456,40 +456,6 @@
 }
 
 /* Row-based layout for medium screens */
-@media (max-width: 768px) and (min-width: 701px) {
-  .leaderboardStats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
-    margin-left: 0;
-    width: 100%;
-    margin-top: 0.5rem;
-  }
-  
-  .leaderboardStat {
-    padding: 0.5rem;
-    min-width: auto;
-    width: 100%;
-    overflow: hidden;
-  }
-  
-  .leaderboardStatValue {
-    font-size: 0.95rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-  }
-  
-  /* Add style for N/A values */
-  .leaderboardStatValue:empty::before,
-  .leaderboardStatValue:contains('N/A') {
-    content: 'N/A';
-    color: #9CA3AF;
-    font-style: italic;
-    font-size: 0.85rem;
-  }
-}
-
 /* Small screen adjustments for leaderboard entries */
 @media (max-width: 560px) {
   .leaderboardPreview {
