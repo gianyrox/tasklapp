@@ -325,6 +325,56 @@ const DashboardPage: React.FC = () => {
             </p>
           </div>
 
+          {/* Centered Leaderboard */}
+          <div className={styles.centeredLeaderboard}>
+            <Board 
+              title="Leaderboard" 
+              isLoading={isLoading}
+              className={styles.leaderboardBoard}
+              actionButton={
+                <Button size="sm" variant="outline" onClick={() => router.push('/leaderboard')}>View All</Button>
+              }
+              emptyState={
+                <div className={styles.leaderboardEmptyState}>
+                  <p>Complete tasks to appear on the leaderboard!</p>
+                </div>
+              }
+            >
+              <div className={styles.scrollableBoard}>
+                <div className={styles.leaderboardPreview}>
+                  {leaderboard.map((entry: any) => (
+                    <div key={entry.id} className={`${styles.leaderboardEntry} ${entry.id === user?.id ? styles.currentUser : ''} ${entry.isFriend ? styles.friendUser : ''}`}>
+                      <div className={styles.leaderboardRank}>{entry.rank}</div>
+                      <div className={styles.leaderboardUser}>
+                        {entry.avatarUrl && (
+                          <img 
+                            src={entry.avatarUrl} 
+                            alt={entry.name} 
+                            className={styles.leaderboardAvatar} 
+                          />
+                        )}
+                        <span className={styles.leaderboardName}>{entry.name}</span>
+                        {entry.id === user?.id && <span className={styles.leaderboardCurrentUser}>(You)</span>}
+                      </div>
+                      <div className={styles.leaderboardStats}>
+                        <div className={styles.leaderboardStat}>
+                          <span className={styles.leaderboardStatValue}>{entry.tasksCompleted}</span>
+                          <span className={styles.leaderboardStatLabel}>Completed</span>
+                        </div>
+                        {entry.avgQualityRating && (
+                          <div className={styles.leaderboardStat}>
+                            <span className={styles.leaderboardStatValue}>{entry.avgQualityRating.toFixed(1)}</span>
+                            <span className={styles.leaderboardStatLabel}>Rating</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Board>
+          </div>
+
           {/* Stats Widgets */}
           <div className={styles.widgetsGrid}>
             {statsWidgets.map((stat, index) => (
