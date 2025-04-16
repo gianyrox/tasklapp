@@ -31,6 +31,7 @@ export const Button: React.FC<ButtonProps> = ({
     styles[`size-${size}`],
     fullWidth ? styles.fullWidth : '',
     isLoading ? styles.loading : '',
+    size === 'xs' ? styles.textured : '',
     className
   ].filter(Boolean).join(' ');
 
