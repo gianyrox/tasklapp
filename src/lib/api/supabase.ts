@@ -301,8 +301,11 @@ export const getTasksByFriend = async (friendId: string): Promise<Task[]> => {
   const { data: { session } } = await supabase.auth.getSession();
   
   if (!session) {
+    console.log('No session when fetching tasks by friend');
     return [];
   }
+  
+  console.log(`Getting tasks for friend ${friendId}, current user: ${session.user.id}`);
   
   // Get tasks that I assigned to this friend
   const { data, error } = await supabase
@@ -317,10 +320,32 @@ export const getTasksByFriend = async (friendId: string): Promise<Task[]> => {
     .eq('assignee_id', friendId)
     .order('created_at', { ascending: false });
     
-  if (error || !data) {
+  if (error) {
     console.error('Error fetching tasks by friend:', error);
     return [];
   }
+  
+  if (!data || data.length === 0) {
+    console.log(`No tasks found between user ${session.user.id} and friend ${friendId}`);
+    
+    // Try an alternative query to check if any tasks exist at all for this friend
+    const { data: allTasks, error: allError } = await supabase
+      .from('tasks')
+      .select('id, title, assigner_id, assignee_id')
+      .or(`assigner_id.eq.${friendId},assignee_id.eq.${friendId}`)
+      .limit(5);
+      
+    if (!allError && allTasks && allTasks.length > 0) {
+      console.log(`Found ${allTasks.length} tasks involving the friend in general:`, allTasks);
+    } else {
+      console.log('No tasks found involving this friend in any capacity');
+    }
+    
+    return [];
+  }
+  
+  console.log(`Found ${data.length} tasks assigned to friend ${friendId}:`, 
+    data.map(t => ({ id: t.id, title: t.title })));
   
   return data.map(transformTaskFromDb);
 };
