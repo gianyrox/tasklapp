@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import '../styles/globals.css';
 import { AuthProvider } from '../context/AuthContext';
+import { LoggingProvider } from '../context/LoggingContext';
+import { Analytics } from '@vercel/analytics/react';
 
 export const metadata: Metadata = {
   title: 'Taskl.app - Competitive Task Management',
@@ -45,8 +47,11 @@ export default function RootLayout({
       </head>
       <body>
         <AuthProvider>
-          {children}
+          <LoggingProvider>
+            {children}
+          </LoggingProvider>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );

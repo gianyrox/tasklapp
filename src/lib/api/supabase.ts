@@ -1,59 +1,210 @@
 import { createClient } from '@supabase/supabase-js';
 import { Task, TaskStatus, TaskPriority, User, Friendship, FriendshipStatus, LeaderboardEntry, TaskAttachment } from '../../types';
 
-// Initialize Supabase client
+// Initialize Supabase client with performance optimizations
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-export const supabase = createClient(supabaseUrl, supabaseKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: false // We'll handle this manually for better performance
-  },
-  global: {
-    fetch: fetch.bind(globalThis)
+// Create a singleton instance for better performance
+let supabaseInstance: ReturnType<typeof createClient> | null = null;
+
+export const supabase = (() => {
+  if (supabaseInstance) return supabaseInstance;
+
+  supabaseInstance = createClient(supabaseUrl, supabaseKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: false, // We handle this manually
+      storageKey: 'supabase.auth.token',
+      storage: {
+        getItem: (key) => {
+          if (typeof window === 'undefined') {
+            return null;
+          }
+          // Avoid excessive logging in production
+          try {
+            const value = localStorage.getItem(key);
+            // Only log in development
+            if (process.env.NODE_ENV === 'development') {
+              console.log(`Getting auth storage: ${key.substring(0, 15)}... exists: ${Boolean(value)}`);
+            }
+            return value;
+          } catch (error) {
+            console.error('Error getting from localStorage:', error);
+            return null;
+          }
+        },
+        setItem: (key, value) => {
+          if (typeof window === 'undefined') {
+            return;
+          }
+          try {
+            // Only log in development
+            if (process.env.NODE_ENV === 'development') {
+              console.log(`Setting auth storage: ${key.substring(0, 15)}...`);
+            }
+            localStorage.setItem(key, value);
+          } catch (error) {
+            console.error('Error setting localStorage:', error);
+          }
+        },
+        removeItem: (key) => {
+          if (typeof window === 'undefined') {
+            return;
+          }
+          try {
+            // Only log in development
+            if (process.env.NODE_ENV === 'development') {
+              console.log(`Removing auth storage: ${key.substring(0, 15)}...`);
+            }
+            localStorage.removeItem(key);
+          } catch (error) {
+            console.error('Error removing from localStorage:', error);
+          }
+        }
+      }
+    },
+    global: {
+      fetch: (...args) => {
+        // Add a timeout to fetch requests
+        return Promise.race([
+          fetch(...args),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Fetch timeout')), 10000)
+          )
+        ]) as Promise<Response>;
+      }
+    }
+  });
+
+  return supabaseInstance;
+})();
+
+// Cache to store session to avoid repeated auth.getSession() calls
+let sessionCache: {
+  session: any;
+  timestamp: number;
+} | null = null;
+
+// More optimized session getter
+export const getSession = async () => {
+  try {
+    // Check if there was a recent auth event (sign in/out) that would invalidate our cache
+    if (typeof window !== 'undefined') {
+      try {
+        const lastAuthEvent = sessionStorage.getItem('last_auth_event');
+        if (lastAuthEvent) {
+          const { timestamp } = JSON.parse(lastAuthEvent);
+          // If we have a recent auth event, invalidate the cache
+          if (Date.now() - timestamp < 5000) { // Within last 5 seconds
+            sessionCache = null;
+            // Clear the auth event after using it
+            sessionStorage.removeItem('last_auth_event');
+          }
+        }
+      } catch (e) {
+        console.error('Error checking auth events:', e);
+      }
+    }
+    
+    // Check cache first (valid for 60 seconds)
+    if (sessionCache && Date.now() - sessionCache.timestamp < 60000) {
+      return { data: { session: sessionCache.session } };
+    }
+
+    // Get fresh session and cache it
+    const result = await supabase.auth.getSession();
+    
+    if (result.data.session) {
+      sessionCache = {
+        session: result.data.session,
+        timestamp: Date.now()
+      };
+    } else {
+      sessionCache = null;
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('Error in getSession:', error);
+    // If we have an error, fallback to direct call
+    return supabase.auth.getSession();
   }
-});
+};
 
 // User API functions
 export const getCurrentUser = async (): Promise<User | null> => {
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  if (!session) {
-    return null;
-  }
-  
-  const userId = session.user.id;
-  
-  // Use a more efficient query that fetches user and their stats in one go
-  const { data, error } = await supabase
-    .from('users')
-    .select(`
-      *,
-      stats:user_stats(*)
-    `)
-    .eq('id', userId)
-    .single();
+  try {
+    // First check session quickly using our optimized getSession
+    const { data: { session } } = await getSession();
     
-  if (error || !data) {
-    console.error('Error fetching current user:', error);
+    if (!session) {
+      return null;
+    }
+    
+    const userId = session.user.id;
+    
+    // Set a timeout to avoid hanging requests
+    const timeoutPromise = new Promise<null>((resolve) => {
+      setTimeout(() => resolve(null), 5000); // 5 second timeout
+    });
+    
+    // Use a more efficient query that fetches user and their stats in one go
+    const queryPromise = supabase
+      .from('users')
+      .select(`
+        id,
+        name,
+        email,
+        avatar_url,
+        created_at,
+        stats:user_stats(
+          rank,
+          tasks_completed,
+          completion_rate,
+          average_completion_time
+        )
+      `)
+      .eq('id', userId)
+      .single();
+      
+    // Race the query against a timeout
+    const result = await Promise.race([
+      queryPromise,
+      timeoutPromise
+    ]);
+    
+    // If timeout won, result will be null
+    if (!result) {
+      console.error('User data fetch timed out');
+      return null;
+    }
+    
+    const { data, error } = result;
+      
+    if (error || !data) {
+      console.error('Error fetching current user:', error);
+      return null;
+    }
+    
+    return {
+      id: data.id,
+      name: data.name,
+      email: data.email,
+      avatarUrl: data.avatar_url,
+      createdAt: new Date(data.created_at),
+      stats: {
+        rank: data.stats?.rank || 0,
+        tasksCompleted: data.stats?.tasks_completed || 0,
+        completionRate: data.stats?.completion_rate || 0,
+        averageCompletionTime: data.stats?.average_completion_time || 0
+      }
+    };
+  } catch (error) {
+    console.error('Unexpected error in getCurrentUser:', error);
     return null;
   }
-  
-  return {
-    id: data.id,
-    name: data.name,
-    email: data.email,
-    avatarUrl: data.avatar_url,
-    createdAt: new Date(data.created_at),
-    stats: {
-      rank: data.stats?.rank || 0,
-      tasksCompleted: data.stats?.tasks_completed || 0,
-      completionRate: data.stats?.completion_rate || 0,
-      averageCompletionTime: data.stats?.average_completion_time || 0
-    }
-  };
 };
 
 export const updateUserProfile = async (data: {

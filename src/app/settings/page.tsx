@@ -61,15 +61,7 @@ const SettingsPage: React.FC = () => {
         return;
       }
       
-      // First update the Auth metadata to ensure consistency
-      await supabase.auth.updateUser({
-        data: {
-          name: updateData.name,
-          avatar_url: updateData.avatarUrl
-        }
-      });
-      
-      // Then update the profile in the database
+      // Let updateUserProfile handle both the Auth metadata and database updates
       const success = await updateUserProfile(updateData);
       
       if (success) {

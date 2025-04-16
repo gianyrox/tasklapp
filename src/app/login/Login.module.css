@@ -51,6 +51,12 @@
   border: 1px solid var(--success);
 }
 
+.info {
+  background-color: rgba(0, 122, 255, 0.1);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+
 .error {
   background-color: rgba(239, 71, 111, 0.1);
   color: var(--danger);
@@ -110,4 +116,23 @@
 .link:hover {
   color: var(--primary-dark);
   text-decoration: underline;
+}
+
+/* Enhancement: Add loading animation for info messages */
+.info::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 10px;
+  border: 2px solid var(--primary);
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 } 
