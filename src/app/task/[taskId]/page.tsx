@@ -168,6 +168,8 @@ const TaskDetailPage: React.FC = () => {
     <ProtectedRoute>
       <AppLayout>
         <div className={styles.container}>
+          <BackButton route="/task" />
+        
           <div className={styles.header}>
             <h1 className={styles.title}>{task.title}</h1>
             <div className={styles.meta}>
@@ -179,8 +181,6 @@ const TaskDetailPage: React.FC = () => {
           </div>
 
           <div className={styles.actions}>
-            <BackButton route="/task" />
-            
             {canUpdate && (
               <div className={styles.statusButtons}>
                 {task.status !== TaskStatus.PENDING && (
