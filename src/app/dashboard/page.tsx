@@ -343,22 +343,29 @@ const DashboardPage: React.FC = () => {
                 <div className={styles.leaderboardPreview}>
                   {leaderboard.map((entry: any) => (
                     <div key={entry.id} className={`${styles.leaderboardEntry} ${entry.id === user?.id ? styles.currentUser : ''} ${entry.isFriend ? styles.friendUser : ''}`}>
-                      <div className={styles.leaderboardRank}>{entry.rank}</div>
-                      <div className={styles.leaderboardUser}>
-                        {entry.avatarUrl ? (
-                          <img 
-                            src={entry.avatarUrl} 
-                            alt={entry.name} 
-                            className={styles.leaderboardAvatar} 
-                          />
-                        ) : (
+                      {entry.avatarUrl ? (
+                        <>
+                          <div className={styles.leaderboardRank}>{entry.rank}</div>
+                          <div className={styles.leaderboardUser}>
+                            <img 
+                              src={entry.avatarUrl} 
+                              alt={entry.name} 
+                              className={styles.leaderboardAvatar} 
+                            />
+                            <span className={styles.leaderboardName}>{entry.name}</span>
+                            {entry.id === user?.id && <span className={styles.leaderboardCurrentUser}>(You)</span>}
+                          </div>
+                        </>
+                      ) : (
+                        <div className={styles.leaderboardUser}>
                           <div className={styles.leaderboardAvatarPlaceholder}>
+                            <span className={styles.avatarRank}>{entry.rank}</span>
                             {entry.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()}
                           </div>
-                        )}
-                        <span className={styles.leaderboardName}>{entry.name}</span>
-                        {entry.id === user?.id && <span className={styles.leaderboardCurrentUser}>(You)</span>}
-                      </div>
+                          <span className={styles.leaderboardName}>{entry.name}</span>
+                          {entry.id === user?.id && <span className={styles.leaderboardCurrentUser}>(You)</span>}
+                        </div>
+                      )}
                       <div className={styles.leaderboardStats}>
                         <div className={styles.leaderboardStat}>
                           <span className={styles.leaderboardStatValue}>{entry.tasksCompleted}</span>
