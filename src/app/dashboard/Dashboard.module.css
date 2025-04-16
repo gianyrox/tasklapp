@@ -227,6 +227,12 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+.avatarContainer {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+}
+
 .leaderboardAvatarPlaceholder {
   width: 3rem;
   height: 3rem;
