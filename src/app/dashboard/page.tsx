@@ -443,52 +443,50 @@ const DashboardPage: React.FC = () => {
               </Board>
             </div>
 
-            {/* Column 2: Leaderboard */}
+            {/* Column 2: Task Analytics Placeholder */}
             <div className={styles.taskColumn}>
-              <h2 className={styles.taskColumnTitle}>Leaderboard</h2>
+              <h2 className={styles.taskColumnTitle}>Task Overview</h2>
               <Board 
-                title="Top Performers" 
+                title="Task Analytics" 
                 isLoading={isLoading}
-                className={`${styles.taskColumnBoard} ${styles.leaderboardBoard}`}
-                actionButton={
-                  <Button size="sm" variant="outline" onClick={() => router.push('/leaderboard')}>View All Leaderboards</Button>
-                }
+                className={styles.taskColumnBoard}
                 emptyState={
-                  <div className={styles.leaderboardEmptyState}>
-                    <p>Complete tasks to appear on the leaderboard!</p>
+                  <div className={styles.emptyState}>
+                    <p>Complete tasks to see analytics</p>
                   </div>
                 }
               >
                 <div className={styles.scrollableBoard}>
-                  <div className={styles.leaderboardPreview}>
-                    {leaderboard.map((entry: any) => (
-                      <div key={entry.id} className={`${styles.leaderboardEntry} ${entry.id === user?.id ? styles.currentUser : ''} ${entry.isFriend ? styles.friendUser : ''}`}>
-                        <div className={styles.leaderboardRank}>{entry.rank}</div>
-                        <div className={styles.leaderboardUser}>
-                          {entry.avatarUrl && (
-                            <img 
-                              src={entry.avatarUrl} 
-                              alt={entry.name} 
-                              className={styles.leaderboardAvatar} 
-                            />
-                          )}
-                          <span className={styles.leaderboardName}>{entry.name}</span>
-                          {entry.id === user?.id && <span className={styles.leaderboardCurrentUser}>(You)</span>}
-                        </div>
-                        <div className={styles.leaderboardStats}>
-                          <div className={styles.leaderboardStat}>
-                            <span className={styles.leaderboardStatValue}>{entry.tasksCompleted}</span>
-                            <span className={styles.leaderboardStatLabel}>Completed</span>
-                          </div>
-                          {entry.avgQualityRating && (
-                            <div className={styles.leaderboardStat}>
-                              <span className={styles.leaderboardStatValue}>{entry.avgQualityRating.toFixed(1)}</span>
-                              <span className={styles.leaderboardStatLabel}>Rating</span>
-                            </div>
-                          )}
-                        </div>
+                  <div className={styles.analyticsPlaceholder}>
+                    <div className={styles.analyticsCard}>
+                      <h3>Task Completion Rate</h3>
+                      <div className={styles.analyticValue}>
+                        {myTasks.length > 0 
+                          ? `${Math.round((myTasks.filter(t => t.status === TaskStatus.COMPLETED).length / myTasks.length) * 100)}%` 
+                          : 'N/A'}
                       </div>
-                    ))}
+                    </div>
+                    
+                    <div className={styles.analyticsCard}>
+                      <h3>Upcoming Deadlines</h3>
+                      <div className={styles.upcomingTasks}>
+                        {myTasks
+                          .filter(t => t.status !== TaskStatus.COMPLETED && new Date(t.dueDate) > new Date())
+                          .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+                          .slice(0, 3)
+                          .map(task => (
+                            <div key={task.id} className={styles.upcomingTask}>
+                              <div className={styles.upcomingTaskTitle}>{task.title}</div>
+                              <div className={styles.upcomingTaskDate}>
+                                Due: {new Date(task.dueDate).toLocaleDateString()}
+                              </div>
+                            </div>
+                          ))}
+                        {myTasks.filter(t => t.status !== TaskStatus.COMPLETED && new Date(t.dueDate) > new Date()).length === 0 && (
+                          <div className={styles.noTasks}>No upcoming deadlines</div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </Board>
