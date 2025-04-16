@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { Task, TaskPriority, TaskStatus } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useDatabase } from '../context/DatabaseContext';
@@ -20,11 +20,11 @@ const CreateTaskForm = () => {
   const [success, setSuccess] = useState(false);
   
   // On component mount, set the default assignee to self
-  useState(() => {
+  useEffect(() => {
     if (user) {
       setAssigneeId(user.id);
     }
-  });
+  }, [user]);
   
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
