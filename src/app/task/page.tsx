@@ -433,13 +433,6 @@ const TasksPage: React.FC = () => {
         <div className={styles.container}>
           <div className={styles.header}>
             <div className={styles.headerLeft}>
-              <Button 
-                variant="secondary" 
-                onClick={() => router.back()}
-                className={styles.backButton}
-              >
-                ← Back
-              </Button>
               <h1 className={styles.title}>
                 {viewMode === 'my-tasks' ? 'My Tasks' : 'Tasks I\'ve Assigned'}
               </h1>
