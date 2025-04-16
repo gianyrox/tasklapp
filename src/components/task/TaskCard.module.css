@@ -114,6 +114,58 @@
   letter-spacing: 0.5px;
 }
 
+/* Assigner Information Styles */
+.assignerInfo {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+  padding: 8px 10px;
+  background-color: rgba(243, 244, 246, 0.5);
+  border-radius: var(--border-radius-sm);
+  position: relative;
+  z-index: 1;
+}
+
+.assignerAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.assignerAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.assignerInitials {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #6366f1;
+  color: white;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.assignerName {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: 1.2;
+}
+
+.assignerName span {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
 .dates {
   display: flex;
   justify-content: space-between;

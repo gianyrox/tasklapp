@@ -78,6 +78,23 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </span>
       </div>
       
+      {task.assigner && (
+        <div className={styles.assignerInfo}>
+          <div className={styles.assignerAvatar}>
+            {task.assigner.avatarUrl ? (
+              <img src={task.assigner.avatarUrl} alt={`${task.assigner.name}'s avatar`} />
+            ) : (
+              <div className={styles.assignerInitials}>
+                {task.assigner.name.charAt(0)}
+              </div>
+            )}
+          </div>
+          <div className={styles.assignerName}>
+            Assigned by <span>{task.assigner.name}</span>
+          </div>
+        </div>
+      )}
+      
       <div className={styles.dates}>
         <div className={styles.dateItem}>
           <span className={styles.dateLabel}>Created:</span>
