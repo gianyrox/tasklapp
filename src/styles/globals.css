@@ -70,6 +70,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   letter-spacing: 0.01em;
+  -webkit-text-size-adjust: 100%; /* Prevents font scaling in landscape */
+  touch-action: manipulation; /* Prevents delays on touch devices */
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -114,6 +116,16 @@ button {
   font-family: inherit;
   cursor: pointer;
   font-weight: 500;
+  min-height: 44px; /* Improved touch target size */
+  padding: 0.5rem 1rem;
+}
+
+input, 
+select, 
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  min-height: 44px; /* Better touch targets */
 }
 
 /* Status indicators with friendly colors */
@@ -182,5 +194,80 @@ button {
   
   h2 {
     font-size: var(--font-size-lg);
+  }
+
+  h3 {
+    font-size: var(--font-size-md);
+  }
+  
+  button,
+  input,
+  select,
+  textarea {
+    width: 100%; /* Full width on mobile */
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+  h1 {
+    font-size: calc(var(--font-size-lg) + 0.1rem);
+  }
+  
+  h2 {
+    font-size: var(--font-size-md);
+  }
+  
+  body {
+    font-size: 0.95rem;
+  }
+  
+  .container {
+    padding: 0 10px;
+  }
+}
+
+/* Utility classes for responsive layouts */
+.hidden-mobile {
+  display: initial;
+}
+
+.visible-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .hidden-mobile {
+    display: none !important;
+  }
+  
+  .visible-mobile {
+    display: initial !important;
+  }
+}
+
+/* Responsive grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--spacing-md);
+}
+
+@media (max-width: 992px) {
+  .grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr;
   }
 } 
