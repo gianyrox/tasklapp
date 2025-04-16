@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, FormEvent, useEffect } from 'react';
-import { Task, TaskPriority, TaskStatus } from '../types';
+import { Task, TaskPriority, TaskStatus, SubmissionType } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useDatabase } from '../context/DatabaseContext';
 
@@ -15,6 +15,8 @@ const CreateTaskForm = () => {
   const [priority, setPriority] = useState<TaskPriority>(TaskPriority.MEDIUM);
   const [estimatedTime, setEstimatedTime] = useState<number | undefined>();
   const [assigneeId, setAssigneeId] = useState<string>('');
+  const [submissionType, setSubmissionType] = useState<SubmissionType>(SubmissionType.FORM);
+  const [submissionInstructions, setSubmissionInstructions] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -50,7 +52,9 @@ const CreateTaskForm = () => {
         assigneeId,
         status: TaskStatus.PENDING,
         priority,
-        estimatedTimeMinutes: estimatedTime
+        estimatedTimeMinutes: estimatedTime,
+        submissionType,
+        submissionInstructions: submissionInstructions.trim() || undefined
       };
       
       // Submit task
@@ -66,6 +70,8 @@ const CreateTaskForm = () => {
       setDueDate('');
       setPriority(TaskPriority.MEDIUM);
       setEstimatedTime(undefined);
+      setSubmissionType(SubmissionType.FORM);
+      setSubmissionInstructions('');
       setSuccess(true);
       
     } catch (err) {
@@ -162,6 +168,41 @@ const CreateTaskForm = () => {
           </select>
         </div>
         
+        <div className="form-group">
+          <label>Submission Type</label>
+          <div className="submission-type-selector">
+            <div 
+              className={`type-option ${submissionType === SubmissionType.FORM ? 'selected' : ''}`}
+              onClick={() => setSubmissionType(SubmissionType.FORM)}
+            >
+              Text
+            </div>
+            <div 
+              className={`type-option ${submissionType === SubmissionType.LINK ? 'selected' : ''}`}
+              onClick={() => setSubmissionType(SubmissionType.LINK)}
+            >
+              Link
+            </div>
+            <div 
+              className={`type-option ${submissionType === SubmissionType.FILE ? 'selected' : ''}`}
+              onClick={() => setSubmissionType(SubmissionType.FILE)}
+            >
+              File
+            </div>
+          </div>
+        </div>
+        
+        <div className="form-group">
+          <label htmlFor="submissionInstructions">Submission Instructions</label>
+          <textarea
+            id="submissionInstructions"
+            value={submissionInstructions}
+            onChange={(e) => setSubmissionInstructions(e.target.value)}
+            placeholder="Provide specific instructions for task submission"
+            rows={3}
+          />
+        </div>
+        
         <button 
           type="submit" 
           disabled={isSubmitting}
@@ -214,6 +255,32 @@ const CreateTaskForm = () => {
         select:focus {
           border-color: #0070f3;
           outline: none;
+        }
+        
+        .submission-type-selector {
+          display: flex;
+          gap: 12px;
+          margin-bottom: 8px;
+        }
+
+        .type-option {
+          flex: 1;
+          padding: 12px;
+          text-align: center;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .type-option.selected {
+          border-color: #0070f3;
+          background-color: rgba(0, 112, 243, 0.1);
+          color: #0070f3;
+        }
+
+        .type-option:hover:not(.selected) {
+          background-color: #f8f9fa;
         }
         
         .submit-button {
