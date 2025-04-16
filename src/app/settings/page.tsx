@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import AppLayout from '../../components/layout/AppLayout';
 import ProtectedRoute from '../../components/layout/ProtectedRoute';
-import styles from './Settings.module.css';
 import { updateUserProfile } from '../../lib/api/supabase';
+
+// Import CSS modules
+import styles from './Settings.module.css';
 
 const SettingsPage: React.FC = () => {
   const { user, isLoading } = useAuth();
@@ -93,7 +95,7 @@ const SettingsPage: React.FC = () => {
           </div>
           
           {message && (
-            <div className={message.type === 'success' ? styles.success : styles.error}>
+            <div className={`${styles.message} ${message.type === 'success' ? styles.success : styles.error}`}>
               {message.text}
             </div>
           )}
@@ -146,7 +148,7 @@ const SettingsPage: React.FC = () => {
                 type="email"
                 value={email}
                 disabled
-                className={styles.disabledInput}
+                className={`${styles.input} ${styles.disabledInput}`}
               />
               <p className={styles.inputHint}>
                 Email cannot be changed. Contact support for help.
