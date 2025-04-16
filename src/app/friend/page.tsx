@@ -344,8 +344,16 @@ const FriendPage: React.FC = () => {
                       <div className={styles.userInfo}>
                         <h4 className={styles.userName}>{requestUser.name}</h4>
                         <p className={styles.userEmail}>{requestUser.email}</p>
+                        <span className={styles.pendingStatus}>Request Received</span>
                       </div>
                       <div className={styles.userActions}>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleViewFriend(request.userId)}
+                        >
+                          View Profile
+                        </Button>
                         <Button 
                           variant="primary" 
                           size="sm" 
