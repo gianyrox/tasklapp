@@ -119,6 +119,35 @@ const filterSelfAssignedTasks = (tasks: Task[], userId: string): Task[] => {
   return tasks.filter(task => task.assigneeId === userId && task.assignerId === userId);
 };
 
+// Add a function to get all tasks assigned by the user to others
+const getTasksAssignedToOthers = async (userId: string): Promise<Task[]> => {
+  // Use the Supabase client to get tasks where user is the assigner but not the assignee
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from('tasks')
+    .select(`
+      *,
+      attachments:task_attachments(*),
+      assigner:users!tasks_assigner_id_fkey(id, name, email, avatar_url, created_at),
+      assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url, created_at)
+    `)
+    .eq('assigner_id', userId)
+    .neq('assignee_id', userId)
+    .order('due_date');
+    
+  if (error || !data) {
+    console.error('Error fetching tasks assigned to others:', error);
+    return [];
+  }
+  
+  return data.map(transformTaskFromDb);
+};
+
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const router = useRouter();
@@ -153,13 +182,15 @@ const DashboardPage: React.FC = () => {
       // Fetch self-assigned tasks
       const allSelfTasks = await getSelfAssignedTasks(user?.id || '');
       
-      // Combine both types of tasks
+      // Fetch tasks the user assigned to others
+      const assignedToOthers = await getTasksAssignedToOthers(user?.id || '');
+
+      // Combine tasks assigned to current user
       const allMyTasks = [...allTasksFromFriends, ...allSelfTasks];
       setMyTasks(allMyTasks);
       
       // Filter tasks into different categories
       const fromFriends = filterTasksFromFriends(allMyTasks, user?.id || '');
-      const assignedToOthers = await getTasksByFriend(''); // This will get all tasks assigned by the user to others
       const selfAssigned = filterSelfAssignedTasks(allMyTasks, user?.id || '');
       
       setTasksFromFriends(fromFriends);
