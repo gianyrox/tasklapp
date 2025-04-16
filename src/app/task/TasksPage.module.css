@@ -1,9 +1,21 @@
 .container {
   padding: 1.5rem;
-  max-width: 1200px;
+  max-width: 95%;
   margin: 0 auto;
   background-color: #f8f9fc;
   min-height: 100vh;
+}
+
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1800px;
+  }
+}
+
+@media (min-width: 2000px) {
+  .container {
+    max-width: 2400px;
+  }
 }
 
 .header {
@@ -151,8 +163,14 @@
 
 .taskCards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
+}
+
+@media (min-width: 1600px) {
+  .taskCards {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
 }
 
 .taskCard {
@@ -443,16 +461,20 @@
 @media (max-width: 768px) {
   .taskCards {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
   
   .filters {
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
     overflow-x: auto;
     padding-bottom: 0.5rem;
-    margin-bottom: 1rem;
-    flex-wrap: nowrap;
   }
   
   .filter {
     white-space: nowrap;
+    font-size: 0.75rem;
+    padding: 0.4rem 0.8rem;
   }
 } 
