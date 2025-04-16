@@ -15,7 +15,7 @@
   left: 1.5rem;
   z-index: 10;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  margin-bottom: 1rem;
+  margin-bottom: rem;
 }
 
 .backButton:hover {
