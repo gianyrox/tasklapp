@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState,
- useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AppLayout from '../../../components/layout/AppLayout';
 import { Task, TaskStatus } from '../../../types';
@@ -23,8 +22,10 @@ const calculateAverageRating = (task: Task): string => {
   ].filter(rating => rating > 0);
   
   // If no ratings, return 0
-  if (rage = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
-  return average.toFixed(1);
+  if (ratings.length === 0) return '0.0';
+  
+  const sum = ratings.reduce((total, rating) => total + rating, 0);
+  return (sum / ratings.length).toFixed(1);
 };
 
 const TaskDetailPage: React.FC = () => {
