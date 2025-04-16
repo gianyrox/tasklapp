@@ -195,6 +195,57 @@
   text-align: center;
 }
 
+/* Mobile menu components */
+.mobileMenuButton {
+  display: none;
+  border: none;
+  background: transparent;
+  width: 40px;
+  height: 40px;
+  padding: 5px;
+  cursor: pointer;
+  position: relative;
+  z-index: 30;
+}
+
+.mobileNavigation {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: var(--surface);
+  z-index: 25;
+  padding-top: 80px;
+}
+
+.mobileNavList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--spacing-lg);
+}
+
+.mobileNavItem {
+  margin-bottom: var(--spacing-md);
+}
+
+.mobileNavLink {
+  display: block;
+  padding: var(--spacing-md);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+  border-radius: var(--border-radius-md);
+}
+
+.mobileNavLink.active {
+  background-color: var(--primary);
+  color: white;
+}
+
 @media (max-width: 768px) {
   .header .container {
     height: 60px;
@@ -209,6 +260,23 @@
     display: none;
   }
   
+  /* Hide desktop navigation on mobile */
+  .navigation {
+    display: none;
+  }
+  
+  /* Show mobile menu button */
+  .mobileMenuButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Mobile Nav when active */
+  .mobileNavigation.active {
+    display: block;
+  }
+  
   .navList {
     gap: 1px;
   }
@@ -221,5 +289,42 @@
   
   .main {
     padding: var(--spacing-md) 0;
+  }
+  
+  .dropdown {
+    top: calc(100% + 5px);
+    right: -10px;
+    width: 200px;
+  }
+  
+  .dropdownItem {
+    padding: 14px var(--spacing-md);
+    font-size: var(--font-size-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .header .container {
+    height: 56px;
+    padding: 0 var(--spacing-sm);
+  }
+  
+  .logo {
+    font-size: calc(var(--font-size-md) + 0.1rem);
+  }
+  
+  .avatar {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .dropdown {
+    width: 100%;
+    left: 0;
+    right: 0;
+    border-radius: 0;
+    top: 100%;
+    border-left: none;
+    border-right: none;
   }
 } 
