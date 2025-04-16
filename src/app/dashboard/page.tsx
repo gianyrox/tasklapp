@@ -212,7 +212,7 @@ const DashboardPage: React.FC = () => {
       
       // Fetch leaderboard data
       const leaderboardData = await getLeaderboard();
-      setLeaderboard(leaderboardData);
+      setLeaderboard(leaderboardData.slice(0, 10));
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
       setError('Failed to load dashboard data. Please try again later.');
