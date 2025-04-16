@@ -23,7 +23,7 @@ const BackButton: React.FC<BackButtonProps> = ({ className = '', route }) => {
   return (
     <button
       onClick={handleClick}
-      className={`back-button ${className}`}
+      className={`${styles.backButton} ${className}`}
       aria-label="Go back"
     >
       ← Back
