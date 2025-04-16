@@ -21,7 +21,8 @@ import {
   respondToFriendRequest,
   addTaskAttachment,
   getTasksFromFriends,
-  getTasksByFriend
+  getTasksByFriend,
+  getUserAssignedTasks
 } from '../lib/api/supabase';
 import { useAuth } from './AuthContext';
 
@@ -127,10 +128,10 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     setTasksError(null);
     
     try {
-      const tasksFromMe = await getUserTasks(user.id, 'assigned');
+      const tasksFromMe = await getUserAssignedTasks(user.id);
       console.log('Tasks assigned by me:', tasksFromMe.length);
       
-      const tasksForMe = await getUserTasks(user.id, 'received');
+      const tasksForMe = await getUserTasks(user.id);
       console.log('Tasks assigned to me:', tasksForMe.length);
       
       const friendTasks = await getTasksFromFriends();
