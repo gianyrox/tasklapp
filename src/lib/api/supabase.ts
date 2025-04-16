@@ -31,7 +31,13 @@ export const getCurrentUser = async (): Promise<User | null> => {
     name: data.name,
     email: data.email,
     avatarUrl: data.avatar_url,
-    createdAt: new Date(data.created_at)
+    createdAt: new Date(data.created_at),
+    stats: {
+      rank: 0,
+      tasksCompleted: 0,
+      completionRate: 0,
+      averageCompletionTime: 0
+    }
   };
 };
 
@@ -151,7 +157,13 @@ export const getFriendships = async (status?: FriendshipStatus): Promise<Friends
         name: friendData.name,
         email: friendData.email,
         avatarUrl: friendData.avatar_url,
-        createdAt: new Date(friendData.created_at)
+        createdAt: new Date(friendData.created_at),
+        stats: {
+          rank: 0,
+          tasksCompleted: 0,
+          completionRate: 0,
+          averageCompletionTime: 0
+        }
       } : undefined
     };
   });
@@ -232,7 +244,13 @@ export const searchUsers = async (query: string): Promise<User[]> => {
     name: user.name,
     email: user.email,
     avatarUrl: user.avatar_url,
-    createdAt: new Date(user.created_at)
+    createdAt: new Date(user.created_at),
+    stats: {
+      rank: 0,
+      tasksCompleted: 0,
+      completionRate: 0,
+      averageCompletionTime: 0
+    }
   }));
 };
 
@@ -584,7 +602,13 @@ export const getFriendById = async (friendId: string): Promise<{ friendProfile: 
     name: userData.name,
     email: userData.email,
     avatarUrl: userData.avatar_url,
-    createdAt: new Date(userData.created_at)
+    createdAt: new Date(userData.created_at),
+    stats: {
+      rank: 0,
+      tasksCompleted: 0,
+      completionRate: 0,
+      averageCompletionTime: 0
+    }
   };
   
   return { 
@@ -650,14 +674,26 @@ const transformTaskFromDb = (task: any): Task => {
       name: task.assigner.name,
       email: task.assigner.email,
       avatarUrl: task.assigner.avatar_url,
-      createdAt: new Date(task.assigner.created_at || Date.now())
+      createdAt: new Date(task.assigner.created_at || Date.now()),
+      stats: {
+        rank: 0,
+        tasksCompleted: 0,
+        completionRate: 0,
+        averageCompletionTime: 0
+      }
     } : undefined,
     assignee: task.assignee ? {
       id: task.assignee.id,
       name: task.assignee.name,
       email: task.assignee.email,
       avatarUrl: task.assignee.avatar_url,
-      createdAt: new Date(task.assignee.created_at || Date.now())
+      createdAt: new Date(task.assignee.created_at || Date.now()),
+      stats: {
+        rank: 0,
+        tasksCompleted: 0,
+        completionRate: 0,
+        averageCompletionTime: 0
+      }
     } : undefined
   };
 };
@@ -679,7 +715,13 @@ export const getUserById = async (userId: string): Promise<User | null> => {
     name: data.name,
     email: data.email,
     avatarUrl: data.avatar_url,
-    createdAt: new Date(data.created_at)
+    createdAt: new Date(data.created_at),
+    stats: {
+      rank: 0,
+      tasksCompleted: 0,
+      completionRate: 0,
+      averageCompletionTime: 0
+    }
   };
 };
 
