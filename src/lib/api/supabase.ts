@@ -256,28 +256,45 @@ export const searchUsers = async (query: string): Promise<User[]> => {
 };
 
 // Task API functions
-export const getUserTasks = async (userId: string, filter?: 'assigned' | 'received'): Promise<Task[]> => {
-  console.log('Fetching tasks for user:', userId, 'with filter:', filter || 'none');
-  
-  const { data, error } = await supabase
+export const getUserTasks = async (userId: string): Promise<Task[]> => {
+  // Get tasks assigned to the user
+  const { data: assignedTasks, error: assignedError } = await supabase
     .from('tasks')
     .select(`
       *,
       attachments:task_attachments(*),
-      assigner:users!tasks_assigner_id_fkey(id, name, email, avatar_url, created_at),
-      assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url, created_at)
+      assigner:users!tasks_assigner_id_fkey(id, name, email, avatar_url),
+      assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url)
     `)
-    .eq(filter === 'assigned' ? 'assigner_id' : 'assignee_id', userId)
-    .order('due_date');
+    .eq('assignee_id', userId);
     
-  if (error || !data) {
-    console.error('Error fetching user tasks:', error);
+  if (assignedError || !assignedTasks) {
+    console.error('Error fetching user tasks:', assignedError);
     return [];
   }
   
-  console.log('Tasks data from DB:', data.length, 'records', 'filter:', filter);
+  return assignedTasks.map(transformTaskFromDb);
+};
+
+export const getUserAssignedTasks = async (userId: string): Promise<Task[]> => {
+  // Get tasks assigned by the user to others
+  const { data: assignedTasks, error: assignedError } = await supabase
+    .from('tasks')
+    .select(`
+      *,
+      attachments:task_attachments(*),
+      assigner:users!tasks_assigner_id_fkey(id, name, email, avatar_url),
+      assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url)
+    `)
+    .eq('assigner_id', userId)
+    .neq('assignee_id', userId); // Exclude tasks assigned to oneself
+    
+  if (assignedError || !assignedTasks) {
+    console.error('Error fetching user assigned tasks:', assignedError);
+    return [];
+  }
   
-  return data.map(transformTaskFromDb);
+  return assignedTasks.map(transformTaskFromDb);
 };
 
 export const getTasksByFriend = async (friendId: string): Promise<Task[]> => {

@@ -7,7 +7,7 @@ import { Task, TaskStatus } from '../../types';
 import ProtectedRoute from '../../components/layout/ProtectedRoute';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/ui/Button';
-import { getUserTasks } from '../../lib/api/supabase';
+import { getUserTasks, getUserAssignedTasks } from '../../lib/api/supabase';
 import styles from './TasksPage.module.css';
 
 const TasksPage: React.FC = () => {
@@ -16,8 +16,10 @@ const TasksPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [friendTasks, setFriendTasks] = useState<Task[]>([]);
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [activeTab, setActiveTab] = useState<string>('active');
+  const [viewMode, setViewMode] = useState<string>('my-tasks');
 
   useEffect(() => {
     if (user) {
@@ -33,6 +35,10 @@ const TasksPage: React.FC = () => {
       // Get all tasks for the current user
       const userTasks = await getUserTasks(user!.id);
       setTasks(userTasks);
+      
+      // Get tasks assigned by the current user to others
+      const assignedTasks = await getUserAssignedTasks(user!.id);
+      setFriendTasks(assignedTasks);
     } catch (err) {
       console.error('Error fetching tasks:', err);
       setError('Failed to load tasks. Please try again later.');
@@ -86,6 +92,37 @@ const TasksPage: React.FC = () => {
       );
     } else {
       return getFilteredTasks().filter(task => task.status === status);
+    }
+  };
+
+  const getFilteredFriendTasks = () => {
+    let filteredTasks = friendTasks;
+    
+    // Then filter by status if not showing 'all'
+    if (activeFilter !== 'all') {
+      if (activeFilter === 'graded') {
+        filteredTasks = filteredTasks.filter(task => 
+          task.status === TaskStatus.COMPLETED && 
+          task.qualityRating
+        );
+      } else {
+        filteredTasks = filteredTasks.filter(task => task.status === activeFilter);
+      }
+    }
+    
+    return filteredTasks;
+  };
+
+  const getFriendTasks = (status: TaskStatus | 'graded' | 'all'): Task[] => {
+    if (status === 'all') {
+      return getFilteredFriendTasks();
+    } else if (status === 'graded') {
+      return getFilteredFriendTasks().filter(task => 
+        task.status === TaskStatus.COMPLETED && 
+        task.qualityRating
+      );
+    } else {
+      return getFilteredFriendTasks().filter(task => task.status === status);
     }
   };
 
@@ -263,6 +300,103 @@ const TasksPage: React.FC = () => {
     }
   };
 
+  const renderFriendTasksContent = () => {
+    const filteredTasks = getFilteredFriendTasks();
+    
+    if (filteredTasks.length === 0) {
+      return (
+        <div className={styles.emptyState}>
+          <h3>No tasks found</h3>
+          <p>You haven't assigned any tasks to friends that match your current filters.</p>
+        </div>
+      );
+    }
+    
+    if (activeFilter === 'all') {
+      // Group by status when showing all
+      return (
+        <div className={styles.taskSections}>
+          <div className={styles.taskSection}>
+            <h2 className={styles.sectionTitle}>Pending</h2>
+            <div className={styles.taskCards}>
+              {getFriendTasks(TaskStatus.PENDING).map(renderTaskCard)}
+              {getFriendTasks(TaskStatus.PENDING).length === 0 && (
+                <p className={styles.noTasksMessage}>No pending tasks</p>
+              )}
+            </div>
+          </div>
+          
+          <div className={styles.taskSection}>
+            <h2 className={styles.sectionTitle}>In Progress</h2>
+            <div className={styles.taskCards}>
+              {getFriendTasks(TaskStatus.IN_PROGRESS).map(renderTaskCard)}
+              {getFriendTasks(TaskStatus.IN_PROGRESS).length === 0 && (
+                <p className={styles.noTasksMessage}>No tasks in progress</p>
+              )}
+            </div>
+          </div>
+          
+          <div className={styles.taskSection}>
+            <h2 className={styles.sectionTitle}>Completed & Needs Grading</h2>
+            <div className={styles.taskCards}>
+              {friendTasks
+                .filter(task => task.status === TaskStatus.COMPLETED && !task.qualityRating)
+                .map(renderTaskCard)}
+              {friendTasks.filter(task => task.status === TaskStatus.COMPLETED && !task.qualityRating).length === 0 && (
+                <p className={styles.noTasksMessage}>No tasks need grading</p>
+              )}
+            </div>
+          </div>
+          
+          <div className={styles.taskSection}>
+            <h2 className={styles.sectionTitle}>Completed & Graded</h2>
+            <div className={styles.taskCards}>
+              {getFriendTasks('graded').map(renderTaskCard)}
+              {getFriendTasks('graded').length === 0 && (
+                <p className={styles.noTasksMessage}>No graded tasks</p>
+              )}
+            </div>
+          </div>
+          
+          <div className={styles.taskSection}>
+            <h2 className={styles.sectionTitle}>Overdue</h2>
+            <div className={styles.taskCards}>
+              {getFriendTasks(TaskStatus.OVERDUE).map(renderTaskCard)}
+              {friendTasks
+                .filter(task => 
+                  new Date(task.dueDate) < new Date() && 
+                  task.status !== TaskStatus.COMPLETED
+                )
+                .map(renderTaskCard)}
+              {getFriendTasks(TaskStatus.OVERDUE).length === 0 && 
+               friendTasks.filter(task => 
+                 new Date(task.dueDate) < new Date() && 
+                 task.status !== TaskStatus.COMPLETED
+               ).length === 0 && (
+                <p className={styles.noTasksMessage}>No overdue tasks</p>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    } else {
+      // Just show the filtered tasks
+      return (
+        <div className={styles.taskCards}>
+          {filteredTasks.map(renderTaskCard)}
+        </div>
+      );
+    }
+  };
+
+  const renderTaskMode = () => {
+    if (viewMode === 'my-tasks') {
+      return renderContent();
+    } else {
+      return renderFriendTasksContent();
+    }
+  };
+
   if (isLoading) {
     return (
       <ProtectedRoute>
@@ -298,7 +432,18 @@ const TasksPage: React.FC = () => {
       <AppLayout>
         <div className={styles.container}>
           <div className={styles.header}>
-            <h1 className={styles.title}>My Tasks</h1>
+            <div className={styles.headerLeft}>
+              <Button 
+                variant="secondary" 
+                onClick={() => router.back()}
+                className={styles.backButton}
+              >
+                ← Back
+              </Button>
+              <h1 className={styles.title}>
+                {viewMode === 'my-tasks' ? 'My Tasks' : 'Tasks I\'ve Assigned'}
+              </h1>
+            </div>
             <Button 
               variant="primary" 
               onClick={() => router.push('/dashboard')}
@@ -306,6 +451,23 @@ const TasksPage: React.FC = () => {
             >
               Dashboard
             </Button>
+          </div>
+          
+          <div className={styles.viewModeContainer}>
+            <div className={styles.viewModes}>
+              <button 
+                className={`${styles.viewMode} ${viewMode === 'my-tasks' ? styles.activeViewMode : ''}`}
+                onClick={() => setViewMode('my-tasks')}
+              >
+                My Tasks
+              </button>
+              <button 
+                className={`${styles.viewMode} ${viewMode === 'friend-tasks' ? styles.activeViewMode : ''}`}
+                onClick={() => setViewMode('friend-tasks')}
+              >
+                Friend Tasks I've Assigned
+              </button>
+            </div>
           </div>
           
           <div className={styles.tabsContainer}>
@@ -360,7 +522,7 @@ const TasksPage: React.FC = () => {
             </div>
           </div>
           
-          {renderContent()}
+          {renderTaskMode()}
         </div>
       </AppLayout>
     </ProtectedRoute>
