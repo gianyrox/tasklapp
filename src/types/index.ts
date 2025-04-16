@@ -83,6 +83,9 @@ export interface LeaderboardEntry {
   avgAccuracyRating?: number; // 1-5 average
   tasksOverdue: number;
   isFriend: boolean;
+  perfectTasks?: number; // Number of tasks with perfect (5/5) ratings
+  fastestCompletionTime?: number; // Fastest task completion time in minutes
+  tasksOnTime?: number; // Number of tasks completed on time
 }
 
 export enum TaskStatus {
