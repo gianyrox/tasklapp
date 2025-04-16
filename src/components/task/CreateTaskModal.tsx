@@ -10,21 +10,15 @@ import styles from './CreateTaskModal.module.css';
 interface CreateTaskModalProps {
   assigneeId: string;
   assigneeName: string;
-  assignerId: string;
-  assignerName: string;
   onClose: () => void;
   onCreated: () => void;
-  onTaskCreated?: () => void;
 }
 
 const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   assigneeId,
   assigneeName,
-  assignerId,
-  assignerName,
   onClose,
-  onCreated,
-  onTaskCreated
+  onCreated
 }) => {
   const { user } = useAuth();
   
@@ -46,6 +40,8 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
+    if (!user) return;
+    
     setIsSubmitting(true);
     setError(null);
     
@@ -55,18 +51,12 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
         throw new Error('Please fill all required fields');
       }
       
-      // Make sure we have a valid assignerId
-      const effectiveAssignerId = assignerId || (user?.id ?? '');
-      if (!effectiveAssignerId) {
-        throw new Error('Invalid assigner ID');
-      }
-      
       // Create task object
       const newTask = {
         title,
         description,
         dueDate: new Date(dueDate),
-        assignerId: effectiveAssignerId,
+        assignerId: user.id,
         assigneeId,
         status: TaskStatus.PENDING,
         priority,
@@ -78,7 +68,6 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
       
       // Notify parent component
       onCreated();
-      if (onTaskCreated) onTaskCreated();
       
       // Close modal
       onClose();
