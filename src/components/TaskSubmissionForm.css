@@ -69,6 +69,8 @@
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
+  min-height: 48px;
+  width: auto;
 }
 
 .start-button {
@@ -211,4 +213,72 @@
 
 .review-button:hover {
   background-color: #3a5ce5;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .submission-form-container {
+    padding: 16px;
+    margin-bottom: 16px;
+    border-radius: 6px;
+  }
+  
+  .submission-form-title {
+    font-size: 1.25rem;
+  }
+  
+  .submission-form-description {
+    font-size: 0.9rem;
+  }
+  
+  .submission-instructions {
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+  
+  .submission-form-input {
+    padding: 10px 14px;
+    font-size: 0.95rem;
+  }
+  
+  .submission-form-button {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  
+  .file-upload-container {
+    padding: 16px;
+  }
+  
+  .submission-type-selector {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .type-option {
+    padding: 10px;
+  }
+  
+  .rating-container {
+    justify-content: center;
+  }
+  
+  .rating-star {
+    font-size: 32px;
+    padding: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .submission-form-container {
+    padding: 12px;
+  }
+  
+  .submission-form-title {
+    font-size: 1.1rem;
+  }
+  
+  .submission-form-description {
+    font-size: 0.85rem;
+  }
 } 
