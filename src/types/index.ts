@@ -39,6 +39,8 @@ export interface Task {
   qualityRating?: number; // 1-5 rating
   feedback?: string;
   attachments?: TaskAttachment[];
+  assigner?: User; // Populated with assigner profile information
+  assignee?: User; // Populated with assignee profile information
 }
 
 export interface TaskAttachment {

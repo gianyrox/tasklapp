@@ -244,7 +244,9 @@ export const getUserTasks = async (userId: string, filter?: 'assigned' | 'receiv
     .from('tasks')
     .select(`
       *,
-      attachments:task_attachments(*)
+      attachments:task_attachments(*),
+      assigner:users!tasks_assigner_id_fkey(id, name, email, avatar_url, created_at),
+      assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url, created_at)
     `)
     .eq(filter === 'assigned' ? 'assigner_id' : 'assignee_id', userId)
     .order('due_date');
@@ -271,7 +273,9 @@ export const getTasksByFriend = async (friendId: string): Promise<Task[]> => {
     .from('tasks')
     .select(`
       *,
-      attachments:task_attachments(*)
+      attachments:task_attachments(*),
+      assigner:users!tasks_assigner_id_fkey(id, name, email, avatar_url, created_at),
+      assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url, created_at)
     `)
     .eq('assigner_id', session.user.id)
     .eq('assignee_id', friendId)
@@ -322,7 +326,9 @@ export const getTasksFromFriends = async (): Promise<Task[]> => {
     .from('tasks')
     .select(`
       *,
-      attachments:task_attachments(*)
+      attachments:task_attachments(*),
+      assigner:users!tasks_assigner_id_fkey(id, name, email, avatar_url, created_at),
+      assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url, created_at)
     `)
     .eq('assignee_id', session.user.id)
     .in('assigner_id', friendIds)
@@ -543,6 +549,76 @@ export const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
   });
 };
 
+export const getFriendById = async (friendId: string): Promise<{ friendProfile: User | null; status: FriendshipStatus | null }> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    return { friendProfile: null, status: null };
+  }
+  
+  // Get user profile
+  const { data: userData, error: userError } = await supabase
+    .from('users')
+    .select('id, name, email, avatar_url, created_at')
+    .eq('id', friendId)
+    .single();
+    
+  if (userError || !userData) {
+    console.error('Error fetching friend profile:', userError);
+    return { friendProfile: null, status: null };
+  }
+  
+  // Check friendship status
+  const { data: friendshipData, error: friendshipError } = await supabase
+    .from('friendships')
+    .select('status')
+    .or(`user_id.eq.${session.user.id},friend_id.eq.${session.user.id}`)
+    .or(`user_id.eq.${friendId},friend_id.eq.${friendId}`)
+    .single();
+    
+  const friendshipStatus = friendshipData?.status as FriendshipStatus || null;
+  
+  // Map DB data to User type
+  const userProfile: User = {
+    id: userData.id,
+    name: userData.name,
+    email: userData.email,
+    avatarUrl: userData.avatar_url,
+    createdAt: new Date(userData.created_at)
+  };
+  
+  return { 
+    friendProfile: userProfile, 
+    status: friendshipStatus 
+  };
+};
+
+export const getLeaderboardDetail = async (leaderboardType: string): Promise<LeaderboardEntry[]> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    return [];
+  }
+  
+  // Base leaderboard data
+  const leaderboardData = await getLeaderboard();
+  
+  // Filter or modify based on leaderboard type
+  switch (leaderboardType) {
+    case 'friends':
+      return leaderboardData.filter(entry => entry.isFriend);
+    case 'weekly':
+      // This would need a more complex implementation with date filtering
+      return leaderboardData;
+    case 'monthly':
+      // This would need a more complex implementation with date filtering
+      return leaderboardData;
+    case 'global':
+    default:
+      return leaderboardData;
+  }
+};
+
 // Helper functions
 const transformTaskFromDb = (task: any): Task => {
   return {
@@ -568,6 +644,81 @@ const transformTaskFromDb = (task: any): Task => {
       fileType: attachment.file_type,
       fileName: attachment.file_name,
       createdAt: new Date(attachment.created_at)
-    })) : []
+    })) : [],
+    assigner: task.assigner ? {
+      id: task.assigner.id,
+      name: task.assigner.name,
+      email: task.assigner.email,
+      avatarUrl: task.assigner.avatar_url,
+      createdAt: new Date(task.assigner.created_at || Date.now())
+    } : undefined,
+    assignee: task.assignee ? {
+      id: task.assignee.id,
+      name: task.assignee.name,
+      email: task.assignee.email,
+      avatarUrl: task.assignee.avatar_url,
+      createdAt: new Date(task.assignee.created_at || Date.now())
+    } : undefined
   };
+};
+
+export const getUserById = async (userId: string): Promise<User | null> => {
+  const { data, error } = await supabase
+    .from('users')
+    .select('id, name, email, avatar_url, created_at')
+    .eq('id', userId)
+    .single();
+    
+  if (error || !data) {
+    console.error('Error fetching user by ID:', error);
+    return null;
+  }
+  
+  return {
+    id: data.id,
+    name: data.name,
+    email: data.email,
+    avatarUrl: data.avatar_url,
+    createdAt: new Date(data.created_at)
+  };
+};
+
+export const getTasksByUser = async (userId: string): Promise<Task[]> => {
+  const { data, error } = await supabase
+    .from('tasks')
+    .select(`
+      *,
+      attachments:task_attachments(*),
+      assigner:users!tasks_assigner_id_fkey(id, name, email, avatar_url, created_at),
+      assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url, created_at)
+    `)
+    .or(`assignee_id.eq.${userId},assigner_id.eq.${userId}`)
+    .order('due_date');
+    
+  if (error || !data) {
+    console.error('Error fetching tasks by user:', error);
+    return [];
+  }
+  
+  return data.map(transformTaskFromDb);
+};
+
+export const getTaskById = async (taskId: string): Promise<Task | null> => {
+  const { data, error } = await supabase
+    .from('tasks')
+    .select(`
+      *,
+      attachments:task_attachments(*),
+      assigner:users!tasks_assigner_id_fkey(id, name, email, avatar_url, created_at),
+      assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url, created_at)
+    `)
+    .eq('id', taskId)
+    .single();
+    
+  if (error || !data) {
+    console.error('Error fetching task by ID:', error);
+    return null;
+  }
+  
+  return transformTaskFromDb(data);
 }; 
