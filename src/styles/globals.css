@@ -177,15 +177,28 @@ textarea {
 /* Container */
 .container {
   width: 100%;
-  max-width: 1200px;
+  max-width: 95%;
   margin: 0 auto;
   padding: 0 var(--spacing-md);
+}
+
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1800px;
+  }
+}
+
+@media (min-width: 2000px) {
+  .container {
+    max-width: 2400px;
+  }
 }
 
 /* Responsive breakpoints */
 @media (max-width: 768px) {
   .container {
     padding: 0 var(--spacing-sm);
+    max-width: 100%;
   }
   
   h1 {
