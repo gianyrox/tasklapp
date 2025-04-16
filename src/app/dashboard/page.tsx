@@ -456,6 +456,80 @@ const DashboardPage: React.FC = () => {
               </Board>
             </div>
           </div>
+          
+          {/* Friends' Task Lists */}
+          <div className={styles.friendsSection}>
+            <div className={styles.sectionHeader}>
+              <h2>Friends' Task Lists</h2>
+              <Button size="sm" variant="primary" onClick={handleFindFriends}>
+                Find Friends
+              </Button>
+            </div>
+            {friends.length === 0 && !isLoading ? (
+              <div className={styles.emptyState}>
+                <p>You haven't connected with any friends yet</p>
+                <Button size="sm" variant="primary" onClick={handleFindFriends}>
+                  Find Friends
+                </Button>
+              </div>
+            ) : (
+              <div className={styles.friendTasksGrid}>
+                {friends.map(friendship => {
+                  const friendId = friendship.userId === user?.id ? friendship.friendId : friendship.userId;
+                  const friendName = friendship.friend?.name || 'Friend';
+                  const tasks = friendTasks[friendId] || [];
+                  
+                  return (
+                    <Board 
+                      key={friendId}
+                      title={`${friendName}'s Tasks`}
+                      isLoading={isLoading}
+                      actionButton={
+                        <button 
+                          onClick={() => handleAddTaskToFriend(friendId, friendName)} 
+                          className={styles.addTaskButton}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                          </svg>
+                          Assign Task
+                        </button>
+                      }
+                      emptyState={
+                        <div className={styles.emptyState}>
+                          <p>You haven't assigned any tasks to {friendName} yet</p>
+                          <div 
+                            className={styles.addTaskCard}
+                            onClick={() => handleAddTaskToFriend(friendId, friendName)}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                            </svg>
+                            Assign Task
+                          </div>
+                        </div>
+                      }
+                    >
+                      <div>
+                        <TaskList tasks={tasks} showDetails={false} ownership="friend" />
+                        {tasks.length > 0 && (
+                          <div 
+                            className={styles.addTaskCard}
+                            onClick={() => handleAddTaskToFriend(friendId, friendName)}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                            </svg>
+                            Assign Task
+                          </div>
+                        )}
+                      </div>
+                    </Board>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           {/* Leaderboard */}
           <Board 
