@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import styles from './Home.module.css';
-import Button from '../components/ui/Button';
-import { supabase } from '../lib/api/supabase';
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import styles from "./Home.module.css";
+import Button from "../components/ui/Button";
+import { supabase } from "../lib/api/supabase";
 
 const HomePage: React.FC = () => {
   const router = useRouter();
@@ -15,29 +15,37 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     // Process auth token from URL hash immediately if present
     const processAuthToken = async () => {
-      if (typeof window !== 'undefined' && window.location.hash) {
+      if (typeof window !== "undefined" && window.location.hash) {
         try {
-          const hashParams = new URLSearchParams(window.location.hash.substring(1));
-          
-          if (hashParams.get('access_token')) {
-            const accessToken = hashParams.get('access_token');
-            const refreshToken = hashParams.get('refresh_token');
-            
+          const hashParams = new URLSearchParams(
+            window.location.hash.substring(1)
+          );
+
+          if (hashParams.get("access_token")) {
+            const accessToken = hashParams.get("access_token");
+            const refreshToken = hashParams.get("refresh_token");
+
             if (accessToken && refreshToken) {
               console.log("Setting session from URL hash tokens");
               const { data, error } = await supabase.auth.setSession({
                 access_token: accessToken,
                 refresh_token: refreshToken,
               });
-              
+
               if (error) {
-                console.error('Error setting session:', error);
+                console.error("Error setting session:", error);
               } else if (data?.session) {
-                console.log("Successfully set session, redirecting to dashboard");
+                console.log(
+                  "Successfully set session, redirecting to dashboard"
+                );
                 // Clear the URL hash to avoid sharing tokens
-                window.history.replaceState({}, document.title, window.location.pathname);
+                window.history.replaceState(
+                  {},
+                  document.title,
+                  window.location.pathname
+                );
                 // Redirect to dashboard immediately
-                router.push('/dashboard');
+                router.push("/dashboard");
                 return true; // Token processed successfully
               }
             }
@@ -53,47 +61,21 @@ const HomePage: React.FC = () => {
     const checkAuth = async () => {
       const tokenProcessed = await processAuthToken();
       if (!tokenProcessed) {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         setIsLoggedIn(!!session);
         setUserId(session?.user.id || null);
       }
     };
-    
+
     checkAuth();
   }, [router]);
 
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <div className={styles.logo}>Taskl</div>
-        <nav className={styles.nav}>
-          {isLoggedIn ? (
-            <>
-              <Link href="/dashboard" className={styles.navLink}>
-                Dashboard
-              </Link>
-              <button 
-                className={styles.navLink}
-                onClick={async () => {
-                  await supabase.auth.signOut();
-                  setIsLoggedIn(false);
-                  router.refresh();
-                }}
-              >
-                Log Out
-              </button>
-            </>
-          ) : (
-            <>
-              <Link href="/login" className={styles.navLink}>
-                Login
-              </Link>
-              <Link href="/signup" className={styles.signupButton}>
-                <Button variant="primary">Sign Up</Button>
-              </Link>
-            </>
-          )}
-        </nav>
+        <div className={styles.logo}>TaskLap</div>
       </header>
 
       <main className={styles.main}>
@@ -105,28 +87,43 @@ const HomePage: React.FC = () => {
             </Link>
           </div>
         )}
-        
+
         <section className={styles.hero}>
           <div className={styles.heroContent}>
-            <h1 className={styles.title}>Complete Tasks. Do Laps. Compete.</h1>
+            <h1 className={styles.title}>Complete Tasks. <br/>Do Laps. <br/>Compete.</h1>
             <p className={styles.subtitle}>
-              Taskl.app transforms ordinary task management into a competitive experience. 
-              Assign tasks, track performance, and race to the top of the leaderboard.
+              Taskl.app transforms ordinary task management into a competitive
+              experience. Assign tasks, track performance, and race to the top
+              of the leaderboard.
             </p>
             <div className={styles.cta}>
               {isLoggedIn ? (
-                <Link href="/dashboard">
-                  <Button size="lg" variant="primary">Go to Dashboard</Button>
+                <Link href="/dashboard" className={styles.buttonLink}>
+                  <Button size="lg" variant="primary" className={styles.button}>
+                    Go to Dashboard
+                  </Button>
                 </Link>
               ) : (
-                <Link href="/signup">
-                  <Button size="lg" variant="primary">Start Racing</Button>
-                </Link>
-              )}
-              {!isLoggedIn && (
-                <Link href="/login">
-                  <Button size="lg" variant="outline">Log In</Button>
-                </Link>
+                <>
+                  <Link href="/signup" className={styles.buttonLink}>
+                    <Button
+                      size="lg"
+                      variant="primary"
+                      className={styles.button}
+                    >
+                      Start Racing
+                    </Button>
+                  </Link>
+                  <Link href="/login" className={styles.buttonLink}>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className={styles.button}
+                    >
+                      Log In
+                    </Button>
+                  </Link>
+                </>
               )}
             </div>
           </div>
@@ -139,24 +136,48 @@ const HomePage: React.FC = () => {
           <h2 className={styles.sectionTitle}>Key Features</h2>
           <div className={styles.featureGrid}>
             <div className={styles.featureCard}>
-              <div className={styles.featureIcon} style={{ backgroundColor: 'var(--primary)' }}></div>
+              <div
+                className={styles.featureIcon}
+                style={{ backgroundColor: "var(--primary)" }}
+              ></div>
               <h3>Competitive Task Assignment</h3>
-              <p>Create challenges and assign tasks to team members with customizable difficulty levels.</p>
+              <p>
+                Create challenges and assign tasks to team members with
+                customizable difficulty levels.
+              </p>
             </div>
             <div className={styles.featureCard}>
-              <div className={styles.featureIcon} style={{ backgroundColor: 'var(--secondary)' }}></div>
+              <div
+                className={styles.featureIcon}
+                style={{ backgroundColor: "var(--secondary)" }}
+              ></div>
               <h3>Real-time Performance Tracking</h3>
-              <p>Monitor completion rates, speed, and consistency with our racing-inspired dashboard.</p>
+              <p>
+                Monitor completion rates, speed, and consistency with our
+                racing-inspired dashboard.
+              </p>
             </div>
             <div className={styles.featureCard}>
-              <div className={styles.featureIcon} style={{ backgroundColor: 'var(--success)' }}></div>
+              <div
+                className={styles.featureIcon}
+                style={{ backgroundColor: "var(--success)" }}
+              ></div>
               <h3>Leaderboard Rankings</h3>
-              <p>Foster healthy competition with performance-based rankings and achievement badges.</p>
+              <p>
+                Foster healthy competition with performance-based rankings and
+                achievement badges.
+              </p>
             </div>
             <div className={styles.featureCard}>
-              <div className={styles.featureIcon} style={{ backgroundColor: 'var(--info)' }}></div>
+              <div
+                className={styles.featureIcon}
+                style={{ backgroundColor: "var(--info)" }}
+              ></div>
               <h3>Racing Analytics</h3>
-              <p>Gain insights with comprehensive statistics and visualize your productivity journey.</p>
+              <p>
+                Gain insights with comprehensive statistics and visualize your
+                productivity journey.
+              </p>
             </div>
           </div>
         </section>
@@ -164,7 +185,9 @@ const HomePage: React.FC = () => {
 
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
-          <p>&copy; {new Date().getFullYear()} Taskl.app. All rights reserved.</p>
+          <p>
+            &copy; {new Date().getFullYear()} Taskl.app. All rights reserved.
+          </p>
           <div className={styles.footerLinks}>
             <a href="#">Privacy Policy</a>
             <a href="#">Terms of Service</a>
@@ -176,4 +199,4 @@ const HomePage: React.FC = () => {
   );
 };
 
-export default HomePage; 
+export default HomePage;

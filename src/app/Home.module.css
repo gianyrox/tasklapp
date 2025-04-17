@@ -6,7 +6,7 @@
 
 .header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding: 1.5rem 2rem;
   background-color: var(--surface);
@@ -15,23 +15,41 @@
   top: 0;
   z-index: 10;
   border-bottom: 3px solid var(--primary);
-  /* Subtle racing stripe pattern */
-  background-image: linear-gradient(to right, transparent 0%, transparent 99.5%, var(--track-curb-red) 99.5%, var(--track-curb-red) 100%);
 }
+
+@media (min-width: 768px) {
+  .header {
+    justify-content: flex-start;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: translateY(-50%) scale(1);
+    box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.15);
+  }
+  50% {
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 0 0 5px rgba(67, 56, 202, 0.2);
+  }
+  100% {
+    transform: translateY(-50%) scale(1);
+    box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.15);
+  }
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700&display=swap');
+
 
 .logo {
   font-size: var(--font-size-xl);
   font-weight: 700;
   color: var(--primary);
   letter-spacing: -0.5px;
-  font-family: var(--font-family-heading);
+  font-style: italic; 
   position: relative;
-  padding-left: 28px;
+  padding-left: 38px; /* Increased padding to accommodate larger circle */
   transition: transform var(--transition-fast);
-}
-
-.logo:hover {
-  transform: scale(1.05);
 }
 
 .logo::before {
@@ -40,11 +58,15 @@
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
+  width: 30px; /* Increased from 20px to 30px */
+  height: 30px; /* Increased from 20px to 30px */
   background: var(--primary);
   border-radius: 50%;
   box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.15);
+  animation: pulse 2s infinite ease-in-out; /* Added pulsing animation */
+}
+.logo:hover {
+  transform: scale(1.05);
 }
 
 .nav {
@@ -146,7 +168,22 @@
 
 .cta {
   display: flex;
+  flex-direction: column;
   gap: var(--spacing-md);
+  max-width: 250px; /* Set a fixed max-width for the button container */
+}
+
+.buttonLink {
+  width: 100%;
+  display: block;
+}
+
+.button {
+  width: 100%;
+  height: 50px; /* Fixed height for both buttons */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .heroImage {
