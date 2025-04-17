@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Task, TaskStatus, TaskPriority, User, Friendship, FriendshipStatus, LeaderboardEntry, TaskAttachment } from '../../types';
+import { Task, TaskStatus, TaskPriority, User, Friendship, FriendshipStatus, LeaderboardEntry, TaskAttachment, SubmissionType } from '../../types';
 
 // Logger utility for consistent logging
 const logger = {
@@ -771,6 +771,72 @@ export const updateTaskStatus = async (
     
   if (error || !data) {
     console.error('Error updating task status:', error);
+    return null;
+  }
+  
+  return transformTaskFromDb(data);
+};
+
+export const updateTaskSubmissionType = async (
+  taskId: string,
+  submissionType: SubmissionType
+): Promise<Task | null> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    console.error('No active session found, cannot update task submission type');
+    return null;
+  }
+  
+  const updateData = { 
+    submission_type: submissionType
+  };
+  
+  const { data, error } = await supabase
+    .from('tasks')
+    .update(updateData)
+    .eq('id', taskId)
+    .select(`
+      *,
+      attachments:task_attachments(*)
+    `)
+    .single();
+    
+  if (error || !data) {
+    console.error('Error updating task submission type:', error);
+    return null;
+  }
+  
+  return transformTaskFromDb(data);
+};
+
+export const updateTaskSubmissionContent = async (
+  taskId: string,
+  submissionContent: string
+): Promise<Task | null> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    console.error('No active session found, cannot update task submission content');
+    return null;
+  }
+  
+  const updateData = { 
+    submission_content: submissionContent
+  };
+  
+  const { data, error } = await supabase
+    .from('tasks')
+    .update(updateData)
+    .eq('id', taskId)
+    .select(`
+      *,
+      attachments:task_attachments(*)
+    `)
+    .single();
+    
+  if (error || !data) {
+    console.error('Error updating task submission content:', error);
     return null;
   }
   

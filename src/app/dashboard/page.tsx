@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import AppLayout from '../../components/layout/AppLayout';
 import TaskList from '../../components/task/TaskList';
-import { TaskStatus, Friendship, FriendshipStatus, Task, LeaderboardEntry } from '../../types';
+import { TaskStatus, Friendship, FriendshipStatus, Task, LeaderboardEntry, SubmissionType } from '../../types';
 import styles from './Dashboard.module.css';
 import ProtectedRoute from '../../components/layout/ProtectedRoute';
 import { useAuth } from '../../context/AuthContext';
@@ -15,6 +15,8 @@ import {
   getTasksFromFriends, 
   getTasksByFriend, 
   updateTaskStatus, 
+  updateTaskSubmissionType,
+  updateTaskSubmissionContent,
   createTask,
   supabase,
   getTaskById
@@ -222,13 +224,44 @@ const DashboardPage: React.FC = () => {
   };
 
   const handleStatusChange = async (taskId: string, newStatus: TaskStatus) => {
+    setIsLoading(true);
     try {
       await updateTaskStatus(taskId, newStatus);
-      // Refresh dashboard data after status change
+      // Re-fetch tasks
       fetchDashboardData();
     } catch (err) {
       console.error('Error updating task status:', err);
-      setError('Failed to update task status. Please try again.');
+      setError('Failed to update task status. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmissionTypeChange = async (taskId: string, newType: SubmissionType) => {
+    setIsLoading(true);
+    try {
+      await updateTaskSubmissionType(taskId, newType);
+      // Re-fetch tasks
+      fetchDashboardData();
+    } catch (err) {
+      console.error('Error updating task submission type:', err);
+      setError('Failed to update task submission type. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmissionContentChange = async (taskId: string, content: string) => {
+    setIsLoading(true);
+    try {
+      await updateTaskSubmissionContent(taskId, content);
+      // Re-fetch tasks
+      fetchDashboardData();
+    } catch (err) {
+      console.error('Error updating task submission content:', err);
+      setError('Failed to update task submission content. Please try again later.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -441,7 +474,14 @@ const DashboardPage: React.FC = () => {
                     {selfAssignedTasks.length > 0 && (
                       <div className={styles.taskSection}>
                         <h3 className={styles.taskSectionTitle}>Tasks I Created</h3>
-                        <TaskList tasks={selfAssignedTasks} onStatusChange={handleStatusChange} showDetails={true} ownership="self" />
+                        <TaskList 
+                          tasks={selfAssignedTasks} 
+                          onStatusChange={handleStatusChange} 
+                          onSubmissionTypeChange={handleSubmissionTypeChange}
+                          onSubmissionContentChange={handleSubmissionContentChange}
+                          showDetails={true} 
+                          ownership="self" 
+                        />
                       </div>
                     )}
                     
@@ -449,7 +489,14 @@ const DashboardPage: React.FC = () => {
                     {tasksFromFriends.length > 0 && (
                       <div className={styles.taskSection}>
                         <h3 className={styles.taskSectionTitle}>Tasks From Friends</h3>
-                        <TaskList tasks={tasksFromFriends} onStatusChange={handleStatusChange} showDetails={true} ownership="self" />
+                        <TaskList 
+                          tasks={tasksFromFriends} 
+                          onStatusChange={handleStatusChange} 
+                          onSubmissionTypeChange={handleSubmissionTypeChange}
+                          onSubmissionContentChange={handleSubmissionContentChange}
+                          showDetails={true} 
+                          ownership="self" 
+                        />
                       </div>
                     )}
                     

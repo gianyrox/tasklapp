@@ -1,11 +1,13 @@
 import React from 'react';
-import { Task } from '../../types';
+import { Task, TaskStatus, SubmissionType } from '../../types';
 import TaskCard from './TaskCard';
 import styles from './TaskList.module.css';
 
 interface TaskListProps {
   tasks: Task[];
-  onStatusChange?: (taskId: string, newStatus: any) => void;
+  onStatusChange?: (taskId: string, newStatus: TaskStatus) => void;
+  onSubmissionTypeChange?: (taskId: string, newType: SubmissionType) => void;
+  onSubmissionContentChange?: (taskId: string, content: string) => void;
   showDetails?: boolean;
   ownership?: 'self' | 'friend';
 }
@@ -13,6 +15,8 @@ interface TaskListProps {
 export const TaskList: React.FC<TaskListProps> = ({ 
   tasks,
   onStatusChange,
+  onSubmissionTypeChange,
+  onSubmissionContentChange,
   showDetails = false,
   ownership = 'self'
 }) => {
@@ -23,6 +27,8 @@ export const TaskList: React.FC<TaskListProps> = ({
           key={task.id}
           task={task}
           onStatusChange={onStatusChange}
+          onSubmissionTypeChange={onSubmissionTypeChange}
+          onSubmissionContentChange={onSubmissionContentChange}
           showDetails={showDetails}
           ownership={ownership}
         />

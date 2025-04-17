@@ -506,6 +506,11 @@
   font-size: 1em;
 }
 
+.submissionIcon:before {
+  content: '📤';
+  margin-right: 8px;
+}
+
 .ratingIcon {
   margin-right: 0.25rem;
   font-size: 1em;
@@ -561,4 +566,562 @@
   border-radius: 4px;
   display: inline-block;
   vertical-align: middle;
+}
+
+.instructionsDetail {
+  grid-column: 1 / -1;
+}
+
+.instructionsText {
+  white-space: pre-wrap;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  margin-top: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.submissionTypeDisplay {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.editButton {
+  padding: 3px 8px;
+  background-color: transparent;
+  border: 1px solid #d0d5dd;
+  border-radius: 4px;
+  color: #475467;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.editButton:hover {
+  background-color: #f3f4f6;
+  border-color: #98a2b3;
+}
+
+.submissionTypeEditor {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.typeOption {
+  flex: 1;
+  min-width: 70px;
+  padding: 8px 12px;
+  text-align: center;
+  background-color: #fff;
+  border: 1px solid #d0d5dd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.typeOption:hover {
+  background-color: #f9fafb;
+  border-color: #98a2b3;
+}
+
+.typeOption.selected {
+  background-color: #f0f9ff;
+  border-color: #0ea5e9;
+  color: #0284c7;
+  font-weight: 500;
+}
+
+.cancelButton {
+  width: 100%;
+  margin-top: 8px;
+  padding: 6px;
+  background-color: #f9fafb;
+  border: 1px solid #d0d5dd;
+  border-radius: 4px;
+  color: #475467;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.cancelButton:hover {
+  background-color: #f3f4f6;
+  border-color: #98a2b3;
+}
+
+.submissionLink {
+  color: #0284c7;
+  text-decoration: none;
+  word-break: break-all;
+  border-bottom: 1px dashed #0284c7;
+  padding-bottom: 2px;
+  transition: all 0.2s;
+}
+
+.submissionLink:hover {
+  color: #0369a1;
+  border-bottom: 1px solid #0369a1;
+}
+
+.submissionContentDetail {
+  grid-column: 1 / -1;
+}
+
+.submissionContentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.submissionPlaceholder {
+  background-color: #f9fafc;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: #64748b;
+  font-style: italic;
+  border: 1px dashed #cbd5e1;
+}
+
+.submissionContentEditor {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.submissionTextarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 120px;
+  background-color: #fff;
+}
+
+.submissionTextarea:focus {
+  outline: none;
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.1);
+}
+
+.submissionInput {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 1rem;
+  background-color: #fff;
+}
+
+.submissionInput:focus {
+  outline: none;
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.1);
+}
+
+.fileInputWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fileNote {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.submissionActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.saveButton {
+  flex: 1;
+  padding: 8px 16px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.saveButton:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.saveButton:disabled {
+  background-color: #93c5fd;
+  cursor: not-allowed;
+}
+
+/* Enhanced Submission Section Styles */
+.submissionTypeCard {
+  background-color: #f7f9fc;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  border: 1px solid #e5e9ef;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.submissionTypeHeader {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.submissionTypeTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.submissionTypeValue {
+  display: inline-block;
+  background-color: #e0eaff;
+  color: #3b82f6;
+  font-weight: 500;
+  font-size: 0.9rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin-right: auto;
+}
+
+.editTypeButton {
+  background-color: transparent;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  font-size: 0.85rem;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.editTypeButton:hover {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.submissionInstructions {
+  background-color: #fffbeb;
+  border: 1px solid #fef3c7;
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.instructionsIcon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.submissionInstructions p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #713f12;
+  line-height: 1.5;
+}
+
+.submissionTypeEditor {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.typeOption {
+  background-color: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.typeOption:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.typeOption.selected {
+  background-color: #dbeafe;
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 1px #93c5fd;
+}
+
+.typeOptionIcon {
+  font-size: 1.3rem;
+}
+
+.cancelButton {
+  grid-column: 1/-1;
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  font-size: 0.9rem;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 6px;
+}
+
+.cancelButton:hover {
+  background-color: #e2e8f0;
+}
+
+/* Submission Content Section */
+.submissionContentSection {
+  margin-top: 20px;
+}
+
+/* Submission Editor */
+.submissionEditor {
+  background-color: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.submissionTextarea {
+  width: 100%;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 150px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  transition: border-color 0.2s;
+}
+
+.submissionTextarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.linkInputContainer, 
+.fileInputContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.submissionInput {
+  width: 100%;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  transition: border-color 0.2s;
+}
+
+.submissionInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.inputHelp, 
+.fileNote {
+  font-size: 0.85rem;
+  color: #64748b;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.noteIcon {
+  font-size: 1rem;
+}
+
+.submissionActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+
+.saveButton {
+  background-color: #e2e8f0;
+  color: #475569;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.saveButton:hover:not(:disabled) {
+  background-color: #cbd5e1;
+}
+
+.submitButton {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.submitButton:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.saveButton:disabled, 
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Submission Viewer */
+.submissionViewer {
+  background-color: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  padding: 16px;
+}
+
+.submissionContentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.submissionContentLabel {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.submissionContentLabel:before {
+  content: '📄';
+  display: inline-block;
+}
+
+.editButton {
+  background-color: transparent;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  font-size: 0.85rem;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.editButton:hover {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.submissionContentDisplay {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 16px;
+  min-height: 100px;
+}
+
+.submissionText {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  color: #334155;
+}
+
+.submissionLink {
+  color: #2563eb;
+  text-decoration: none;
+  border-bottom: 1px dotted #2563eb;
+  word-break: break-all;
+}
+
+.submissionLink:hover {
+  border-bottom: 1px solid #2563eb;
+}
+
+.submissionPlaceholder {
+  color: #94a3b8;
+  font-style: italic;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80px;
+  text-align: center;
+}
+
+.submissionMeta {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.submissionMetaLabel {
+  font-weight: 500;
+}
+
+.submissionMetaValue {
+  color: #475569;
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 768px) {
+  .submissionTypeEditor {
+    grid-template-columns: 1fr;
+  }
+  
+  .submissionActions {
+    flex-direction: column;
+  }
+  
+  .saveButton, 
+  .submitButton {
+    width: 100%;
+  }
 } 

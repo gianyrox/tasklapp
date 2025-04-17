@@ -62,6 +62,12 @@ export interface Task {
   assignee?: User; // Populated with assignee profile information
 }
 
+export interface TaskSubmissionUpdate {
+  taskId: string;
+  submissionContent: string;
+  actualTimeMinutes?: number;
+}
+
 export interface TaskAttachment {
   id: string;
   taskId: string;
