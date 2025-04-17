@@ -1,6 +1,31 @@
 import { createClient } from '@supabase/supabase-js';
 import { Task, TaskStatus, TaskPriority, User, Friendship, FriendshipStatus, LeaderboardEntry, TaskAttachment } from '../../types';
 
+// Logger utility for consistent logging
+const logger = {
+  info: (context: string, message: string, data?: any) => {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] [INFO] [${context}] ${message}${data ? '\n' + JSON.stringify(data, null, 2) : ''}`);
+  },
+  
+  error: (context: string, message: string, error?: any) => {
+    const timestamp = new Date().toISOString();
+    console.error(`[${timestamp}] [ERROR] [${context}] ${message}${error ? '\n' + JSON.stringify(error, null, 2) : ''}`);
+  },
+  
+  warn: (context: string, message: string, data?: any) => {
+    const timestamp = new Date().toISOString();
+    console.warn(`[${timestamp}] [WARN] [${context}] ${message}${data ? '\n' + JSON.stringify(data, null, 2) : ''}`);
+  },
+  
+  debug: (context: string, message: string, data?: any) => {
+    if (process.env.NODE_ENV !== 'production') {
+      const timestamp = new Date().toISOString();
+      console.debug(`[${timestamp}] [DEBUG] [${context}] ${message}${data ? '\n' + JSON.stringify(data, null, 2) : ''}`);
+    }
+  }
+};
+
 // Initialize Supabase client with performance optimizations
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -136,73 +161,85 @@ export const getSession = async () => {
 // User API functions
 export const getCurrentUser = async (): Promise<User | null> => {
   try {
-    // First check session quickly using our optimized getSession
-    const { data: { session } } = await getSession();
+    logger.info('getCurrentUser', 'Getting current user...');
+    // Get session data
+    const { data: { session } } = await supabase.auth.getSession();
     
     if (!session) {
+      logger.warn('getCurrentUser', 'No active session found');
       return null;
     }
     
-    const userId = session.user.id;
+    logger.info('getCurrentUser', `Session found, user ID: ${session.user.id}`);
     
-    // Set a timeout to avoid hanging requests
-    const timeoutPromise = new Promise<null>((resolve) => {
-      setTimeout(() => resolve(null), 5000); // 5 second timeout
-    });
-    
-    // Use a more efficient query that fetches user and their stats in one go
-    const queryPromise = supabase
+    // Get user profile data
+    const result = await supabase
       .from('users')
-      .select(`
-        id,
-        name,
-        email,
-        avatar_url,
-        created_at,
-        stats:user_stats(
-          rank,
-          tasks_completed,
-          completion_rate,
-          average_completion_time
-        )
-      `)
-      .eq('id', userId)
+      .select('*, stats:user_stats(*)')
+      .eq('id', session.user.id)
       .single();
-      
-    // Race the query against a timeout
-    const result = await Promise.race([
-      queryPromise,
-      timeoutPromise
-    ]);
     
-    // If timeout won, result will be null
-    if (!result) {
-      console.error('User data fetch timed out');
+    // Handle timeout
+    if (result === undefined) {
+      logger.error('getCurrentUser', 'User data fetch timed out');
       return null;
     }
     
     const { data, error } = result;
       
-    if (error || !data) {
-      console.error('Error fetching current user:', error);
+    if (error) {
+      logger.error('getCurrentUser', 'Error fetching current user:', error);
       return null;
     }
     
-    return {
+    if (!data) {
+      logger.error('getCurrentUser', 'No user data returned');
+      return null;
+    }
+    
+    logger.debug('getCurrentUser', 'User data fetched:', {
       id: data.id,
       name: data.name,
       email: data.email,
-      avatarUrl: data.avatar_url,
-      createdAt: new Date(data.created_at),
+      stats: data.stats
+    });
+    
+    // Define explicit type for the data
+    type UserData = {
+      id: string;
+      name: string;
+      email: string;
+      avatar_url?: string;
+      created_at: string;
+      stats?: {
+        rank?: number;
+        tasks_completed?: number;
+        completion_rate?: number;
+        average_completion_time?: number;
+      } | null;
+    };
+    
+    // Cast data to our defined type
+    const userData = data as unknown as UserData;
+    
+    const user = {
+      id: userData.id,
+      name: userData.name,
+      email: userData.email,
+      avatarUrl: userData.avatar_url,
+      createdAt: new Date(userData.created_at),
       stats: {
-        rank: data.stats?.rank || 0,
-        tasksCompleted: data.stats?.tasks_completed || 0,
-        completionRate: data.stats?.completion_rate || 0,
-        averageCompletionTime: data.stats?.average_completion_time || 0
+        rank: userData.stats?.rank || 0,
+        tasksCompleted: userData.stats?.tasks_completed || 0,
+        completionRate: userData.stats?.completion_rate || 0,
+        averageCompletionTime: userData.stats?.average_completion_time || 0
       }
     };
+    
+    logger.debug('getCurrentUser', 'Returning user object:', user);
+    return user;
   } catch (error) {
-    console.error('Unexpected error in getCurrentUser:', error);
+    logger.error('getCurrentUser', 'Unexpected error:', error);
     return null;
   }
 };
@@ -247,41 +284,80 @@ export const updateUserProfile = async (data: {
 };
 
 export const getAllUsers = async (): Promise<User[]> => {
+  console.log('Getting all users...');
+  
   const { data, error } = await supabase
     .from('users')
     .select('*, stats:user_stats(*)')
     .order('name');
     
-  if (error || !data) {
+  if (error) {
     console.error('Error fetching users:', error);
     return [];
   }
   
-  return data.map(user => ({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    avatarUrl: user.avatar_url,
-    createdAt: new Date(user.created_at),
+  if (!data || data.length === 0) {
+    console.log('No users found');
+    return [];
+  }
+  
+  console.log(`Found ${data.length} users`);
+  console.log('First user data sample:', JSON.stringify(data[0], null, 2));
+  
+  // Define type for user data from database
+  type UserDB = {
+    id: string;
+    name: string;
+    email: string;
+    avatar_url?: string;
+    created_at: string;
     stats: {
-      tasksCompleted: user.stats.tasks_completed,
-      tasksAssigned: user.stats.tasks_assigned,
-      averageCompletionTime: user.stats.average_completion_time,
-      completionRate: user.stats.completion_rate,
-      rank: user.stats.rank
-    }
-  }));
+      tasks_completed?: number;
+      tasks_assigned?: number; 
+      average_completion_time?: number;
+      completion_rate?: number;
+      rank?: number;
+    } | null;
+  };
+  
+  // Cast data to our defined type
+  const usersData = data as unknown as UserDB[];
+  
+  const users = usersData.map(user => {
+    console.log(`Processing user ${user.id} (${user.name})`);
+    console.log('Stats object:', JSON.stringify(user.stats, null, 2));
+    
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      avatarUrl: user.avatar_url,
+      createdAt: new Date(user.created_at),
+      stats: {
+        tasksCompleted: user.stats?.tasks_completed || 0,
+        completionRate: user.stats?.completion_rate || 0,
+        averageCompletionTime: user.stats?.average_completion_time || 0,
+        rank: user.stats?.rank || 0
+      }
+    };
+  });
+  
+  console.log(`Returning ${users.length} processed users`);
+  return users;
 };
 
 // Friend management functions
 export const getFriendships = async (status?: FriendshipStatus): Promise<Friendship[]> => {
+  logger.info('getFriendships', `Getting friendships with status: ${status || 'all'}`);
+  
   const { data: { session } } = await supabase.auth.getSession();
   
   if (!session) {
+    logger.warn('getFriendships', 'No active session found');
     return [];
   }
   
-  console.log('Fetching friendships for user:', session.user.id, 'with status:', status || 'all');
+  logger.info('getFriendships', `Fetching friendships for user: ${session.user.id}`);
   
   let query = supabase
     .from('friendships')
@@ -298,25 +374,59 @@ export const getFriendships = async (status?: FriendshipStatus): Promise<Friends
   
   const { data, error } = await query.order('created_at', { ascending: false });
     
-  if (error || !data) {
-    console.error('Error fetching friendships:', error);
+  if (error) {
+    logger.error('getFriendships', 'Error fetching friendships:', error);
     return [];
   }
   
-  console.log('Friendships data from DB:', data.length, 'records');
+  if (!data || data.length === 0) {
+    logger.warn('getFriendships', 'No friendships found');
+    return [];
+  }
   
-  return data.map(friendship => {
+  logger.info('getFriendships', `Found ${data.length} friendships`);
+  
+  // Define type for friendship data from database
+  type FriendshipDB = {
+    id: string;
+    user_id: string;
+    friend_id: string;
+    status: FriendshipStatus;
+    created_at: string;
+    updated_at: string;
+    requester?: {
+      id: string;
+      name: string;
+      email: string;
+      avatar_url?: string;
+      created_at: string;
+    } | null;
+    recipient?: {
+      id: string;
+      name: string;
+      email: string;
+      avatar_url?: string;
+      created_at: string;
+    } | null;
+  };
+  
+  // Cast data to our defined type
+  const friendshipsData = data as unknown as FriendshipDB[];
+  
+  return friendshipsData.map(friendship => {
     // Determine which user is the friend (not the current user)
     const isUserRequester = friendship.user_id === session.user.id;
     const friendData = isUserRequester 
       ? friendship.recipient 
       : friendship.requester;
     
+    logger.debug('getFriendships', `Processing friendship ${friendship.id}, friend data:`, friendData);
+    
     return {
       id: friendship.id,
       userId: friendship.user_id,
       friendId: friendship.friend_id,
-      status: friendship.status as FriendshipStatus,
+      status: friendship.status,
       createdAt: new Date(friendship.created_at),
       updatedAt: new Date(friendship.updated_at),
       friend: friendData ? {
@@ -388,11 +498,21 @@ export const respondToFriendRequest = async (
 };
 
 export const searchUsers = async (query: string): Promise<User[]> => {
+  console.log(`Searching users with query: "${query}"`);
+  
   const { data: { session } } = await supabase.auth.getSession();
   
-  if (!session || !query || query.length < 3) {
+  if (!session) {
+    console.log('No active session found, cannot search users');
     return [];
   }
+  
+  if (!query || query.length < 3) {
+    console.log('Query too short, minimum 3 characters required');
+    return [];
+  }
+  
+  console.log(`Searching for "${query}" excluding current user: ${session.user.id}`);
   
   const { data, error } = await supabase
     .from('users')
@@ -401,12 +521,30 @@ export const searchUsers = async (query: string): Promise<User[]> => {
     .neq('id', session.user.id)
     .limit(10);
     
-  if (error || !data) {
+  if (error) {
     console.error('Error searching users:', error);
     return [];
   }
   
-  return data.map(user => ({
+  if (!data || data.length === 0) {
+    console.log('No users found matching query');
+    return [];
+  }
+  
+  console.log(`Found ${data.length} users matching query"`);
+  
+  // Cast data to known structure
+  type UserDB = {
+    id: string;
+    name: string;
+    email: string;
+    avatar_url?: string;
+    created_at: string;
+  };
+  
+  const usersData = data as unknown as UserDB[];
+  
+  const users = usersData.map(user => ({
     id: user.id,
     name: user.name,
     email: user.email,
@@ -419,6 +557,8 @@ export const searchUsers = async (query: string): Promise<User[]> => {
       averageCompletionTime: 0
     }
   }));
+  
+  return users;
 };
 
 // Task API functions
@@ -643,6 +783,8 @@ export const addTaskAttachment = async (
   fileType?: string,
   fileName?: string
 ): Promise<TaskAttachment | null> => {
+  logger.info('addTaskAttachment', `Adding attachment to task ${taskId}`);
+  
   const { data, error } = await supabase
     .from('task_attachments')
     .insert({
@@ -654,18 +796,38 @@ export const addTaskAttachment = async (
     .select()
     .single();
     
-  if (error || !data) {
-    console.error('Error adding task attachment:', error);
+  if (error) {
+    logger.error('addTaskAttachment', 'Error adding task attachment:', error);
     return null;
   }
   
+  if (!data) {
+    logger.error('addTaskAttachment', 'No data returned when adding task attachment');
+    return null;
+  }
+  
+  // Define type for attachment data from database
+  type AttachmentDB = {
+    id: string;
+    task_id: string;
+    file_url: string;
+    file_type?: string;
+    file_name?: string;
+    created_at: string;
+  };
+  
+  // Cast data to our defined type
+  const attachmentData = data as unknown as AttachmentDB;
+  
+  logger.debug('addTaskAttachment', 'Attachment added successfully:', attachmentData);
+  
   return {
-    id: data.id,
-    taskId: data.task_id,
-    fileUrl: data.file_url,
-    fileType: data.file_type,
-    fileName: data.file_name,
-    createdAt: new Date(data.created_at)
+    id: attachmentData.id,
+    taskId: attachmentData.task_id,
+    fileUrl: attachmentData.file_url,
+    fileType: attachmentData.file_type,
+    fileName: attachmentData.file_name,
+    createdAt: new Date(attachmentData.created_at)
   };
 };
 
@@ -674,6 +836,25 @@ export const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
   
   if (!session) {
     return [];
+  }
+  
+  // Define types for Supabase query results
+  interface UserRecord {
+    id: string;
+    name: string;
+    avatar_url?: string;
+  }
+  
+  interface TaskRecord {
+    id: string;
+    status: string;
+    assignee_id: string;
+    actual_time_minutes: number | null;
+    quality_rating: number | null;
+    timeliness_rating: number | null;
+    effort_rating: number | null;
+    accuracy_rating: number | null;
+    due_date: string;
   }
   
   // First get accepted friendships to mark friends on leaderboard
@@ -696,7 +877,8 @@ export const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
   // Get all users
   const { data: users, error: usersError } = await supabase
     .from('users')
-    .select('id, name, avatar_url');
+    .select('id, name, avatar_url')
+    .returns<UserRecord[]>();
     
   if (usersError || !users) {
     console.error('Error fetching users for leaderboard:', usersError);
@@ -706,7 +888,8 @@ export const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
   // Get tasks for calculations
   const { data: tasks, error: tasksError } = await supabase
     .from('tasks')
-    .select('id, status, assignee_id, actual_time_minutes, quality_rating, due_date');
+    .select('id, status, assignee_id, actual_time_minutes, quality_rating, timeliness_rating, effort_rating, accuracy_rating, due_date')
+    .returns<TaskRecord[]>();
     
   if (tasksError || !tasks) {
     console.error('Error fetching tasks for leaderboard:', tasksError);
@@ -714,7 +897,7 @@ export const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
   }
   
   // Calculate leaderboard data manually
-  const leaderboardData = users.map(user => {
+  const leaderboardData: LeaderboardEntry[] = users.map(user => {
     // Get tasks assigned to this user
     const userTasks = tasks.filter(task => task.assignee_id === user.id);
     
@@ -736,6 +919,30 @@ export const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
     const avgQualityRating = completedTasksWithRating.length
       ? completedTasksWithRating.reduce((sum, task) => sum + (task.quality_rating || 0), 0) / completedTasksWithRating.length
       : undefined;
+      
+    const completedTasksWithTimelinessRating = userTasks.filter(
+      task => task.status === 'COMPLETED' && task.timeliness_rating !== null
+    );
+    
+    const avgTimelinessRating = completedTasksWithTimelinessRating.length
+      ? completedTasksWithTimelinessRating.reduce((sum, task) => sum + (task.timeliness_rating || 0), 0) / completedTasksWithTimelinessRating.length
+      : undefined;
+      
+    const completedTasksWithEffortRating = userTasks.filter(
+      task => task.status === 'COMPLETED' && task.effort_rating !== null
+    );
+    
+    const avgEffortRating = completedTasksWithEffortRating.length
+      ? completedTasksWithEffortRating.reduce((sum, task) => sum + (task.effort_rating || 0), 0) / completedTasksWithEffortRating.length
+      : undefined;
+      
+    const completedTasksWithAccuracyRating = userTasks.filter(
+      task => task.status === 'COMPLETED' && task.accuracy_rating !== null
+    );
+    
+    const avgAccuracyRating = completedTasksWithAccuracyRating.length
+      ? completedTasksWithAccuracyRating.reduce((sum, task) => sum + (task.accuracy_rating || 0), 0) / completedTasksWithAccuracyRating.length
+      : undefined;
     
     const tasksOverdue = userTasks.filter(task => 
       task.status === 'OVERDUE' || 
@@ -749,6 +956,9 @@ export const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
       tasksCompleted,
       avgCompletionTime,
       avgQualityRating,
+      avgTimelinessRating,
+      avgEffortRating,
+      avgAccuracyRating,
       tasksOverdue,
       isFriend: friendIds.includes(user.id) || user.id === session.user.id
     };
@@ -773,14 +983,23 @@ export const getFriendById = async (friendId: string): Promise<{ friendProfile: 
     return { friendProfile: null, status: null };
   }
   
-  // Get user profile
-  const { data: userData, error: userError } = await supabase
+  // Define the type for user data returned from Supabase
+  interface UserDBRecord {
+    id: string;
+    name: string;
+    email: string;
+    avatar_url?: string;
+    created_at: string;
+  }
+  
+  // Get user profile with typed response
+  const { data, error: userError } = await supabase
     .from('users')
     .select('id, name, email, avatar_url, created_at')
     .eq('id', friendId)
-    .single();
+    .single<UserDBRecord>();
     
-  if (userError || !userData) {
+  if (userError || !data) {
     console.error('Error fetching friend profile:', userError);
     return { friendProfile: null, status: null };
   }
@@ -797,11 +1016,11 @@ export const getFriendById = async (friendId: string): Promise<{ friendProfile: 
   
   // Map DB data to User type
   const userProfile: User = {
-    id: userData.id,
-    name: userData.name,
-    email: userData.email,
-    avatarUrl: userData.avatar_url,
-    createdAt: new Date(userData.created_at),
+    id: data.id,
+    name: data.name,
+    email: data.email,
+    avatarUrl: data.avatar_url,
+    createdAt: new Date(data.created_at),
     stats: {
       rank: 0,
       tasksCompleted: 0,
@@ -844,7 +1063,43 @@ export const getLeaderboardDetail = async (leaderboardType: string): Promise<Lea
 
 // Helper functions
 const transformTaskFromDb = (task: any): Task => {
-  return {
+  console.log(`Transforming task ${task.id}: "${task.title}"`);
+  
+  if (!task) {
+    console.error('Received null or undefined task to transform');
+    throw new Error('Cannot transform null task');
+  }
+  
+  // Check for required fields
+  if (!task.id || !task.title || !task.due_date) {
+    console.error('Task missing required fields:', JSON.stringify(task, null, 2));
+  }
+  
+  // Define types for the task and related data
+  interface TaskAttachmentDB {
+    id: string;
+    task_id: string;
+    file_url: string;
+    file_type?: string;
+    file_name?: string;
+    created_at: string;
+  }
+  
+  interface UserDB {
+    id: string;
+    name: string;
+    email: string;
+    avatar_url?: string;
+    created_at?: string;
+  }
+  
+  // Log attachment data if present
+  if (task.attachments && task.attachments.length > 0) {
+    console.log(`Task has ${task.attachments.length} attachments`);
+  }
+  
+  // Create the transformed task object
+  const transformedTask: Task = {
     id: task.id,
     title: task.title,
     description: task.description,
@@ -867,7 +1122,7 @@ const transformTaskFromDb = (task: any): Task => {
     effortRating: task.effort_rating,
     accuracyRating: task.accuracy_rating,
     feedback: task.feedback,
-    attachments: task.attachments ? task.attachments.map((attachment: any) => ({
+    attachments: task.attachments ? task.attachments.map((attachment: TaskAttachmentDB) => ({
       id: attachment.id,
       taskId: attachment.task_id,
       fileUrl: attachment.file_url,
@@ -902,14 +1157,25 @@ const transformTaskFromDb = (task: any): Task => {
       }
     } : undefined
   };
+  
+  return transformedTask;
 };
 
 export const getUserById = async (userId: string): Promise<User | null> => {
+  // Define the type for user data returned from Supabase
+  interface UserDBRecord {
+    id: string;
+    name: string;
+    email: string;
+    avatar_url?: string;
+    created_at: string;
+  }
+  
   const { data, error } = await supabase
     .from('users')
     .select('id, name, email, avatar_url, created_at')
     .eq('id', userId)
-    .single();
+    .single<UserDBRecord>();
     
   if (error || !data) {
     console.error('Error fetching user by ID:', error);
@@ -952,6 +1218,35 @@ export const getTasksByUser = async (userId: string): Promise<Task[]> => {
 };
 
 export const getTaskById = async (taskId: string): Promise<Task | null> => {
+  // Define interface for task data from database
+  interface TaskWithRelations {
+    id: string;
+    title: string;
+    description: string;
+    created_at: string;
+    due_date: string;
+    assigner_id: string;
+    assignee_id: string;
+    status: string;
+    priority: string;
+    completed_at?: string;
+    estimated_time_minutes?: number;
+    actual_time_minutes?: number;
+    submission_type?: string;
+    submission_instructions?: string;
+    started_at?: string;
+    submission_date?: string;
+    submission_content?: string;
+    quality_rating?: number;
+    timeliness_rating?: number;
+    effort_rating?: number;
+    accuracy_rating?: number;
+    feedback?: string;
+    attachments: any[];
+    assigner?: any;
+    assignee?: any;
+  }
+
   const { data, error } = await supabase
     .from('tasks')
     .select(`
@@ -961,7 +1256,7 @@ export const getTaskById = async (taskId: string): Promise<Task | null> => {
       assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url, created_at)
     `)
     .eq('id', taskId)
-    .single();
+    .single<TaskWithRelations>();
     
   if (error || !data) {
     console.error('Error fetching task by ID:', error);

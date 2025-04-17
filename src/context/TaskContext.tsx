@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { Task, TaskStatus, LogCategory } from '../../confy/types';
+import { Task, TaskStatus, TaskPriority, SubmissionType, LogCategory } from '../../confy/types';
 import { supabase } from '../lib/api/supabase';
 import { useAuth } from './AuthContext';
 import { useLogging } from './LoggingContext';
@@ -60,29 +60,29 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       
       // Transform data to application types
       const transformedTasks = data.map(task => ({
-        id: task.id,
-        title: task.title,
-        description: task.description || '',
-        createdAt: new Date(task.created_at),
-        dueDate: new Date(task.due_date),
-        assignerId: task.assigner_id,
-        assigneeId: task.assignee_id,
+        id: task.id as string,
+        title: task.title as string,
+        description: task.description as string || '',
+        createdAt: new Date(task.created_at as string),
+        dueDate: new Date(task.due_date as string),
+        assignerId: task.assigner_id as string,
+        assigneeId: task.assignee_id as string,
         status: task.status as TaskStatus,
-        priority: task.priority,
-        completedAt: task.completed_at ? new Date(task.completed_at) : undefined,
-        estimatedTimeMinutes: task.estimated_time_minutes,
-        actualTimeMinutes: task.actual_time_minutes,
-        submissionType: task.submission_type,
-        submissionInstructions: task.submission_instructions,
-        startedAt: task.started_at ? new Date(task.started_at) : undefined,
-        submissionDate: task.submission_date ? new Date(task.submission_date) : undefined,
-        submissionContent: task.submission_content,
-        qualityRating: task.quality_rating,
-        timelinessRating: task.timeliness_rating,
-        effortRating: task.effort_rating,
-        accuracyRating: task.accuracy_rating,
-        feedback: task.feedback
-      }));
+        priority: task.priority as TaskPriority,
+        completedAt: task.completed_at ? new Date(task.completed_at as string) : undefined,
+        estimatedTimeMinutes: task.estimated_time_minutes as number | undefined,
+        actualTimeMinutes: task.actual_time_minutes as number | undefined,
+        submissionType: task.submission_type as SubmissionType | undefined,
+        submissionInstructions: task.submission_instructions as string | undefined,
+        startedAt: task.started_at ? new Date(task.started_at as string) : undefined,
+        submissionDate: task.submission_date ? new Date(task.submission_date as string) : undefined,
+        submissionContent: task.submission_content as string | undefined,
+        qualityRating: task.quality_rating as number | undefined,
+        timelinessRating: task.timeliness_rating as number | undefined,
+        effortRating: task.effort_rating as number | undefined,
+        accuracyRating: task.accuracy_rating as number | undefined,
+        feedback: task.feedback as string | undefined
+      })) as Task[];
       
       setTasks(transformedTasks);
       

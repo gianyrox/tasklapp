@@ -28,6 +28,8 @@ export const getStatusClassName = (status: TaskStatus): string => {
       return 'status-completed';
     case TaskStatus.OVERDUE:
       return 'status-overdue';
+    case TaskStatus.GRADED:
+      return 'status-graded';
     default:
       return '';
   }

@@ -1,10 +1,36 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Task, TaskStatus } from '../../../confy/types';
+import { Task, TaskStatus, TaskPriority, SubmissionType } from '../../../confy/types';
 import { supabase } from '../api/supabase';
 import { useLogging } from '../../context/LoggingContext';
 import { LogCategory } from '../../../confy/types';
+
+// Define the database record type
+interface TaskDBRecord {
+  id: string;
+  title: string;
+  description: string | null;
+  created_at: string;
+  due_date: string;
+  assigner_id: string;
+  assignee_id: string;
+  status: string;
+  priority: string;
+  completed_at: string | null;
+  estimated_time_minutes: number | null;
+  actual_time_minutes: number | null;
+  submission_type: string | null;
+  submission_instructions: string | null;
+  started_at: string | null;
+  submission_date: string | null;
+  submission_content: string | null;
+  quality_rating: number | null;
+  timeliness_rating: number | null;
+  effort_rating: number | null;
+  accuracy_rating: number | null;
+  feedback: string | null;
+}
 
 export function useTaskData(userId?: string) {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -34,14 +60,15 @@ export function useTaskData(userId?: string) {
         .from('tasks')
         .select('*')
         .or(`assignee_id.eq.${userId},assigner_id.eq.${userId}`)
-        .order('due_date', { ascending: true });
+        .order('due_date', { ascending: true })
+        .returns<TaskDBRecord[]>();
 
       if (fetchError) {
         throw fetchError;
       }
 
       // Transform data to application types
-      const transformedTasks = data.map(task => ({
+      const transformedTasks: Task[] = data.map(task => ({
         id: task.id,
         title: task.title,
         description: task.description || '',
@@ -50,20 +77,20 @@ export function useTaskData(userId?: string) {
         assignerId: task.assigner_id,
         assigneeId: task.assignee_id,
         status: task.status as TaskStatus,
-        priority: task.priority,
+        priority: task.priority as TaskPriority,
         completedAt: task.completed_at ? new Date(task.completed_at) : undefined,
-        estimatedTimeMinutes: task.estimated_time_minutes,
-        actualTimeMinutes: task.actual_time_minutes,
-        submissionType: task.submission_type,
-        submissionInstructions: task.submission_instructions,
+        estimatedTimeMinutes: task.estimated_time_minutes || undefined,
+        actualTimeMinutes: task.actual_time_minutes || undefined,
+        submissionType: task.submission_type as SubmissionType | undefined,
+        submissionInstructions: task.submission_instructions || undefined,
         startedAt: task.started_at ? new Date(task.started_at) : undefined,
         submissionDate: task.submission_date ? new Date(task.submission_date) : undefined,
-        submissionContent: task.submission_content,
-        qualityRating: task.quality_rating,
-        timelinessRating: task.timeliness_rating,
-        effortRating: task.effort_rating,
-        accuracyRating: task.accuracy_rating,
-        feedback: task.feedback
+        submissionContent: task.submission_content || undefined,
+        qualityRating: task.quality_rating || undefined,
+        timelinessRating: task.timeliness_rating || undefined,
+        effortRating: task.effort_rating || undefined,
+        accuracyRating: task.accuracy_rating || undefined,
+        feedback: task.feedback || undefined
       }));
 
       setTasks(transformedTasks);

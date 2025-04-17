@@ -87,9 +87,9 @@ export function FriendProvider({ children }: { children: React.ReactNode }) {
         };
         
         return {
-          id: friendship.id,
-          userId: friendship.user_id,
-          friendId: friendship.friend_id,
+          id: friendship.id as string,
+          userId: friendship.user_id as string,
+          friendId: friendship.friend_id as string,
           status: friendship.status as FriendshipStatus,
           createdAt: new Date(friendship.created_at as string),
           updatedAt: new Date(friendship.updated_at as string),

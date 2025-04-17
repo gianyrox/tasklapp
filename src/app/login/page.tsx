@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -10,7 +10,8 @@ import { addLog } from '../../lib/logging';
 import { LogCategory } from '../../../confy/types';
 import { supabase } from '../../lib/api/supabase';
 
-const LoginPage: React.FC = () => {
+// Create a client component that uses the searchParams
+const LoginContent: React.FC = () => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
@@ -350,6 +351,30 @@ const LoginPage: React.FC = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+// Fallback component to display while loading
+const LoginFallback: React.FC = () => {
+  return (
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <div className={styles.header}>
+          <span className={styles.logo}>Taskl</span>
+          <h1>Log in to your account</h1>
+          <p>Loading...</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Main page component that wraps the LoginContent with Suspense
+const LoginPage: React.FC = () => {
+  return (
+    <Suspense fallback={<LoginFallback />}>
+      <LoginContent />
+    </Suspense>
   );
 };
 

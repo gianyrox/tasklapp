@@ -62,6 +62,9 @@ interface DatabaseContextType {
       completedAt?: Date;
       actualTimeMinutes?: number;
       qualityRating?: number;
+      timelinessRating?: number;
+      effortRating?: number;
+      accuracyRating?: number;
       feedback?: string;
     }
   ) => Promise<Task | null>;
@@ -237,6 +240,9 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       completedAt?: Date;
       actualTimeMinutes?: number;
       qualityRating?: number;
+      timelinessRating?: number;
+      effortRating?: number;
+      accuracyRating?: number;
       feedback?: string;
     }
   ) => {

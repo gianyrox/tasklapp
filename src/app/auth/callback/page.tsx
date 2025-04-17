@@ -1,13 +1,27 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../../../lib/api/supabase';
 import styles from './Callback.module.css';
 import { addLog } from '../../../lib/logging';
 import { LogCategory } from '../../../../confy/types';
 
-export default function AuthCallbackPage() {
+// Fallback component
+const CallbackFallback = () => {
+  return (
+    <div className={styles.container}>
+      <div className={styles.loadingCard}>
+        <div className={styles.loadingSpinner}></div>
+        <h2>Preparing authentication...</h2>
+        <p>Just a moment while we process your login.</p>
+      </div>
+    </div>
+  );
+};
+
+// Main component that uses searchParams
+const AuthCallbackContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
@@ -278,5 +292,14 @@ export default function AuthCallbackPage() {
         )}
       </div>
     </div>
+  );
+};
+
+// Page component that wraps the content with Suspense
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={<CallbackFallback />}>
+      <AuthCallbackContent />
+    </Suspense>
   );
 } 
