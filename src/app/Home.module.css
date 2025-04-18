@@ -28,43 +28,49 @@
     transform: translateY(-50%) scale(1);
     box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.15);
   }
+
   50% {
     transform: translateY(-50%) scale(1.1);
     box-shadow: 0 0 0 5px rgba(67, 56, 202, 0.2);
   }
+
   100% {
     transform: translateY(-50%) scale(1);
     box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.15);
   }
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700&display=swap');
-
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700&display=swap");
 
 .logo {
   font-size: var(--font-size-xl);
   font-weight: 700;
   color: var(--primary);
   letter-spacing: -0.5px;
-  font-style: italic; 
+  font-style: italic;
   position: relative;
-  padding-left: 38px; /* Increased padding to accommodate larger circle */
+  padding-left: 38px;
+  /* Increased padding to accommodate larger circle */
   transition: transform var(--transition-fast);
 }
 
 .logo::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 30px; /* Increased from 20px to 30px */
-  height: 30px; /* Increased from 20px to 30px */
+  width: 30px;
+  /* Increased from 20px to 30px */
+  height: 30px;
+  /* Increased from 20px to 30px */
   background: var(--primary);
   border-radius: 50%;
   box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.15);
-  animation: pulse 2s infinite ease-in-out; /* Added pulsing animation */
+  animation: pulse 2s infinite ease-in-out;
+  /* Added pulsing animation */
 }
+
 .logo:hover {
   transform: scale(1.05);
 }
@@ -113,7 +119,7 @@
 }
 
 .hero::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -124,19 +130,17 @@
 }
 
 .hero::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   height: 8px;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--track-curb-red) 0px,
-    var(--track-curb-red) 20px,
-    var(--track-curb-white) 20px,
-    var(--track-curb-white) 40px
-  );
+  background: repeating-linear-gradient(90deg,
+      var(--track-curb-red) 0px,
+      var(--track-curb-red) 20px,
+      var(--track-curb-white) 20px,
+      var(--track-curb-white) 40px);
   opacity: 0.6;
 }
 
@@ -170,7 +174,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
-  max-width: 250px; /* Set a fixed max-width for the button container */
+  max-width: 250px;
+  /* Set a fixed max-width for the button container */
 }
 
 .buttonLink {
@@ -180,7 +185,8 @@
 
 .button {
   width: 100%;
-  height: 50px; /* Fixed height for both buttons */
+  height: 50px;
+  /* Fixed height for both buttons */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -195,61 +201,46 @@
   padding: var(--spacing-md);
 }
 
-.trackImage {
-  width: 100%;
-  height: 350px;
-  background-color: var(--track-asphalt);
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  position: relative;
-  overflow: hidden;
-  transform: perspective(800px) rotateY(-5deg);
-  transition: transform 0.3s ease;
-  opacity: 0.9;
+.heroImage {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 500px;
+  padding: var(--spacing-md);
+  /* Important - don't let it collapse to zero width/height */
+  min-width: 280px;
+  min-height: 200px;
 }
 
-.trackImage:hover {
-  transform: perspective(800px) rotateY(0deg);
+/* Adjust hero section layout on smaller screens */
+@media (max-width: 992px) {
+  .hero {
+    /* Maintain space for both hero content and image on medium screens */
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2rem;
+  }
+
+  .heroContent,
+  .heroImage {
+    /* Allow both to take full width if needed */
+    flex-basis: 100%;
+    max-width: 100%;
+  }
+
+  .heroImage {
+    /* Center the track visualization */
+    margin: 0 auto;
+    max-width: 500px;
+  }
 }
 
-.trackImage::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 8px;
-  transform: translateY(-50%);
-  background-color: var(--track-line);
-  z-index: 1;
-  /* Simpler dashed line pattern */
-  background: repeating-linear-gradient(
-    90deg,
-    var(--track-line) 0px,
-    var(--track-line) 40px,
-    transparent 40px,
-    transparent 80px
-  );
-  opacity: 0.7;
-}
-
-.trackImage::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 8px;
-  transform: translateX(-50%);
-  background: repeating-linear-gradient(
-    0deg,
-    var(--track-line) 0px,
-    var(--track-line) 30px,
-    transparent 30px,
-    transparent 60px
-  );
-  z-index: 1;
-  opacity: 0.7;
+/* Additional tweaks for very small screens */
+@media (max-width: 576px) {
+  .heroImage {
+    padding: var(--spacing-sm);
+  }
 }
 
 .features {
@@ -267,7 +258,7 @@
 }
 
 .sectionTitle::after {
-  content: '';
+  content: "";
   display: block;
   width: 80px;
   height: 4px;
@@ -293,7 +284,8 @@
   padding: var(--spacing-xl);
   border-radius: var(--border-radius-md);
   box-shadow: var(--shadow-sm);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition: transform var(--transition-fast),
+    box-shadow var(--transition-fast);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -305,7 +297,7 @@
 }
 
 .featureCard::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -3px;
   left: 10px;
@@ -338,7 +330,7 @@
 }
 
 .featureIcon::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 70px;
   height: 70px;
@@ -368,7 +360,7 @@
 }
 
 .footer::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -450,19 +442,19 @@
     padding: 3rem 1rem;
     gap: var(--spacing-xl);
   }
-  
+
   .heroContent {
     max-width: 100%;
   }
-  
+
   .subtitle {
     max-width: 100%;
   }
-  
+
   .cta {
     flex-wrap: wrap;
   }
-  
+
   .title {
     font-size: 2.5rem;
   }
@@ -472,25 +464,25 @@
   .header {
     padding: 1rem;
   }
-  
+
   .footerContent {
     flex-direction: column;
     gap: var(--spacing-md);
     text-align: center;
   }
-  
+
   .featureGrid {
     grid-template-columns: 1fr;
   }
-  
+
   .title {
     font-size: 2rem;
   }
-  
+
   .subtitle {
     font-size: var(--font-size-md);
   }
-  
+
   .hero {
     padding: 2rem 1rem;
   }
@@ -559,6 +551,11 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-} 
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}

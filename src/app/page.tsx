@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import styles from "./Home.module.css";
 import Button from "../components/ui/Button";
 import { supabase } from "../lib/api/supabase";
+import RaceTrackVisualization from "./RaceTrack";
 
 const HomePage: React.FC = () => {
   const router = useRouter();
@@ -69,7 +70,7 @@ const HomePage: React.FC = () => {
         setIsLoggedIn(!!session);
         setUserId(session?.user.id || null);
         setIsLoading(false);
-        
+
         // Don't auto-redirect to dashboard on sign in
       }
     );
@@ -121,7 +122,55 @@ const HomePage: React.FC = () => {
 
             <section className={styles.hero}>
               <div className={styles.heroContent}>
-                <h1 className={styles.title}>Complete Tasks. <br/>Do Laps. <br/>Compete.</h1>
+                <h1 className={styles.title}>
+                  Complete Tasks. <br />
+                  Do Laps. <br />
+                  Compete.
+                </h1>
+                <p className={styles.subtitle}>
+                  Taskl.app transforms ordinary task management into a competitive
+                  experience. Assign tasks, track performance, and race to the top
+                  of the leaderboard.
+                </p>
+                <div className={styles.cta}>
+                  {isLoggedIn ? (
+                    <Link href="/dashboard" className={styles.buttonLink}>
+                      <Button size="lg" variant="primary" className={styles.button}>
+                        Go to Dashboard
+                      </Button>
+                    </Link>
+                  ) : (
+                    <>
+                      <Link href="/signup" className={styles.buttonLink}>
+                        <Button
+                          size="lg"
+                          variant="primary"
+                          className={styles.button}
+                        >
+                          Start Racing
+                        </Button>
+                      </Link>
+                      <Link href="/login" className={styles.buttonLink}>
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          className={styles.button}
+                        >
+                          Log In
+                        </Button>
+                      </Link>
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className={styles.heroImage}>
+                <RaceTrackVisualization />
+              </div>
+            </section>
+
+            <section className={styles.hero}>
+              <div className={styles.heroContent}>
+                <h1 className={styles.title}>Complete Tasks. <br />Do Laps. <br />Compete.</h1>
                 <p className={styles.subtitle}>
                   Taskl.app transforms ordinary task management into a competitive
                   experience. Assign tasks, track performance, and race to the top
