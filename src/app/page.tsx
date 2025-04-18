@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import styles from "./Home.module.css";
 import Button from "../components/ui/Button";
 import { supabase } from "../lib/api/supabase";
+import RaceTrackVisualization from "./RaceTrack";
 
 const HomePage: React.FC = () => {
   const router = useRouter();
@@ -90,7 +91,11 @@ const HomePage: React.FC = () => {
 
         <section className={styles.hero}>
           <div className={styles.heroContent}>
-            <h1 className={styles.title}>Complete Tasks. <br/>Do Laps. <br/>Compete.</h1>
+            <h1 className={styles.title}>
+              Complete Tasks. <br />
+              Do Laps. <br />
+              Compete.
+            </h1>
             <p className={styles.subtitle}>
               Taskl.app transforms ordinary task management into a competitive
               experience. Assign tasks, track performance, and race to the top
@@ -128,7 +133,7 @@ const HomePage: React.FC = () => {
             </div>
           </div>
           <div className={styles.heroImage}>
-            <div className={styles.trackImage}></div>
+            <RaceTrackVisualization />
           </div>
         </section>
 
