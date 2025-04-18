@@ -486,39 +486,74 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       const userId = user?.id;
+      const startTime = Date.now();
       
       await addLog({
         userId,
         category: LogCategory.AUTH,
-        action: 'sign_out_attempt'
+        action: 'sign_out_attempt',
+        details: { 
+          timestamp: new Date().toISOString(),
+          url: typeof window !== 'undefined' ? window.location.pathname : 'unknown'
+        }
       });
       
-      await supabase.auth.signOut();
-      setUser(null);
+      console.log('Sign out process started');
       
-      // Clear cached user data
+      // Clear cached user data before calling signOut for better perceived performance
       try {
-        Object.keys(sessionStorage).forEach(key => {
-          if (key.startsWith('user_')) {
-            sessionStorage.removeItem(key);
-          }
-        });
+        console.log('Clearing session storage cache');
+        if (typeof window !== 'undefined') {
+          Object.keys(sessionStorage).forEach(key => {
+            if (key.startsWith('user_')) {
+              sessionStorage.removeItem(key);
+              console.log(`Cleared cache: ${key}`);
+            }
+          });
+          // Record auth event immediately to prevent race conditions
+          sessionStorage.setItem('last_auth_event', JSON.stringify({
+            event: 'SIGNED_OUT',
+            timestamp: Date.now()
+          }));
+        }
       } catch (e) {
         console.error('Error clearing session storage:', e);
         
         await addLog({
+          userId,
           category: LogCategory.ERROR,
           action: 'session_storage_clear_error_on_signout',
           details: { error: String(e) }
         });
       }
       
+      // Set user to null immediately for better perceived performance
+      setUser(null);
+      
+      // Execute the actual sign out (don't redirect)
+      console.log('Executing Supabase signOut');
+      const { error } = await supabase.auth.signOut();
+      const endTime = Date.now();
+      
+      if (error) {
+        throw error;
+      }
+      
       await addLog({
         category: LogCategory.AUTH,
-        action: 'sign_out_success'
+        action: 'sign_out_success',
+        details: {
+          duration_ms: endTime - startTime,
+          timestamp: new Date().toISOString()
+        }
       });
       
-      router.push('/');
+      console.log(`Sign out completed in ${endTime - startTime}ms`);
+      
+      // Redirect to homepage
+      if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+        router.push('/');
+      }
     } catch (error) {
       console.error('Error signing out:', error);
       setError('Failed to sign out');
@@ -527,7 +562,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         userId: user?.id,
         category: LogCategory.ERROR,
         action: 'sign_out_error',
-        details: { error: String(error) }
+        details: { 
+          error: String(error),
+          timestamp: new Date().toISOString()
+        }
       });
     }
   };

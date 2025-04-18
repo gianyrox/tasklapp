@@ -15,6 +15,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const { user, signOut } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   
   // Close menus when clicking outside
   useEffect(() => {
@@ -63,6 +64,20 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const handleUserMenuToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowDropdown(!showDropdown);
+  };
+
+  const handleSignOut = async () => {
+    if (isSigningOut) return; // Prevent multiple clicks
+    
+    try {
+      console.log('Starting sign out process from UI');
+      setIsSigningOut(true);
+      await signOut();
+      // No need to update state as we'll be redirected
+    } catch (error) {
+      console.error('Error during sign out:', error);
+      setIsSigningOut(false);
+    }
   };
 
   return (
@@ -138,13 +153,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   Settings
                 </Link>
                 <button 
-                  className={styles.dropdownItem} 
-                  onClick={() => {
-                    signOut();
-                    setShowDropdown(false);
-                  }}
+                  className={`${styles.dropdownItem} ${isSigningOut ? styles.signingOut : ''}`}
+                  onClick={handleSignOut}
+                  disabled={isSigningOut}
                 >
-                  Log Out
+                  {isSigningOut ? 'Signing out...' : 'Log Out'}
                 </button>
               </div>
             )}
@@ -258,16 +271,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 </ul>
                 
                 <button 
-                  className={styles.logoutButton}
-                  onClick={() => {
-                    signOut();
-                    setShowMobileMenu(false);
-                  }}
+                  className={`${styles.logoutButton} ${isSigningOut ? styles.signingOut : ''}`}
+                  onClick={handleSignOut}
+                  disabled={isSigningOut}
                 >
                   <svg className={styles.icon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  Log Out
+                  {isSigningOut ? 'Signing out...' : 'Log Out'}
                 </button>
               </div>
             )}

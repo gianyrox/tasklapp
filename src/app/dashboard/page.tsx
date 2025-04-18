@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AppLayout from '../../components/layout/AppLayout';
 import TaskList from '../../components/task/TaskList';
 import { TaskStatus, Friendship, FriendshipStatus, Task, LeaderboardEntry, SubmissionType } from '../../types';
@@ -151,7 +151,7 @@ const getTasksAssignedToOthers = async (userId: string): Promise<Task[]> => {
 };
 
 const DashboardPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -165,35 +165,64 @@ const DashboardPage: React.FC = () => {
   const [tasksFromFriends, setTasksFromFriends] = useState<Task[]>([]);
   const [tasksAssignedToOthers, setTasksAssignedToOthers] = useState<Task[]>([]);
   const [selfAssignedTasks, setSelfAssignedTasks] = useState<Task[]>([]);
+  const dataFetchedRef = useRef(false);
 
   // Fetch data when component mounts or user changes
   useEffect(() => {
-    if (user) {
+    console.log('Dashboard auth state:', { user, authLoading });
+    
+    if (!authLoading && user && !dataFetchedRef.current) {
+      console.log('Starting dashboard data fetch for user:', user.id);
+      dataFetchedRef.current = true;
       fetchDashboardData();
     }
-  }, [user]);
+    
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Dashboard detected auth event:', event);
+      if (event === 'SIGNED_IN' && session && !dataFetchedRef.current) {
+        console.log('Auth event triggered dashboard refresh');
+        dataFetchedRef.current = true;
+        fetchDashboardData();
+      }
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+      dataFetchedRef.current = false;
+    };
+  }, [user, authLoading]);
 
   const fetchDashboardData = async () => {
+    console.log('Fetching dashboard data...');
     setIsLoading(true);
     setError(null);
 
+    if (!user) {
+      console.log('No user found, aborting dashboard data fetch');
+      setIsLoading(false);
+      return;
+    }
+
     try {
+      console.log('Fetching data for user:', user.id);
+      
       // Fetch tasks assigned by friends
       const allTasksFromFriends = await getTasksFromFriends();
       
       // Fetch self-assigned tasks
-      const allSelfTasks = await getSelfAssignedTasks(user?.id || '');
+      const allSelfTasks = await getSelfAssignedTasks(user.id);
       
       // Fetch tasks the user assigned to others
-      const assignedToOthers = await getTasksAssignedToOthers(user?.id || '');
+      const assignedToOthers = await getTasksAssignedToOthers(user.id);
 
       // Combine tasks assigned to current user
       const allMyTasks = [...allTasksFromFriends, ...allSelfTasks];
       setMyTasks(allMyTasks);
       
       // Filter tasks into different categories
-      const fromFriends = filterTasksFromFriends(allMyTasks, user?.id || '');
-      const selfAssigned = filterSelfAssignedTasks(allMyTasks, user?.id || '');
+      const fromFriends = filterTasksFromFriends(allMyTasks, user.id);
+      const selfAssigned = filterSelfAssignedTasks(allMyTasks, user.id);
       
       setTasksFromFriends(fromFriends);
       setTasksAssignedToOthers(assignedToOthers);
@@ -206,7 +235,7 @@ const DashboardPage: React.FC = () => {
       // Fetch tasks for each friend
       const tasksByFriend: {[friendId: string]: Task[]} = {};
       for (const friendship of friendships) {
-        const friendId = friendship.userId === user?.id ? friendship.friendId : friendship.userId;
+        const friendId = friendship.userId === user.id ? friendship.friendId : friendship.userId;
         const friendTasks = await getTasksByFriend(friendId);
         tasksByFriend[friendId] = friendTasks;
       }
@@ -215,6 +244,8 @@ const DashboardPage: React.FC = () => {
       // Fetch leaderboard data
       const leaderboardData = await getLeaderboard();
       setLeaderboard(leaderboardData.slice(0, 3));
+      
+      console.log('Dashboard data fetch complete');
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
       setError('Failed to load dashboard data. Please try again later.');
@@ -303,6 +334,19 @@ const DashboardPage: React.FC = () => {
   const handleFindFriends = () => {
     router.push('/friend');
   };
+
+  // Combined loading state
+  const isPageLoading = isLoading || authLoading;
+
+  // Display loading state
+  if (isPageLoading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner}></div>
+        <p>Loading your dashboard...</p>
+      </div>
+    );
+  }
 
   // Display error if data loading failed
   if (error) {

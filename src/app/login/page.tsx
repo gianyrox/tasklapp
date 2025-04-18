@@ -12,6 +12,7 @@ import { supabase } from '../../lib/api/supabase';
 
 // Create a client component that uses the searchParams
 const LoginContent: React.FC = () => {
+  console.log('Rendering LoginContent component');
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
@@ -22,9 +23,13 @@ const LoginContent: React.FC = () => {
   const refresh = searchParams.get('refresh') === 'true';
   const errorParam = searchParams.get('error');
 
+  console.log('Initial state:', { redirect, refresh, errorParam, hasUser: !!user });
+
   useEffect(() => {
+    console.log('Running initial useEffect for params check');
     // If a refresh was requested (from cookie issue detection)
     if (refresh) {
+      console.log('Refresh requested, logging event');
       addLog({
         category: LogCategory.AUTH,
         action: 'login_page_refresh_requested',
@@ -37,6 +42,7 @@ const LoginContent: React.FC = () => {
 
     // Log redirect parameter if present and not the default
     if (redirect && redirect !== '/dashboard') {
+      console.log(`Non-default redirect detected: ${redirect}`);
       addLog({
         category: LogCategory.AUTH,
         action: 'login_page_redirect_param',
@@ -54,6 +60,8 @@ const LoginContent: React.FC = () => {
       const retryCount = parseInt(retryAuth, 10) || 1;
       const maxRetries = 3;
       
+      console.log(`Auth retry attempt ${retryCount}/${maxRetries}`);
+      
       if (retryCount <= maxRetries) {
         // Add log for retry attempt
         addLog({
@@ -70,13 +78,16 @@ const LoginContent: React.FC = () => {
         // If we have user info in sessionStorage, attempt to verify session
         try {
           const sessionCheck = async () => {
+            console.log('Checking for existing session');
             const { data } = await supabase.auth.getSession();
             if (data?.session) {
+              console.log('Valid session found, redirecting to', redirect);
               // We have a valid session, redirect to dashboard
               window.location.href = redirect;
               return;
             }
             
+            console.log('No session found, showing retry message');
             // No session found but we're retrying, show retry message
             setMessage({
               type: 'info',
@@ -84,9 +95,11 @@ const LoginContent: React.FC = () => {
             });
             
             // Wait 2 seconds and refresh page with incremented retry count
+            console.log('Setting timeout for next retry attempt');
             setTimeout(() => {
               const url = new URL(window.location.href);
               url.searchParams.set('retry', (retryCount + 1).toString());
+              console.log('Redirecting to next retry URL:', url.toString());
               window.location.href = url.toString();
             }, 2000);
           };
@@ -102,6 +115,7 @@ const LoginContent: React.FC = () => {
           });
         }
       } else {
+        console.log('Max retries reached, showing error message');
         // Max retries reached
         setMessage({
           type: 'error',
@@ -122,6 +136,7 @@ const LoginContent: React.FC = () => {
 
     // Check for error parameter
     if (errorParam) {
+      console.log(`Error parameter detected: ${errorParam}`);
       const errorMessage = searchParams.get('message') || 
         (errorParam === 'callback_error' 
           ? 'Authentication failed. Please try again.' 
@@ -149,10 +164,13 @@ const LoginContent: React.FC = () => {
 
   // If user is already logged in, redirect to dashboard
   useEffect(() => {
+    console.log('Running user redirect useEffect, user:', user ? 'exists' : 'null');
     const handleUserRedirect = async () => {
       if (user) {
+        console.log('User is logged in, preparing redirect');
         // Check if cookies are properly set
         const hasAuthCookie = document.cookie.includes('supabase-auth');
+        console.log('Auth cookie present:', hasAuthCookie);
         
         await addLog({
           category: LogCategory.AUTH,
@@ -164,6 +182,7 @@ const LoginContent: React.FC = () => {
         });
         
         // Explicitly verify session before redirecting
+        console.log('Verifying session before redirect');
         const { data } = await supabase.auth.getSession();
         
         if (data.session) {
@@ -171,9 +190,11 @@ const LoginContent: React.FC = () => {
           
           // Use window.location for a full page load to ensure cookies are applied
           if (redirect.startsWith('/')) {
+            console.log('Redirecting to internal path:', redirect);
             window.location.href = redirect;
           } else {
             // Safety check for external URLs
+            console.log('Redirect not starting with /, defaulting to /dashboard');
             window.location.href = '/dashboard';
           }
         } else {
@@ -181,9 +202,11 @@ const LoginContent: React.FC = () => {
           console.error('User object exists but no valid session found');
           
           // Clear any potential corrupt auth state
+          console.log('Clearing localStorage auth token');
           localStorage.removeItem('supabase.auth.token');
           
           // Force reload the page to reset the auth state
+          console.log('Reloading page to reset auth state');
           window.location.reload();
         }
       }
@@ -193,11 +216,13 @@ const LoginContent: React.FC = () => {
   }, [user, redirect]);
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log('Form submitted');
     e.preventDefault();
     setIsSubmitting(true);
     setMessage(null);
 
     if (!email || !email.includes('@')) {
+      console.log('Invalid email format:', email);
       setMessage({ type: 'error', text: 'Please enter a valid email address' });
       setIsSubmitting(false);
       
@@ -215,10 +240,12 @@ const LoginContent: React.FC = () => {
     }
 
     try {
+      console.log('Processing valid email submission');
       // Log the login attempt with redacted email for privacy
       const emailPrefix = email.substring(0, email.indexOf('@'));
       const emailDomain = email.substring(email.indexOf('@') + 1);
       const redactedEmail = `${emailPrefix.substring(0, Math.min(3, emailPrefix.length))}***@${emailDomain}`;
+      console.log('Redacted email for logging:', redactedEmail);
       
       await addLog({
         category: LogCategory.AUTH,
@@ -234,12 +261,15 @@ const LoginContent: React.FC = () => {
       });
       
       // Notify user we're sending the magic link
+      console.log('Updating UI to show sending status');
       setMessage({ type: 'success', text: 'Sending magic link...' });
       
       // Call the signIn function to send the magic link
+      console.log('Calling signIn function');
       const { success, error } = await signIn(email);
 
       if (success) {
+        console.log('Magic link sent successfully');
         setMessage({ 
           type: 'success', 
           text: 'Check your email for the magic link to log in!' 
@@ -259,11 +289,13 @@ const LoginContent: React.FC = () => {
         
         // Track magic link request timestamp to prevent too many requests
         try {
+          console.log('Saving magic link request timestamp');
           sessionStorage.setItem('last_magic_link_request', Date.now().toString());
         } catch (e) {
           console.error('Error saving to session storage:', e);
         }
       } else {
+        console.error('Error sending magic link:', error);
         setMessage({ type: 'error', text: error || 'An error occurred' });
         
         await addLog({
@@ -277,11 +309,11 @@ const LoginContent: React.FC = () => {
         });
       }
     } catch (error) {
+      console.error('Unexpected login error:', error);
       setMessage({ 
         type: 'error', 
         text: 'An unexpected error occurred. Please try again.' 
       });
-      console.error('Login error:', error);
       
       await addLog({
         category: LogCategory.ERROR,
@@ -292,6 +324,7 @@ const LoginContent: React.FC = () => {
         }
       });
     } finally {
+      console.log('Form submission complete, resetting isSubmitting');
       setIsSubmitting(false);
     }
   };
@@ -356,6 +389,7 @@ const LoginContent: React.FC = () => {
 
 // Fallback component to display while loading
 const LoginFallback: React.FC = () => {
+  console.log('Rendering LoginFallback component');
   return (
     <div className={styles.container}>
       <div className={styles.card}>
@@ -371,6 +405,7 @@ const LoginFallback: React.FC = () => {
 
 // Main page component that wraps the LoginContent with Suspense
 const LoginPage: React.FC = () => {
+  console.log('Rendering LoginPage component');
   return (
     <Suspense fallback={<LoginFallback />}>
       <LoginContent />

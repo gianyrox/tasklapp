@@ -16,65 +16,83 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
   const [redirecting, setRedirecting] = useState(false);
+  const [authCheckComplete, setAuthCheckComplete] = useState(false);
 
   useEffect(() => {
     // Add detailed logging for auth protection
     const checkAuthStatus = async () => {
       if (isLoading) return;
 
-      // Log the current status
-      await addLog({
-        category: LogCategory.AUTH,
-        action: 'protected_route_check',
-        details: {
+      // Set auth check complete to prevent multiple checks
+      if (!authCheckComplete) {
+        setAuthCheckComplete(true);
+        
+        // Log the current status
+        await addLog({
+          category: LogCategory.AUTH,
+          action: 'protected_route_check',
+          details: {
+            path: pathname,
+            isAuthenticated: Boolean(user),
+            cookiesPresent: document.cookie.length > 0,
+            timestamp: new Date().toISOString()
+          }
+        });
+        
+        console.log('Protected route auth check:', {
           path: pathname,
           isAuthenticated: Boolean(user),
-          cookiesPresent: document.cookie.length > 0,
-          timestamp: new Date().toISOString()
-        }
-      });
-
-      // If authentication check is complete and user is not authenticated
-      if (!user && !redirecting) {
-        console.log('User not authenticated for protected route', {
-          path: pathname,
-          cookies: document.cookie ? 'present' : 'missing'
+          isLoading
         });
 
-        setRedirecting(true);
-        
-        // If we detect an issue with cookies, clear localStorage and reload
-        if (localStorage.getItem('supabase.auth.token') && !document.cookie.includes('supabase-auth')) {
-          console.log('Auth token in localStorage but no cookie - clearing storage');
-          
-          await addLog({
-            category: LogCategory.ERROR,
-            action: 'cookie_sync_issue_detected',
-            details: { path: pathname }
+        // If authentication check is complete and user is not authenticated
+        if (!user && !redirecting) {
+          console.log('User not authenticated for protected route', {
+            path: pathname,
+            cookies: document.cookie ? 'present' : 'missing'
           });
-          
-          // Clear any Supabase related items in localStorage
-          Object.keys(localStorage).forEach(key => {
-            if (key.startsWith('supabase.')) {
-              localStorage.removeItem(key);
-            }
-          });
-          
-          // Redirect to login with clean state
-          window.location.href = `/login?redirect=${encodeURIComponent(pathname)}&refresh=true`;
-          return;
-        }
 
-        // Standard redirect to login
-        router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
+          setRedirecting(true);
+          
+          // If we detect an issue with cookies, clear localStorage and reload
+          if (localStorage.getItem('supabase.auth.token') && !document.cookie.includes('supabase-auth')) {
+            console.log('Auth token in localStorage but no cookie - clearing storage');
+            
+            await addLog({
+              category: LogCategory.ERROR,
+              action: 'cookie_sync_issue_detected',
+              details: { path: pathname }
+            });
+            
+            // Clear any Supabase related items in localStorage
+            Object.keys(localStorage).forEach(key => {
+              if (key.startsWith('supabase.')) {
+                localStorage.removeItem(key);
+              }
+            });
+            
+            // Redirect to login with clean state
+            window.location.href = `/login?redirect=${encodeURIComponent(pathname)}&refresh=true`;
+            return;
+          }
+
+          // Standard redirect to login
+          router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
+        }
       }
     };
 
     checkAuthStatus();
-  }, [user, isLoading, router, pathname, redirecting]);
+  }, [user, isLoading, router, pathname, redirecting, authCheckComplete]);
 
-  // Show loading state while checking authentication
-  if (isLoading) {
+  // Return content immediately if user is authenticated
+  // This prevents the "Loading your account..." flash when user is already authenticated
+  if (user) {
+    return <>{children}</>;
+  }
+
+  // Show loading state only if still checking or redirecting
+  if (isLoading || (!authCheckComplete && !user)) {
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.loadingSpinnerWrapper}>
@@ -103,20 +121,20 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // If authenticated, render children
-  if (user) {
-    return <>{children}</>;
+  // Render a minimal loading state if redirecting
+  if (redirecting) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinnerWrapper}>
+          <div className={styles.loadingSpinner}></div>
+        </div>
+        <p className={styles.loadingText}>Redirecting to login...</p>
+      </div>
+    );
   }
 
-  // Render nothing while redirecting
-  return (
-    <div className={styles.loadingContainer}>
-      <div className={styles.loadingSpinnerWrapper}>
-        <div className={styles.loadingSpinner}></div>
-      </div>
-      <p className={styles.loadingText}>Redirecting to login...</p>
-    </div>
-  );
+  // Fallback - should rarely reach here
+  return null;
 };
 
 export default ProtectedRoute; 

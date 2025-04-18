@@ -40,7 +40,7 @@ export const supabase = (() => {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: false, // We handle this manually
+      detectSessionInUrl: true,
       storageKey: 'supabase.auth.token',
       storage: {
         getItem: (key) => {
