@@ -168,49 +168,6 @@ const HomePage: React.FC = () => {
               </div>
             </section>
 
-            <section className={styles.hero}>
-              <div className={styles.heroContent}>
-                <h1 className={styles.title}>Complete Tasks. <br />Do Laps. <br />Compete.</h1>
-                <p className={styles.subtitle}>
-                  Taskl.app transforms ordinary task management into a competitive
-                  experience. Assign tasks, track performance, and race to the top
-                  of the leaderboard.
-                </p>
-                <div className={styles.cta}>
-                  {isLoggedIn ? (
-                    <Link href="/dashboard" className={styles.buttonLink}>
-                      <Button size="lg" variant="primary" className={styles.button}>
-                        Go to Dashboard
-                      </Button>
-                    </Link>
-                  ) : (
-                    <>
-                      <Link href="/signup" className={styles.buttonLink}>
-                        <Button
-                          size="lg"
-                          variant="primary"
-                          className={styles.button}
-                        >
-                          Start Racing
-                        </Button>
-                      </Link>
-                      <Link href="/login" className={styles.buttonLink}>
-                        <Button
-                          size="lg"
-                          variant="outline"
-                          className={styles.button}
-                        >
-                          Log In
-                        </Button>
-                      </Link>
-                    </>
-                  )}
-                </div>
-              </div>
-              <div className={styles.heroImage}>
-                <div className={styles.trackImage}></div>
-              </div>
-            </section>
 
             <section className={styles.features}>
               <h2 className={styles.sectionTitle}>Key Features</h2>

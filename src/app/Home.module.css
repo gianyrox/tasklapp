@@ -129,7 +129,7 @@
   opacity: 0.2;
 }
 
-.hero::after {
+/* .hero::after {
   content: "";
   position: absolute;
   bottom: 0;
@@ -142,7 +142,7 @@
       var(--track-curb-white) 20px,
       var(--track-curb-white) 40px);
   opacity: 0.6;
-}
+} */
 
 .heroContent {
   flex: 1;
