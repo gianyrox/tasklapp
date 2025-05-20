@@ -173,11 +173,39 @@ export const getCurrentUser = async (): Promise<User | null> => {
     logger.info('getCurrentUser', `Session found, user ID: ${session.user.id}`);
     
     // Get user profile data
-    const result = await supabase
+    let result = await supabase
       .from('users')
       .select('*, stats:user_stats(*)')
       .eq('id', session.user.id)
       .single();
+    
+    // If no user profile exists, create one
+    if (!result.data && !result.error?.message?.includes('Invalid input syntax')) {
+      logger.info('getCurrentUser', 'Creating new user profile');
+      
+      // Create user profile
+      const { error: insertError } = await supabase
+        .from('users')
+        .insert({
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'New User',
+          avatar_url: session.user.user_metadata?.avatar_url,
+          created_at: new Date().toISOString()
+        });
+      
+      if (insertError) {
+        logger.error('getCurrentUser', 'Error creating user profile:', insertError);
+        return null;
+      }
+      
+      // Fetch the newly created profile
+      result = await supabase
+        .from('users')
+        .select('*, stats:user_stats(*)')
+        .eq('id', session.user.id)
+        .single();
+    }
     
     // Handle timeout
     if (result === undefined) {
@@ -1330,4 +1358,60 @@ export const getTaskById = async (taskId: string): Promise<Task | null> => {
   }
   
   return transformTaskFromDb(data);
+};
+
+export const getSelfAssignedTasks = async (userId: string): Promise<Task[]> => {
+  // Use the Supabase client to get tasks where user is both assignee and assigner
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from('tasks')
+    .select(`
+      *,
+      attachments:task_attachments(*),
+      assigner:users!tasks_assigner_id_fkey(id, name, email, avatar_url, created_at),
+      assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url, created_at)
+    `)
+    .eq('assignee_id', userId)
+    .eq('assigner_id', userId)
+    .order('due_date');
+    
+  if (error || !data) {
+    console.error('Error fetching self-assigned tasks:', error);
+    return [];
+  }
+  
+  return data.map(transformTaskFromDb);
+};
+
+export const getTasksAssignedToOthers = async (userId: string): Promise<Task[]> => {
+  // Use the Supabase client to get tasks where user is the assigner but not the assignee
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from('tasks')
+    .select(`
+      *,
+      attachments:task_attachments(*),
+      assigner:users!tasks_assigner_id_fkey(id, name, email, avatar_url, created_at),
+      assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url, created_at)
+    `)
+    .eq('assigner_id', userId)
+    .neq('assignee_id', userId)
+    .order('due_date');
+    
+  if (error || !data) {
+    console.error('Error fetching tasks assigned to others:', error);
+    return [];
+  }
+  
+  return data.map(transformTaskFromDb);
 }; 

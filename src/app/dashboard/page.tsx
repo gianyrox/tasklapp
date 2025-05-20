@@ -3,25 +3,38 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AppLayout from '../../components/layout/AppLayout';
 import TaskList from '../../components/task/TaskList';
-import { TaskStatus, Friendship, FriendshipStatus, Task, LeaderboardEntry, SubmissionType } from '../../types';
+import { 
+  TaskStatus, 
+  FriendshipStatus, 
+  SubmissionType, 
+  TaskPriority 
+} from '../../types';
+import type { 
+  Friendship, 
+  Task, 
+  LeaderboardEntry, 
+  User
+} from '../../types';
 import styles from './Dashboard.module.css';
 import ProtectedRoute from '../../components/layout/ProtectedRoute';
 import { useAuth } from '../../context/AuthContext';
-import Board from '../../components/ui/Board';
-import Button from '../../components/ui/Button';
-import CreateTaskModal from '../../components/task/CreateTaskModal';
+import { addLog } from '../../lib/logging';
+import { LogCategory } from '../../../confy/types';
 import { 
-  getFriendships, 
-  getTasksFromFriends, 
-  getTasksByFriend, 
-  updateTaskStatus, 
-  updateTaskSubmissionType,
-  updateTaskSubmissionContent,
-  createTask,
   supabase,
-  getTaskById
+  getFriendships,
+  getTasksFromFriends,
+  getSelfAssignedTasks,
+  getTasksAssignedToOthers,
+  getTasksByFriend,
+  getLeaderboard,
+  updateTaskStatus,
+  updateTaskSubmissionType,
+  updateTaskSubmissionContent
 } from '../../lib/api/supabase';
-import { getLeaderboard } from '../../lib/api/supabase';
+import Board from '../../components/ui/Board';
+import Button, { ButtonSize } from '../../components/ui/Button';
+import CreateTaskModal from '../../components/task/CreateTaskModal';
 import { useRouter } from 'next/navigation';
 
 // Helper function to transform task data from Supabase format to our app format
@@ -79,75 +92,13 @@ const transformTaskFromDb = (task: any): Task => {
   };
 };
 
-// Function to get self-assigned tasks
-const getSelfAssignedTasks = async (userId: string): Promise<Task[]> => {
-  // Use the Supabase client to get tasks where user is both assignee and assigner
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  if (!session) {
-    return [];
-  }
-
-  const { data, error } = await supabase
-    .from('tasks')
-    .select(`
-      *,
-      attachments:task_attachments(*),
-      assigner:users!tasks_assigner_id_fkey(id, name, email, avatar_url, created_at),
-      assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url, created_at)
-    `)
-    .eq('assignee_id', userId)
-    .eq('assigner_id', userId)
-    .order('due_date');
-    
-  if (error || !data) {
-    console.error('Error fetching self-assigned tasks:', error);
-    return [];
-  }
-  
-  return data.map(transformTaskFromDb);
-};
-
-// Add this function to group and filter tasks
+// Helper functions
 const filterTasksFromFriends = (tasks: Task[], userId: string): Task[] => {
   return tasks.filter(task => task.assigneeId === userId && task.assignerId !== userId);
 };
 
-const filterTasksAssignedToOthers = (tasks: Task[], userId: string): Task[] => {
-  return tasks.filter(task => task.assignerId === userId && task.assigneeId !== userId);
-};
-
 const filterSelfAssignedTasks = (tasks: Task[], userId: string): Task[] => {
   return tasks.filter(task => task.assigneeId === userId && task.assignerId === userId);
-};
-
-// Add a function to get all tasks assigned by the user to others
-const getTasksAssignedToOthers = async (userId: string): Promise<Task[]> => {
-  // Use the Supabase client to get tasks where user is the assigner but not the assignee
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  if (!session) {
-    return [];
-  }
-
-  const { data, error } = await supabase
-    .from('tasks')
-    .select(`
-      *,
-      attachments:task_attachments(*),
-      assigner:users!tasks_assigner_id_fkey(id, name, email, avatar_url, created_at),
-      assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url, created_at)
-    `)
-    .eq('assigner_id', userId)
-    .neq('assignee_id', userId)
-    .order('due_date');
-    
-  if (error || !data) {
-    console.error('Error fetching tasks assigned to others:', error);
-    return [];
-  }
-  
-  return data.map(transformTaskFromDb);
 };
 
 const DashboardPage: React.FC = () => {
@@ -166,24 +117,86 @@ const DashboardPage: React.FC = () => {
   const [tasksAssignedToOthers, setTasksAssignedToOthers] = useState<Task[]>([]);
   const [selfAssignedTasks, setSelfAssignedTasks] = useState<Task[]>([]);
   const dataFetchedRef = useRef(false);
+  const authStateRef = useRef<{ user: User | null; authLoading: boolean }>({ user: null, authLoading: true });
+  const initialAuthCheckRef = useRef(false);
+
+  // Update auth state ref when it changes
+  useEffect(() => {
+    authStateRef.current = { user, authLoading };
+  }, [user, authLoading]);
 
   // Fetch data when component mounts or user changes
   useEffect(() => {
-    console.log('Dashboard auth state:', { user, authLoading });
+    const logAuthState = async () => {
+      console.log('Dashboard auth state:', { user, authLoading });
+      
+      // Only proceed with auth check if we haven't done it yet
+      if (!initialAuthCheckRef.current && !authLoading) {
+        initialAuthCheckRef.current = true;
+        
+        if (!user) {
+          await addLog({
+            category: LogCategory.AUTH,
+            action: 'dashboard_no_user',
+            details: { 
+              url: window.location.pathname,
+              hasCookies: document.cookie.includes('supabase-auth'),
+              timestamp: new Date().toISOString()
+            }
+          });
+          
+          // Redirect to login if no user and auth check is complete
+          router.push('/login?redirect=/dashboard');
+          return;
+        }
+      }
+    };
     
-    if (!authLoading && user && !dataFetchedRef.current) {
+    logAuthState();
+    
+    // Only fetch data if we have a user and haven't fetched yet
+    if (!authLoading && user?.id && !dataFetchedRef.current) {
       console.log('Starting dashboard data fetch for user:', user.id);
       dataFetchedRef.current = true;
       fetchDashboardData();
     }
     
     // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Dashboard detected auth event:', event);
-      if (event === 'SIGNED_IN' && session && !dataFetchedRef.current) {
-        console.log('Auth event triggered dashboard refresh');
-        dataFetchedRef.current = true;
-        fetchDashboardData();
+      
+      // Only handle events that change auth state
+      if (['SIGNED_IN', 'SIGNED_OUT', 'USER_UPDATED'].includes(event)) {
+        await addLog({
+          userId: session?.user?.id,
+          category: LogCategory.AUTH,
+          action: 'dashboard_auth_event',
+          details: { 
+            event,
+            url: window.location.pathname,
+            timestamp: new Date().toISOString()
+          }
+        });
+        
+        if (event === 'SIGNED_IN' && session?.user?.id && !dataFetchedRef.current) {
+          console.log('Auth event triggered dashboard refresh');
+          dataFetchedRef.current = true;
+          fetchDashboardData();
+        } else if (event === 'SIGNED_OUT') {
+          // Clear dashboard state
+          setMyTasks([]);
+          setFriends([]);
+          setFriendTasks({});
+          setLeaderboard([]);
+          setTasksFromFriends([]);
+          setTasksAssignedToOthers([]);
+          setSelfAssignedTasks([]);
+          dataFetchedRef.current = false;
+          initialAuthCheckRef.current = false;
+          
+          // Redirect to login
+          router.push('/login?redirect=/dashboard');
+        }
       }
     });
     
@@ -191,7 +204,7 @@ const DashboardPage: React.FC = () => {
       subscription.unsubscribe();
       dataFetchedRef.current = false;
     };
-  }, [user, authLoading]);
+  }, [user, authLoading, router]);
 
   const fetchDashboardData = async () => {
     console.log('Fetching dashboard data...');
@@ -348,374 +361,93 @@ const DashboardPage: React.FC = () => {
     );
   }
 
-  // Display error if data loading failed
+  // Display error state
   if (error) {
     return (
-      <ProtectedRoute>
-        <AppLayout>
-          <div className={styles.dashboard}>
-            <div className={styles.header}>
-              <h1>Dashboard</h1>
-              <p className={styles.welcomeMessage}>
-                Welcome back, <span className={styles.userName}>{user?.name}</span>
-              </p>
-            </div>
-            <div className={styles.error}>
-              <p>{error}</p>
-              <Button variant="primary" onClick={fetchDashboardData}>
-                Try Again
-              </Button>
-            </div>
-          </div>
-        </AppLayout>
-      </ProtectedRoute>
+      <div className={styles.errorContainer}>
+        <p className={styles.errorMessage}>{error}</p>
+        <Button onClick={fetchDashboardData}>Retry</Button>
+      </div>
     );
   }
-
-  // Quick stats widgets
-  const statsWidgets = [
-    {
-      title: "My Tasks",
-      value: myTasks.length,
-      description: "Total tasks assigned to you"
-    },
-    {
-      title: "Completed",
-      value: myTasks.filter(task => task.status === TaskStatus.COMPLETED).length,
-      description: "Tasks you've completed"
-    },
-    {
-      title: "Friends",
-      value: friends.length,
-      description: "Active connections"
-    }
-  ];
 
   return (
     <ProtectedRoute>
       <AppLayout>
         <div className={styles.dashboard}>
           <div className={styles.header}>
-            <p className={styles.welcomeMessage}>
-              Welcome back, <span className={styles.userName}>{user?.name}</span>
-            </p>
+            <h1>Dashboard</h1>
+            <div className={styles.actions}>
+              <Button onClick={handleAddTask}>Add Task</Button>
+              <Button onClick={handleFindFriends}>Find Friends</Button>
+            </div>
           </div>
 
-          {/* Centered Leaderboard */}
-          <div className={styles.centeredLeaderboard}>
-            <Board 
-              title="Leaderboard" 
-              isLoading={isLoading}
-              className={styles.leaderboardBoard}
-              actionButton={
-                <Button size="sm" variant="outline" onClick={() => router.push('/leaderboard')}>View All</Button>
-              }
-              emptyState={
-                <div className={styles.leaderboardEmptyState}>
-                  <p>Complete tasks to appear on the leaderboard!</p>
-                </div>
-              }
-            >
-              <div className={styles.scrollableBoard}>
-                <div className={styles.leaderboardPreview}>
-                  {leaderboard.map((entry: any, index) => (
-                    <div 
-                      key={entry.id} 
-                      className={`${styles.leaderboardEntry} ${entry.id === user?.id ? styles.currentUser : ''} ${entry.isFriend ? styles.friendUser : ''}`}
-                      onClick={() => router.push(`/user/${entry.id}`)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <div className={styles.leaderboardRank}>
-                        {index < 3 ? (
-                          <span className={`${index === 0 ? styles.gold : index === 1 ? styles.silver : styles.bronze}Medal`}>
-                            {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
-                          </span>
-                        ) : (
-                          <span className={styles.rankNumber}>{index + 1}</span>
-                        )}
-                      </div>
-                      <div className={styles.leaderboardUser}>
-                        {entry.avatarUrl ? (
-                          <div className={styles.avatarContainer}>
-                            <img 
-                              src={entry.avatarUrl} 
-                              alt={entry.name} 
-                              className={styles.leaderboardAvatar} 
-                            />
-                          </div>
-                        ) : (
-                          <div className={styles.leaderboardAvatarPlaceholder}>
-                            {entry.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()}
-                          </div>
-                        )}
-                        <span className={styles.leaderboardName}>
-                          {entry.name}
-                          {entry.id === user?.id && <span className={styles.leaderboardCurrentUser}>(You)</span>}
-                        </span>
-                      </div>
-                      <div className={styles.leaderboardStats}>
-                        <div className={styles.leaderboardStat}>
-                          <span className={styles.leaderboardStatValue}>{entry.tasksCompleted || 0}</span>
-                          <span className={styles.leaderboardStatLabel}>Tasks</span>
-                        </div>
-                        <div className={styles.leaderboardStat}>
-                          <span className={styles.leaderboardStatValue}>
-                            {entry.avgQualityRating ? entry.avgQualityRating.toFixed(1) : 'N/A'}
-                          </span>
-                          <span className={styles.leaderboardStatLabel}>Rating</span>
-                        </div>
-
-                        <div className={styles.leaderboardStat}>
-                          <span className={styles.leaderboardStatValue}>{entry.tasksOverdue || 0}</span>
-                          <span className={styles.leaderboardStatLabel}>Due</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </Board>
-          </div>
-
-          {/* Stats Widgets */}
-          <div className={styles.widgetsGrid}>
-            {statsWidgets.map((stat, index) => (
-              <div key={index} className={styles.statsCard}>
-                <h3>{stat.title}</h3>
-                <div className={styles.statValue}>{stat.value}</div>
-                <div className={styles.statDescription}>{stat.description}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Two-column Task Layout */}
-          <div className={styles.tasksColumnsContainer}>
-            {/* Column 1: Combined My Tasks and Friends' Tasks */}
-            <div className={styles.taskColumn}>
-              <h2 className={styles.taskColumnTitle}>My Tasks</h2>
-              <Board 
-                title="All My Tasks" 
-                isLoading={isLoading}
-                className={styles.taskColumnBoard}
-                emptyState={
-                  <div className={styles.emptyState}>
-                    <p>You don't have any tasks yet</p>
-                    <div 
-                      className={styles.addTaskCard}
-                      onClick={() => handleAddTask()}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-                      </svg>
-                      Create Your First Task
-                    </div>
-                  </div>
-                }
-              >
-                <div className={styles.scrollableBoard}>
-                  <div>
-                    {/* Tasks I created for myself */}
-                    {selfAssignedTasks.length > 0 && (
-                      <div className={styles.taskSection}>
-                        <h3 className={styles.taskSectionTitle}>Tasks I Created</h3>
-                        <TaskList 
-                          tasks={selfAssignedTasks} 
-                          onStatusChange={handleStatusChange} 
-                          onSubmissionTypeChange={handleSubmissionTypeChange}
-                          onSubmissionContentChange={handleSubmissionContentChange}
-                          showDetails={true} 
-                          ownership="self" 
-                        />
-                      </div>
-                    )}
-                    
-                    {/* Tasks assigned to me by friends */}
-                    {tasksFromFriends.length > 0 && (
-                      <div className={styles.taskSection}>
-                        <h3 className={styles.taskSectionTitle}>Tasks From Friends</h3>
-                        <TaskList 
-                          tasks={tasksFromFriends} 
-                          onStatusChange={handleStatusChange} 
-                          onSubmissionTypeChange={handleSubmissionTypeChange}
-                          onSubmissionContentChange={handleSubmissionContentChange}
-                          showDetails={true} 
-                          ownership="self" 
-                        />
-                      </div>
-                    )}
-                    
-                    {/* Add Task card */}
-                    <div 
-                      className={styles.addTaskCard}
-                      onClick={() => handleAddTask()}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-                      </svg>
-                      Add New Task
-                    </div>
-                  </div>
-                </div>
+          <div className={styles.content}>
+            <div className={styles.mainContent}>
+              <Board title="My Tasks">
+                <TaskList 
+                  tasks={myTasks}
+                  onStatusChange={handleStatusChange}
+                  onSubmissionTypeChange={handleSubmissionTypeChange}
+                  onSubmissionContentChange={handleSubmissionContentChange}
+                />
               </Board>
             </div>
 
-            {/* Column 2: Task Submission Review */}
-            <div className={styles.taskColumn}>
-              <h2 className={styles.taskColumnTitle}>Task Submission Review</h2>
-              <Board 
-                title="Review Completed Tasks" 
-                isLoading={isLoading}
-                className={styles.taskColumnBoard}
-                emptyState={
-                  <div className={styles.emptyState}>
-                    <p>No completed tasks to review yet</p>
+            <div className={styles.sidebar}>
+              <Board title="Leaderboard" className={styles.leaderboard}>
+                {leaderboard.map((entry, index) => (
+                  <div key={entry.id} className={styles.leaderboardEntry}>
+                    <span className={styles.rank}>#{index + 1}</span>
+                    <span className={styles.name}>{entry.name}</span>
+                    <span className={styles.score}>{entry.tasksCompleted} tasks</span>
                   </div>
-                }
-              >
-                <div className={styles.scrollableBoard}>
-                  <div className={styles.analyticsPlaceholder}>
-                    {tasksAssignedToOthers
-                      .filter(task => task.status === TaskStatus.COMPLETED && !task.qualityRating)
-                      .map(task => (
-                        <div key={task.id} className={styles.reviewTask}>
-                          <div className={styles.reviewTaskHeader}>
-                            <h3>{task.title}</h3>
-                            <span className={styles.taskAssignee}>
-                              {task.assignee?.name}
-                            </span>
-                          </div>
-                          <div className={styles.reviewTaskDetails}>
-                            <p>{task.description}</p>
-                            <div className={styles.reviewTaskMeta}>
-                              <div>
-                                <span className={styles.reviewTaskLabel}>Completed:</span>
-                                <span>{task.completedAt ? new Date(task.completedAt).toLocaleDateString() : 'Unknown'}</span>
-                              </div>
-                              <div>
-                                <span className={styles.reviewTaskLabel}>Due Date:</span>
-                                <span>{new Date(task.dueDate).toLocaleDateString()}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className={styles.reviewTaskActions}>
-                            <Button
-                              size="sm"
-                              variant="primary"
-                              onClick={() => router.push(`/task/${task.id}`)}
-                            >
-                              Review & Grade
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-
-                    {tasksAssignedToOthers.filter(task => task.status === TaskStatus.COMPLETED && !task.qualityRating).length === 0 && (
-                      <div className={styles.emptyReviewState}>
-                        <p>No tasks waiting for review</p>
-                        <p className={styles.reviewSubtext}>Completed tasks assigned by you will appear here for review</p>
-                      </div>
-                    )}
-
-                    {/* Recently Graded Tasks */}
-                    {tasksAssignedToOthers.filter(task => task.status === TaskStatus.COMPLETED && task.qualityRating).length > 0 && (
-                      <div className={styles.gradedTasksSection}>
-                        <h3 className={styles.gradedTasksTitle}>Recently Graded</h3>
-                        {tasksAssignedToOthers
-                          .filter(task => task.status === TaskStatus.COMPLETED && task.qualityRating)
-                          .slice(0, 3)
-                          .map(task => (
-                            <div key={task.id} className={styles.gradedTask}>
-                              <div className={styles.gradedTaskTitle}>{task.title}</div>
-                              <div className={styles.gradedTaskDetails}>
-                                <span className={styles.gradedTaskAssignee}>{task.assignee?.name}</span>
-                                <div className={styles.gradedTaskRating}>
-                                  <span className={styles.gradedTaskLabel}>Rating:</span>
-                                  <span className={styles.gradedTaskValue}>{task.qualityRating}/5</span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
+                ))}
               </Board>
-            </div>
-          </div>
-          
-          {/* Friends' Task Lists */}
-          <div className={styles.friendsSection}>
-            <div className={styles.sectionHeader}>
-              <h2>Friends' Task Lists</h2>
-              <Button size="xs" variant="primary" onClick={handleFindFriends}>
-                Find Friends
-              </Button>
-            </div>
-            {friends.length === 0 && !isLoading ? (
-              <div className={styles.emptyState}>
-                <p>You haven't connected with any friends yet</p>
-                <Button size="xs" variant="primary" onClick={handleFindFriends}>
-                  Find Friends
-                </Button>
-              </div>
-            ) : (
-              <div className={styles.friendTasksGrid}>
+
+              <Board title="Friends" className={styles.friends}>
                 {friends.map(friendship => {
-                  const friendId = friendship.userId === user?.id ? friendship.friendId : friendship.userId;
-                  const friendName = friendship.friend?.name || 'Friend';
-                  const tasks = friendTasks[friendId] || [];
+                  const friend = friendship.friend;
+                  if (!friend) return null;
                   
                   return (
-                    <Board 
-                      key={friendId}
-                      title={`${friendName}'s Tasks`}
-                      isLoading={isLoading}
-                      emptyState={
-                        <div className={styles.emptyState}>
-                          <p>You haven't assigned any tasks to {friendName} yet</p>
-                          <div 
-                            className={styles.addTaskCard}
-                            onClick={() => handleAddTaskToFriend(friendId, friendName)}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-                            </svg>
-                            Assign Task
-                          </div>
-                        </div>
-                      }
-                    >
-                      <div className={styles.scrollableBoard}>
-                        <div>
-                          <TaskList tasks={tasks} showDetails={false} ownership="friend" />
-                          <div 
-                            className={styles.addTaskCard}
-                            onClick={() => handleAddTaskToFriend(friendId, friendName)}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-                            </svg>
-                            Assign Task
-                          </div>
-                        </div>
+                    <div key={friend.id} className={styles.friendEntry}>
+                      <div className={styles.friendInfo}>
+                        <span className={styles.name}>{friend.name}</span>
+                        <Button 
+                          size="xs"
+                          onClick={() => handleAddTaskToFriend(friend.id, friend.name)}
+                        >
+                          Assign Task
+                        </Button>
                       </div>
-                    </Board>
+                      {friendTasks[friend.id] && (
+                        <div className={styles.friendTasks}>
+                          <TaskList 
+                            tasks={friendTasks[friend.id]}
+                            onStatusChange={handleStatusChange}
+                            onSubmissionTypeChange={handleSubmissionTypeChange}
+                            onSubmissionContentChange={handleSubmissionContentChange}
+                          />
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
-              </div>
-            )}
+              </Board>
+            </div>
           </div>
-
-          {/* Task Creation Modal */}
-          {showCreateTaskModal && (
-            <CreateTaskModal
-              assigneeId={selectedAssigneeId}
-              assigneeName={selectedAssigneeName}
-              onClose={() => setShowCreateTaskModal(false)}
-              onCreated={handleTaskCreated}
-            />
-          )}
         </div>
+
+        {showCreateTaskModal && (
+          <CreateTaskModal
+            assigneeId={selectedAssigneeId}
+            assigneeName={selectedAssigneeName}
+            onClose={() => setShowCreateTaskModal(false)}
+            onCreated={handleTaskCreated}
+          />
+        )}
       </AppLayout>
     </ProtectedRoute>
   );

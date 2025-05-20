@@ -25,6 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   const router = useRouter();
   const loadingUserDataRef = useRef<boolean>(false);
+  const initialCheckDoneRef = useRef<boolean>(false);
 
   // Load user data - optimized to prevent redundant fetches
   const loadUserData = async (userId: string) => {
@@ -201,7 +202,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const checkUser = async () => {
-      if (isAuthChecked) return;
+      if (initialCheckDoneRef.current) return;
       
       setIsLoading(true);
       try {
@@ -214,9 +215,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             timestamp: new Date().toISOString()
           }
         });
-        
-        // Use a small timeout to allow React to render loading state first
-        await new Promise(resolve => setTimeout(resolve, 10));
         
         // Use optimized getSession
         const { data: { session } } = await getSession();
@@ -267,6 +265,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             timestamp: new Date().toISOString()
           }
         });
+      } finally {
+        initialCheckDoneRef.current = true;
       }
     };
 
@@ -294,7 +294,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Update session cache in supabase module
       if (session) {
-        // Instead of accessing window.sessionCache directly, we'll handle this in the API module
         try {
           // Refresh the session cache for future API calls
           if (typeof window !== 'undefined') {
@@ -311,20 +310,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (event === 'SIGNED_IN' && session) {
         await loadUserData(session.user.id);
-        
-        await addLog({
-          userId: session.user.id,
-          category: LogCategory.AUTH,
-          action: 'signed_in',
-          details: { 
-            provider: session.user.app_metadata?.provider,
-            event,
-            url: window.location.pathname,
-            timestamp: new Date().toISOString()
-          }
-        });
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
+        setIsLoading(false);
         
         // Clear session storage on sign out
         try {
@@ -338,23 +326,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (e) {
           console.error('Error clearing session storage:', e);
         }
-        
-        await addLog({
-          category: LogCategory.AUTH,
-          action: 'signed_out',
-          details: { 
-            event,
-            url: window.location.pathname,
-            timestamp: new Date().toISOString()
-          }
-        });
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [isAuthChecked]);
+  }, []);
 
   const signIn = async (email: string) => {
     try {
