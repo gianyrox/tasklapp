@@ -715,7 +715,34 @@ export const getTasksFromFriends = async (): Promise<Task[]> => {
 };
 
 export const createTask = async (task: Omit<Task, 'id' | 'createdAt'>): Promise<Task | null> => {
-  const { data, error } = await supabase
+  // Define the type for the task data returned from the insert
+  interface InsertedTaskData {
+    id: string;
+    title: string;
+    description: string;
+    created_at: string;
+    due_date: string;
+    assigner_id: string;
+    assignee_id: string;
+    status: string;
+    priority: string;
+    completed_at?: string;
+    estimated_time_minutes?: number;
+    actual_time_minutes?: number;
+    submission_date?: string;
+    quality_rating?: number;
+    feedback?: string;
+    submission_type?: string;
+    submission_instructions?: string;
+    started_at?: string;
+    submission_content?: string;
+    timeliness_rating?: number;
+    effort_rating?: number;
+    accuracy_rating?: number;
+  }
+
+  // Create the task first
+  const { data: rawData, error } = await supabase
     .from('tasks')
     .insert({
       title: task.title,
@@ -730,17 +757,113 @@ export const createTask = async (task: Omit<Task, 'id' | 'createdAt'>): Promise<
       actual_time_minutes: task.actualTimeMinutes,
       submission_date: task.submissionDate?.toISOString(),
       quality_rating: task.qualityRating,
-      feedback: task.feedback
+      feedback: task.feedback,
+      submission_type: task.submissionType,
+      submission_instructions: task.submissionInstructions
     })
     .select()
     .single();
     
-  if (error || !data) {
+  if (error || !rawData) {
     console.error('Error creating task:', error);
     return null;
   }
+
+  // Type assert the data to our expected structure
+  const data = rawData as unknown as InsertedTaskData;
+
+  // Send email notification if task is assigned to someone other than the creator
+  if (task.assignerId !== task.assigneeId) {
+    try {
+      // Fetch assignee and assigner data separately for the notification
+      const [assigneeResult, assignerResult] = await Promise.all([
+        supabase
+          .from('users')
+          .select('id, name, email')
+          .eq('id', task.assigneeId)
+          .single(),
+        supabase
+          .from('users')
+          .select('id, name, email')
+          .eq('id', task.assignerId)
+          .single()
+      ]);
+
+      if (assigneeResult.data && assignerResult.data) {
+        // Call the edge function directly using supabase.functions.invoke
+        const { data: notificationResult, error: notificationError } = await supabase.functions.invoke('notify-task-assignment', {
+          body: {
+            assigneeEmail: assigneeResult.data.email,
+            assigneeName: assigneeResult.data.name,
+            assignerName: assignerResult.data.name,
+            taskTitle: task.title,
+            taskDescription: task.description,
+            dueDate: task.dueDate.toISOString(),
+            taskId: data.id
+          }
+        });
+
+        if (notificationError) {
+          console.error('Failed to send task assignment notification:', notificationError);
+          // Don't fail the task creation if notification fails
+        } else {
+          console.log('Task assignment notification sent successfully:', notificationResult);
+        }
+      } else {
+        console.error('Could not fetch user data for notification:', {
+          assigneeError: assigneeResult.error,
+          assignerError: assignerResult.error
+        });
+      }
+    } catch (notificationError) {
+      console.error('Error setting up task assignment notification:', notificationError);
+      // Don't fail the task creation if notification setup fails
+    }
+  }
+
+  // Now fetch the complete task data with relationships for the return value
+  const { data: completeTask, error: fetchError } = await supabase
+    .from('tasks')
+    .select(`
+      *,
+      attachments:task_attachments(*),
+      assigner:users!tasks_assigner_id_fkey(id, name, email, avatar_url, created_at),
+      assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url, created_at)
+    `)
+    .eq('id', data.id)
+    .single();
+    
+  if (fetchError || !completeTask) {
+    console.error('Error fetching complete task data:', fetchError);
+    // Return a basic task object if relationship fetch fails
+    return {
+      id: data.id,
+      title: data.title,
+      description: data.description,
+      createdAt: new Date(data.created_at),
+      dueDate: new Date(data.due_date),
+      assignerId: data.assigner_id,
+      assigneeId: data.assignee_id,
+      status: data.status as TaskStatus,
+      priority: data.priority as TaskPriority,
+      completedAt: data.completed_at ? new Date(data.completed_at) : undefined,
+      estimatedTimeMinutes: data.estimated_time_minutes,
+      actualTimeMinutes: data.actual_time_minutes,
+      submissionType: data.submission_type as SubmissionType | undefined,
+      submissionInstructions: data.submission_instructions,
+      startedAt: data.started_at ? new Date(data.started_at) : undefined,
+      submissionDate: data.submission_date ? new Date(data.submission_date) : undefined,
+      submissionContent: data.submission_content,
+      qualityRating: data.quality_rating,
+      timelinessRating: data.timeliness_rating,
+      effortRating: data.effort_rating,
+      accuracyRating: data.accuracy_rating,
+      feedback: data.feedback,
+      attachments: []
+    };
+  }
   
-  return transformTaskFromDb(data);
+  return transformTaskFromDb(completeTask);
 };
 
 export const updateTaskStatus = async (

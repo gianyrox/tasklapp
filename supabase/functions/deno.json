@@ -1,0 +1,19 @@
+{
+  "imports": {
+    "supabase": "jsr:@supabase/functions-js@2.4.1"
+  },
+  "compilerOptions": {
+    "lib": ["deno.ns", "deno.window"],
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "strict": true
+  }
+} 

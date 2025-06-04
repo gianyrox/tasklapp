@@ -8,6 +8,7 @@ A modern, edtech-focused task management application built with Next.js and Supa
 - **Dashboard**: View your tasks, friend's tasks, and leaderboard all in one place
 - **Task Management**: Create, update, and track the status of tasks
 - **Friend System**: Connect with friends and assign tasks to each other
+- **Email Notifications**: Automatic email notifications when tasks are assigned 📧
 - **Leaderboard**: Compete with friends based on task completion
 - **Responsive Design**: Works on desktop, tablet, and mobile devices
 
@@ -106,4 +107,28 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - [Next.js](https://nextjs.org/)
 - [Supabase](https://supabase.io/)
-- [React](https://reactjs.org/) 
+- [React](https://reactjs.org/)
+
+## 📧 Email Notifications
+
+The app now includes automatic email notifications when users are assigned tasks! Here's what you get:
+
+### Features
+- **Beautiful HTML Emails**: Modern, responsive email templates
+- **Automatic Sending**: Emails are sent automatically when tasks are assigned
+- **Rich Content**: Includes task details, due dates, and direct links to view tasks
+- **Reliable Delivery**: Powered by Resend for high deliverability
+
+### How It Works
+1. When you assign a task to a friend, they automatically receive an email
+2. The email includes all task details and a direct link to view the task
+3. No manual notifications needed - it's all automatic!
+
+### Setup
+To enable email notifications:
+1. Sign up for a [Resend account](https://resend.com)
+2. Follow the setup guide in `EDGE_FUNCTION_SETUP.md`
+3. Deploy the Supabase Edge Function
+4. Configure your environment variables
+
+See `EDGE_FUNCTION_SETUP.md` for detailed setup instructions. 
