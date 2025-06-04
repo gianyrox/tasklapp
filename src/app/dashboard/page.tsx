@@ -22,13 +22,13 @@ import { addLog } from '../../lib/logging';
 import { LogCategory } from '../../../confy/types';
 import { 
   supabase,
-  getFriendships,
-  getTasksFromFriends,
+  getFriendships, 
+  getTasksFromFriends, 
   getSelfAssignedTasks,
   getTasksAssignedToOthers,
-  getTasksByFriend,
+  getTasksByFriend, 
   getLeaderboard,
-  updateTaskStatus,
+  updateTaskStatus, 
   updateTaskSubmissionType,
   updateTaskSubmissionContent
 } from '../../lib/api/supabase';
@@ -122,19 +122,18 @@ const DashboardPage: React.FC = () => {
 
   // Update auth state ref when it changes
   useEffect(() => {
+    console.log('Auth state changed:', { user, authLoading });
     authStateRef.current = { user, authLoading };
   }, [user, authLoading]);
 
   // Fetch data when component mounts or user changes
   useEffect(() => {
     const logAuthState = async () => {
-      console.log('Dashboard auth state:', { user, authLoading });
-      
-      // Only proceed with auth check if we haven't done it yet
-      if (!initialAuthCheckRef.current && !authLoading) {
-        initialAuthCheckRef.current = true;
-        
+    console.log('Dashboard auth state:', { user, authLoading });
+    
+      if (!authLoading) {
         if (!user) {
+          console.log('No user found, redirecting to login');
           await addLog({
             category: LogCategory.AUTH,
             action: 'dashboard_no_user',
@@ -145,25 +144,33 @@ const DashboardPage: React.FC = () => {
             }
           });
           
-          // Redirect to login if no user and auth check is complete
           router.push('/login?redirect=/dashboard');
           return;
         }
-      }
+        
+        // Only fetch data if we have a user and haven't fetched yet
+        if (user?.id && !dataFetchedRef.current) {
+      console.log('Starting dashboard data fetch for user:', user.id);
+      dataFetchedRef.current = true;
+          await fetchDashboardData();
+        }
+    }
     };
     
     logAuthState();
     
-    // Only fetch data if we have a user and haven't fetched yet
-    if (!authLoading && user?.id && !dataFetchedRef.current) {
-      console.log('Starting dashboard data fetch for user:', user.id);
-      dataFetchedRef.current = true;
-      fetchDashboardData();
-    }
-    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Dashboard detected auth event:', event);
+      
+      if (event === 'INITIAL_SESSION') {
+        if (session?.user?.id && !dataFetchedRef.current) {
+          console.log('Initial session detected, fetching data');
+          dataFetchedRef.current = true;
+          await fetchDashboardData();
+        }
+        return;
+      }
       
       // Only handle events that change auth state
       if (['SIGNED_IN', 'SIGNED_OUT', 'USER_UPDATED'].includes(event)) {
@@ -178,10 +185,10 @@ const DashboardPage: React.FC = () => {
           }
         });
         
-        if (event === 'SIGNED_IN' && session?.user?.id && !dataFetchedRef.current) {
-          console.log('Auth event triggered dashboard refresh');
-          dataFetchedRef.current = true;
-          fetchDashboardData();
+        if (event === 'SIGNED_IN' && session?.user?.id) {
+        console.log('Auth event triggered dashboard refresh');
+        dataFetchedRef.current = true;
+          await fetchDashboardData();
         } else if (event === 'SIGNED_OUT') {
           // Clear dashboard state
           setMyTasks([]);
@@ -194,7 +201,6 @@ const DashboardPage: React.FC = () => {
           dataFetchedRef.current = false;
           initialAuthCheckRef.current = false;
           
-          // Redirect to login
           router.push('/login?redirect=/dashboard');
         }
       }
@@ -211,13 +217,13 @@ const DashboardPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
 
-    if (!user) {
+    try {
+      if (!user?.id) {
       console.log('No user found, aborting dashboard data fetch');
       setIsLoading(false);
       return;
     }
 
-    try {
       console.log('Fetching data for user:', user.id);
       
       // Fetch tasks assigned by friends
@@ -367,7 +373,7 @@ const DashboardPage: React.FC = () => {
       <div className={styles.errorContainer}>
         <p className={styles.errorMessage}>{error}</p>
         <Button onClick={fetchDashboardData}>Retry</Button>
-      </div>
+          </div>
     );
   }
 
@@ -380,17 +386,17 @@ const DashboardPage: React.FC = () => {
             <div className={styles.actions}>
               <Button onClick={handleAddTask}>Add Task</Button>
               <Button onClick={handleFindFriends}>Find Friends</Button>
-            </div>
+              </div>
           </div>
 
           <div className={styles.content}>
             <div className={styles.mainContent}>
               <Board title="My Tasks">
-                <TaskList 
+                        <TaskList 
                   tasks={myTasks}
-                  onStatusChange={handleStatusChange}
-                  onSubmissionTypeChange={handleSubmissionTypeChange}
-                  onSubmissionContentChange={handleSubmissionContentChange}
+                          onStatusChange={handleStatusChange} 
+                          onSubmissionTypeChange={handleSubmissionTypeChange}
+                          onSubmissionContentChange={handleSubmissionContentChange}
                 />
               </Board>
             </div>
@@ -402,8 +408,8 @@ const DashboardPage: React.FC = () => {
                     <span className={styles.rank}>#{index + 1}</span>
                     <span className={styles.name}>{entry.name}</span>
                     <span className={styles.score}>{entry.tasksCompleted} tasks</span>
-                  </div>
-                ))}
+                            </div>
+                          ))}
               </Board>
 
               <Board title="Friends" className={styles.friends}>
@@ -419,9 +425,9 @@ const DashboardPage: React.FC = () => {
                           size="xs"
                           onClick={() => handleAddTaskToFriend(friend.id, friend.name)}
                         >
-                          Assign Task
+                            Assign Task
                         </Button>
-                      </div>
+                          </div>
                       {friendTasks[friend.id] && (
                         <div className={styles.friendTasks}>
                           <TaskList 
@@ -432,22 +438,22 @@ const DashboardPage: React.FC = () => {
                           />
                         </div>
                       )}
-                    </div>
+                      </div>
                   );
                 })}
               </Board>
-            </div>
+              </div>
           </div>
-        </div>
+          </div>
 
-        {showCreateTaskModal && (
-          <CreateTaskModal
-            assigneeId={selectedAssigneeId}
-            assigneeName={selectedAssigneeName}
-            onClose={() => setShowCreateTaskModal(false)}
-            onCreated={handleTaskCreated}
-          />
-        )}
+          {showCreateTaskModal && (
+            <CreateTaskModal
+              assigneeId={selectedAssigneeId}
+              assigneeName={selectedAssigneeName}
+              onClose={() => setShowCreateTaskModal(false)}
+              onCreated={handleTaskCreated}
+            />
+          )}
       </AppLayout>
     </ProtectedRoute>
   );

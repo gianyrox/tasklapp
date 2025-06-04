@@ -336,10 +336,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string) => {
     try {
-      // Check if user is submitting another magic link request too quickly
+      // Check if user is submitting another OTP request too quickly
       // Supabase has rate limiting, but we can add a client-side check as well
       try {
-        const lastRequest = sessionStorage.getItem('last_magic_link_request');
+        const lastRequest = sessionStorage.getItem('last_otp_request');
         if (lastRequest) {
           const lastRequestTime = parseInt(lastRequest, 10);
           const timeSinceLastRequest = Date.now() - lastRequestTime;
@@ -350,7 +350,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             
             await addLog({
               category: LogCategory.AUTH,
-              action: 'magic_link_rate_limited',
+              action: 'otp_rate_limited',
               details: {
                 secondsSinceLastRequest: Math.floor(timeSinceLastRequest / 1000),
                 secondsToWait,
@@ -360,7 +360,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             
             return { 
               success: false, 
-              error: `Please wait ${secondsToWait} seconds before requesting another magic link.` 
+              error: `Please wait ${secondsToWait} seconds before requesting another verification code.` 
             };
           }
         }
@@ -385,32 +385,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           redactedEmail,
           hasRedirect: redirectParam !== '/dashboard',
           redirectPath: redirectParam === '/dashboard' ? null : redirectParam,
-          method: 'magic_link',
+          method: 'otp',
           timestamp: new Date().toISOString()
         }
       });
       
-      // Build the callback URL with redirect parameter
-      const callbackUrl = new URL('/auth/callback', window.location.origin);
-      callbackUrl.searchParams.set('redirect_to', redirectParam);
-      
-      // Record callback URL for debugging
-      await addLog({
-        category: LogCategory.AUTH,
-        action: 'sign_in_callback_url',
-        details: { 
-          callbackUrl: callbackUrl.toString().replace(email, redactedEmail),
-          timestamp: new Date().toISOString()
-        }
-      });
-      
-      // Use Supabase's signInWithOtp to send magic link
+      // Use Supabase's signInWithOtp to send OTP via email
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           // Create new users automatically (can be disabled)
           shouldCreateUser: true,
-          emailRedirectTo: callbackUrl.toString(),
         },
       });
 
@@ -431,7 +416,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: error.message };
       }
       
-      // Log successful magic link sending
+      // Log successful OTP sending
       await addLog({
         category: LogCategory.AUTH,
         action: 'sign_in_otp_sent',

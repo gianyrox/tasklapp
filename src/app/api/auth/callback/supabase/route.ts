@@ -5,6 +5,8 @@ import { LogCategory } from '../../../../../../confy/types';
 
 // This is the main callback handler which processes redirects from Supabase Auth
 // It exchanges the code for a session and sets the auth cookies
+// NOTE: With OTP authentication, most verification happens directly on the login/signup pages.
+// This route primarily handles OAuth providers (Google, GitHub, etc.) and legacy magic link flows.
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');

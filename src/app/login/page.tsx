@@ -14,6 +14,8 @@ import { supabase } from '../../lib/api/supabase';
 const LoginContent: React.FC = () => {
   console.log('Rendering LoginContent component');
   const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [step, setStep] = useState<'email' | 'otp'>('email');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   const { signIn, user } = useAuth();
@@ -215,8 +217,8 @@ const LoginContent: React.FC = () => {
     handleUserRedirect();
   }, [user, redirect]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    console.log('Form submitted');
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    console.log('Email form submitted');
     e.preventDefault();
     setIsSubmitting(true);
     setMessage(null);
@@ -255,30 +257,30 @@ const LoginContent: React.FC = () => {
           hasRedirect: Boolean(redirect !== '/dashboard'),
           redirectPath: redirect === '/dashboard' ? null : redirect,
           timestamp: new Date().toISOString(),
-          loginMethod: 'magic_link',
+          loginMethod: 'otp',
           userAgent: navigator.userAgent
         }
       });
       
-      // Notify user we're sending the magic link
+      // Notify user we're sending the OTP
       console.log('Updating UI to show sending status');
-      setMessage({ type: 'success', text: 'Sending magic link...' });
+      setMessage({ type: 'success', text: 'Sending verification code...' });
       
-      // Call the signIn function to send the magic link
+      // Call the signIn function to send the OTP
       console.log('Calling signIn function');
       const { success, error } = await signIn(email);
 
       if (success) {
-        console.log('Magic link sent successfully');
+        console.log('OTP sent successfully');
         setMessage({ 
           type: 'success', 
-          text: 'Check your email for the magic link to log in!' 
+          text: 'Check your email for the 6-digit verification code!' 
         });
-        setEmail('');
+        setStep('otp');
         
         await addLog({
           category: LogCategory.AUTH,
-          action: 'magic_link_sent',
+          action: 'otp_sent',
           details: { 
             redactedEmail,
             hasRedirect: Boolean(redirect !== '/dashboard'),
@@ -287,20 +289,20 @@ const LoginContent: React.FC = () => {
           }
         });
         
-        // Track magic link request timestamp to prevent too many requests
+        // Track OTP request timestamp to prevent too many requests
         try {
-          console.log('Saving magic link request timestamp');
-          sessionStorage.setItem('last_magic_link_request', Date.now().toString());
+          console.log('Saving OTP request timestamp');
+          sessionStorage.setItem('last_otp_request', Date.now().toString());
         } catch (e) {
           console.error('Error saving to session storage:', e);
         }
       } else {
-        console.error('Error sending magic link:', error);
+        console.error('Error sending OTP:', error);
         setMessage({ type: 'error', text: error || 'An error occurred' });
         
         await addLog({
           category: LogCategory.ERROR,
-          action: 'magic_link_error',
+          action: 'otp_error',
           details: { 
             error: error || 'Unknown error',
             redactedEmail,
@@ -324,9 +326,144 @@ const LoginContent: React.FC = () => {
         }
       });
     } finally {
-      console.log('Form submission complete, resetting isSubmitting');
+      console.log('Email submission complete, resetting isSubmitting');
       setIsSubmitting(false);
     }
+  };
+
+  const handleOtpSubmit = async (e: React.FormEvent) => {
+    console.log('OTP form submitted');
+    e.preventDefault();
+    setIsSubmitting(true);
+    setMessage(null);
+
+    if (!otp || otp.length !== 6 || !/^\d{6}$/.test(otp)) {
+      console.log('Invalid OTP format:', otp);
+      setMessage({ type: 'error', text: 'Please enter a valid 6-digit code' });
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      console.log('Verifying OTP');
+      
+      const emailPrefix = email.substring(0, email.indexOf('@'));
+      const emailDomain = email.substring(email.indexOf('@') + 1);
+      const redactedEmail = `${emailPrefix.substring(0, Math.min(3, emailPrefix.length))}***@${emailDomain}`;
+      
+      await addLog({
+        category: LogCategory.AUTH,
+        action: 'otp_verification_attempt',
+        details: { 
+          redactedEmail,
+          timestamp: new Date().toISOString()
+        }
+      });
+
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token: otp,
+        type: 'email'
+      });
+
+      if (error) {
+        console.error('OTP verification error:', error);
+        setMessage({ type: 'error', text: error.message || 'Invalid verification code' });
+        
+        await addLog({
+          category: LogCategory.ERROR,
+          action: 'otp_verification_error',
+          details: { 
+            error: error.message,
+            redactedEmail,
+            timestamp: new Date().toISOString()
+          }
+        });
+        
+        return;
+      }
+
+      if (data.session) {
+        console.log('OTP verification successful');
+        setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
+        
+        await addLog({
+          userId: data.session.user.id,
+          category: LogCategory.AUTH,
+          action: 'otp_verification_success',
+          details: { 
+            redactedEmail,
+            redirectTo: redirect,
+            timestamp: new Date().toISOString()
+          }
+        });
+
+        // Redirect after successful verification
+        setTimeout(() => {
+          window.location.href = redirect;
+        }, 1000);
+      }
+    } catch (error) {
+      console.error('Unexpected OTP verification error:', error);
+      setMessage({ 
+        type: 'error', 
+        text: 'An unexpected error occurred. Please try again.' 
+      });
+      
+      await addLog({
+        category: LogCategory.ERROR,
+        action: 'otp_verification_exception',
+        details: { 
+          error: String(error),
+          timestamp: new Date().toISOString()
+        }
+      });
+    } finally {
+      console.log('OTP submission complete, resetting isSubmitting');
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleBackToEmail = () => {
+    setStep('email');
+    setOtp('');
+    setMessage(null);
+  };
+
+  const handleResendOtp = async () => {
+    // Check rate limiting
+    try {
+      const lastRequest = sessionStorage.getItem('last_otp_request');
+      if (lastRequest) {
+        const lastRequestTime = parseInt(lastRequest, 10);
+        const timeSinceLastRequest = Date.now() - lastRequestTime;
+        
+        if (timeSinceLastRequest < 30000) {
+          const secondsToWait = Math.ceil((30000 - timeSinceLastRequest) / 1000);
+          setMessage({ 
+            type: 'error', 
+            text: `Please wait ${secondsToWait} seconds before requesting another code.` 
+          });
+          return;
+        }
+      }
+    } catch (e) {
+      console.error('Error checking rate limit:', e);
+    }
+
+    setIsSubmitting(true);
+    setMessage({ type: 'info', text: 'Sending new verification code...' });
+
+    const { success, error } = await signIn(email);
+    
+    if (success) {
+      setMessage({ type: 'success', text: 'New verification code sent!' });
+      sessionStorage.setItem('last_otp_request', Date.now().toString());
+    } else {
+      setMessage({ type: 'error', text: error || 'Failed to send new code' });
+    }
+    
+    setIsSubmitting(false);
   };
 
   return (
@@ -337,7 +474,11 @@ const LoginContent: React.FC = () => {
             Taskl
           </Link>
           <h1>Log in to your account</h1>
-          <p>Enter your email to receive a magic link for passwordless login</p>
+          {step === 'email' ? (
+            <p>Enter your email to receive a verification code</p>
+          ) : (
+            <p>Enter the 6-digit code sent to {email}</p>
+          )}
         </div>
 
         {message && (
@@ -346,33 +487,84 @@ const LoginContent: React.FC = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.formGroup}>
-            <label htmlFor="email" className={styles.label}>
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              placeholder="yourname@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={styles.input}
-              disabled={isSubmitting}
-              required
-            />
-          </div>
+        {step === 'email' ? (
+          <form onSubmit={handleEmailSubmit} className={styles.form}>
+            <div className={styles.formGroup}>
+              <label htmlFor="email" className={styles.label}>
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                placeholder="yourname@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={styles.input}
+                disabled={isSubmitting}
+                required
+              />
+            </div>
 
-          <Button
-            type="submit"
-            variant="primary"
-            fullWidth
-            isLoading={isSubmitting}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Sending Magic Link...' : 'Send Magic Link'}
-          </Button>
-        </form>
+            <Button
+              type="submit"
+              variant="primary"
+              fullWidth
+              isLoading={isSubmitting}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Sending Code...' : 'Send Verification Code'}
+            </Button>
+          </form>
+        ) : (
+          <form onSubmit={handleOtpSubmit} className={styles.form}>
+            <div className={styles.formGroup}>
+              <label htmlFor="otp" className={styles.label}>
+                Verification Code
+              </label>
+              <input
+                id="otp"
+                type="text"
+                placeholder="123456"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                className={`${styles.input} ${styles.otpInput}`}
+                disabled={isSubmitting}
+                maxLength={6}
+                required
+                autoComplete="one-time-code"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              variant="primary"
+              fullWidth
+              isLoading={isSubmitting}
+              disabled={isSubmitting || otp.length !== 6}
+            >
+              {isSubmitting ? 'Verifying...' : 'Verify Code'}
+            </Button>
+
+            <div className={styles.otpActions}>
+              <button
+                type="button"
+                onClick={handleBackToEmail}
+                className={styles.linkButton}
+                disabled={isSubmitting}
+              >
+                ← Change email
+              </button>
+              <button
+                type="button"
+                onClick={handleResendOtp}
+                className={styles.linkButton}
+                disabled={isSubmitting}
+              >
+                Resend code
+              </button>
+            </div>
+          </form>
+        )}
 
         <div className={styles.footer}>
           <p>

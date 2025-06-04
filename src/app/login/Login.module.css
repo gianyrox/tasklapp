@@ -80,18 +80,24 @@
 
 .input {
   width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-sm);
   border: 1px solid var(--border);
   border-radius: var(--border-radius-md);
   font-size: var(--font-size-md);
   transition: border-color var(--transition-fast);
   background-color: var(--surface);
+  color: var(--text-primary);
 }
 
 .input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 1px var(--primary);
+  box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.1);
+}
+
+.input:disabled {
+  background-color: var(--background);
+  cursor: not-allowed;
 }
 
 .input::placeholder {
@@ -135,4 +141,40 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.otpInput {
+  text-align: center;
+  font-size: var(--font-size-lg);
+  letter-spacing: 0.5em;
+  font-weight: 600;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.otpActions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--spacing-md);
+  gap: var(--spacing-sm);
+}
+
+.linkButton {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+  padding: var(--spacing-xs) 0;
+}
+
+.linkButton:hover:not(:disabled) {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+.linkButton:disabled {
+  color: var(--text-secondary);
+  cursor: not-allowed;
 } 

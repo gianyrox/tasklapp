@@ -25,7 +25,7 @@ const AuthCallbackContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState<string>('Authenticating...');
+  const [status, setStatus] = useState<string>('Checking authentication...');
   const [redirecting, setRedirecting] = useState<boolean>(false);
 
   useEffect(() => {
@@ -33,16 +33,11 @@ const AuthCallbackContent = () => {
       // Add detailed logging for debugging
       console.log('Auth callback page loaded', {
         url: window.location.href,
-        hash: window.location.hash.length > 0 ? '(hash present)' : '(no hash)',
-        searchParams: Object.fromEntries(searchParams.entries()),
-        hasCode: searchParams.has('code')
+        searchParams: Object.fromEntries(searchParams.entries())
       });
       
-      // UPDATED: Note about the new API route handler
-      // When this page loads with a 'code' parameter, the server-side API handler at 
-      // /api/auth/callback/supabase will also be processing the same code in parallel.
-      // This page serves as a fallback UI while that happens, and for cases where client-side
-      // processing is needed, such as with hash fragments.
+      // NOTE: With OTP authentication, most verification happens directly on the login/signup pages.
+      // This callback page primarily handles edge cases, OAuth redirects, or legacy magic link flows.
       
       try {
         // Log initial state
@@ -51,8 +46,6 @@ const AuthCallbackContent = () => {
           action: 'auth_callback_page_loaded',
           details: {
             url: window.location.href.split('?')[0], // don't log full URL with tokens
-            hasCode: searchParams.has('code'),
-            hasHash: Boolean(window.location.hash),
             timestamp: new Date().toISOString()
           }
         });
@@ -91,13 +84,13 @@ const AuthCallbackContent = () => {
           // Short delay to allow logs to be sent
           setTimeout(() => {
             // Get redirect from query params or default to dashboard
-            const redirect = searchParams.get('redirect') || '/dashboard';
+            const redirect = searchParams.get('redirect') || searchParams.get('redirect_to') || '/dashboard';
             window.location.href = redirect;
           }, 1000);
           return;
         }
         
-        // Check for code in URL (for OAuth and magic links)
+        // Check for OAuth or legacy magic link code in URL
         if (searchParams.has('code')) {
           setStatus('Processing authentication code...');
           
@@ -125,48 +118,44 @@ const AuthCallbackContent = () => {
               setRedirecting(true);
               
               // Get redirect from query params or default to dashboard
-              const redirect = searchParams.get('redirect') || '/dashboard';
+              const redirect = searchParams.get('redirect') || searchParams.get('redirect_to') || '/dashboard';
               window.location.href = redirect;
             } else {
-              // If no session found, we'll try client-side verification with hash
-              console.log('No session established via route handler, checking hash params');
+              // If no session found after code processing, redirect to login
+              console.log('No session established via route handler');
               await addLog({
                 category: LogCategory.AUTH,
                 action: 'auth_callback_no_session_from_route',
-                details: { hasHash: window.location.hash.length > 0 }
+                details: {}
               });
               
-              // Try to handle hash fragment for magic links
-              if (window.location.hash) {
-                await handleHashFragment();
-              } else {
-                setError('Authentication failed. Please try logging in again.');
-                setStatus('Authentication error');
-                
-                await addLog({
-                  category: LogCategory.ERROR,
-                  action: 'auth_callback_no_session_no_hash',
-                  details: { url: window.location.pathname }
-                });
-              }
+              setError('Authentication failed. Please try logging in again.');
+              setStatus('Authentication error');
+              
+              // Redirect to login after 3 seconds
+              setTimeout(() => {
+                router.push('/login?error=auth_failed');
+              }, 3000);
             }
           }, 1500);
-        } else if (window.location.hash) {
-          // Handle hash fragment directly (for magic links)
-          await handleHashFragment();
         } else {
-          // No authentication data found
-          setError('No authentication data found. Please try logging in again.');
-          setStatus('Authentication error');
-          
+          // No authentication data found - this is normal with OTP flow
+          console.log('No authentication code found - redirecting to login');
           await addLog({
-            category: LogCategory.ERROR,
+            category: LogCategory.AUTH,
             action: 'auth_callback_no_auth_data',
             details: { 
               url: window.location.pathname,
               hasQueryParams: window.location.search.length > 0
             }
           });
+          
+          setStatus('Redirecting to login...');
+          
+          // Redirect to login page
+          setTimeout(() => {
+            router.push('/login');
+          }, 1500);
         }
       } catch (e) {
         console.error('Unexpected error:', e);
@@ -177,92 +166,12 @@ const AuthCallbackContent = () => {
         });
         setError('An unexpected error occurred. Please try again.');
         setStatus('Error');
-      }
-    };
-
-    // Handle hash fragment for magic links
-    const handleHashFragment = async () => {
-      try {
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
         
-        if (hashParams.get('access_token') && hashParams.get('refresh_token')) {
-          setStatus('Processing login tokens...');
-          
-          console.log('Setting session from hash tokens');
-          await addLog({
-            category: LogCategory.AUTH,
-            action: 'auth_callback_processing_hash',
-            details: { hasAccessToken: true }
-          });
-          
-          // Set session with tokens from hash
-          const { data: sessionData, error: setSessionError } = await supabase.auth.setSession({
-            access_token: hashParams.get('access_token')!,
-            refresh_token: hashParams.get('refresh_token')!,
-          });
-          
-          if (setSessionError) {
-            console.error('Error setting session:', setSessionError);
-            await addLog({
-              category: LogCategory.ERROR,
-              action: 'auth_callback_set_session_error',
-              details: { error: setSessionError.message }
-            });
-            setError('Failed to authenticate. Please try again.');
-            setStatus('Authentication error');
-            return false;
-          }
-          
-          if (sessionData?.session) {
-            // Clear the hash from URL for security
-            window.history.replaceState({}, document.title, window.location.pathname);
-            
-            // Log success
-            await addLog({
-              userId: sessionData.session.user.id,
-              category: LogCategory.AUTH,
-              action: 'auth_callback_session_set_success',
-              details: { 
-                provider: sessionData.session.user.app_metadata?.provider,
-                cookiesPresent: document.cookie.includes('supabase-auth')
-              }
-            });
-            
-            setStatus('Authentication successful, redirecting...');
-            setRedirecting(true);
-            
-            // Redirect to dashboard or specified redirect
-            const redirect = searchParams.get('redirect') || '/dashboard';
-            
-            // Short delay to allow logs to be sent
-            setTimeout(() => {
-              window.location.href = redirect;
-            }, 1000);
-            
-            return true;
-          }
-        } else {
-          await addLog({
-            category: LogCategory.ERROR,
-            action: 'auth_callback_invalid_hash',
-            details: { hashLength: window.location.hash.length }
-          });
-          setError('Invalid authentication tokens. Please try logging in again.');
-          setStatus('Authentication error');
-          return false;
-        }
-      } catch (e) {
-        console.error('Error processing hash tokens:', e);
-        await addLog({
-          category: LogCategory.ERROR,
-          action: 'auth_callback_hash_processing_error',
-          details: { error: String(e) }
-        });
-        setError('An error occurred while processing authentication. Please try again.');
-        setStatus('Authentication error');
-        return false;
+        // Redirect to login after error
+        setTimeout(() => {
+          router.push('/login?error=unexpected');
+        }, 3000);
       }
-      return false;
     };
 
     handleAuthCallback();
@@ -287,7 +196,7 @@ const AuthCallbackContent = () => {
           <>
             <div className={styles.loadingSpinner}></div>
             <h2>{status}</h2>
-            <p>{redirecting ? 'Taking you to your dashboard...' : 'Just a moment while we log you in.'}</p>
+            <p>{redirecting ? 'Taking you to your dashboard...' : 'Just a moment while we process your request.'}</p>
           </>
         )}
       </div>
