@@ -924,8 +924,92 @@ export const updateTaskStatus = async (
     console.error('Error updating task status:', error);
     return null;
   }
+
+  const transformedTask = transformTaskFromDb(data);
+
+  // Send notifications based on the type of update
+  try {
+    // Check if this is a task completion (status changed to COMPLETED) or has grading
+    const hasGrading = metadata?.qualityRating || metadata?.timelinessRating || 
+                      metadata?.effortRating || metadata?.accuracyRating || metadata?.feedback;
+    
+    if ((status === TaskStatus.COMPLETED || hasGrading) && (data as any).assigner_id && (data as any).assignee_id) {
+      // Fetch user data separately for notifications
+      const [assignerResult, assigneeResult] = await Promise.all([
+        supabase
+          .from('users')
+          .select('id, name, email')
+          .eq('id', (data as any).assigner_id)
+          .single(),
+        supabase
+          .from('users')
+          .select('id, name, email')
+          .eq('id', (data as any).assignee_id)
+          .single()
+      ]);
+
+      if (assignerResult.data && assigneeResult.data) {
+        // Send completion notification to the assigner if task was just completed
+        if (status === TaskStatus.COMPLETED) {
+          const { error: notificationError } = await supabase.functions.invoke('notify-task-assignment', {
+            body: {
+              type: 'completion',
+              taskId: transformedTask.id,
+              taskTitle: transformedTask.title,
+              taskDescription: transformedTask.description,
+              assignerEmail: assignerResult.data.email,
+              assignerName: assignerResult.data.name,
+              assigneeName: assigneeResult.data.name,
+              completedAt: transformedTask.completedAt?.toISOString() || new Date().toISOString(),
+              submissionContent: transformedTask.submissionContent
+            }
+          });
+
+          if (notificationError) {
+            console.error('Failed to send task completion notification:', notificationError);
+          } else {
+            console.log('Task completion notification sent successfully');
+          }
+        }
+
+        // Send grading notification to the assignee if grading was provided
+        if (hasGrading) {
+          const { error: gradingNotificationError } = await supabase.functions.invoke('notify-task-assignment', {
+            body: {
+              type: 'grading',
+              taskId: transformedTask.id,
+              taskTitle: transformedTask.title,
+              taskDescription: transformedTask.description,
+              assigneeEmail: assigneeResult.data.email,
+              assigneeName: assigneeResult.data.name,
+              assignerName: assignerResult.data.name,
+              qualityRating: metadata?.qualityRating,
+              timelinessRating: metadata?.timelinessRating,
+              effortRating: metadata?.effortRating,
+              accuracyRating: metadata?.accuracyRating,
+              feedback: metadata?.feedback
+            }
+          });
+
+          if (gradingNotificationError) {
+            console.error('Failed to send task grading notification:', gradingNotificationError);
+          } else {
+            console.log('Task grading notification sent successfully');
+          }
+        }
+      } else {
+        console.error('Could not fetch user data for notifications:', {
+          assignerError: assignerResult.error,
+          assigneeError: assigneeResult.error
+        });
+      }
+    }
+  } catch (notificationError) {
+    console.error('Error setting up task notifications:', notificationError);
+    // Don't fail the task update if notification fails
+  }
   
-  return transformTaskFromDb(data);
+  return transformedTask;
 };
 
 export const updateTaskSubmissionType = async (
