@@ -161,6 +161,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
               ) : (
                 <span>{getInitials()}</span>
               )}
+              {user?.membershipType === 'PREMIUM' && (
+                <div className={styles.premiumIcon}>
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor" strokeWidth="0"/>
+                  </svg>
+                </div>
+              )}
             </div>
             
             {showDropdown && (
@@ -213,6 +220,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 ) : (
                   <span>{getInitials()}</span>
                 )}
+                {user?.membershipType === 'PREMIUM' && (
+                  <div className={styles.premiumIcon} style={{ width: '10px', height: '10px', top: '1px', right: '1px' }}>
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor" strokeWidth="0"/>
+                    </svg>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -224,6 +238,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                       <img src={user.avatarUrl} alt={user.name} />
                     ) : (
                       <span>{getInitials()}</span>
+                    )}
+                    {user?.membershipType === 'PREMIUM' && (
+                      <div className={styles.premiumIcon}>
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor" strokeWidth="0"/>
+                        </svg>
+                      </div>
                     )}
                   </div>
                   <div>
