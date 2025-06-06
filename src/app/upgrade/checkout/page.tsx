@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -48,7 +48,7 @@ function CheckoutForm({ clientSecret }: { clientSecret: string }) {
     <form onSubmit={handleSubmit} className={styles.checkoutForm}>
       <div className={styles.header}>
         <h1>Complete Your Subscription</h1>
-        <p>You're just one step away from unlocking premium features!</p>
+        <p>You're just one step away from unlocking member features!</p>
       </div>
 
       <div className={styles.paymentSection}>
@@ -76,7 +76,7 @@ function CheckoutForm({ clientSecret }: { clientSecret: string }) {
   );
 }
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const clientSecret = searchParams.get('client_secret');
@@ -89,11 +89,9 @@ export default function CheckoutPage() {
 
   if (!clientSecret) {
     return (
-      <AppLayout>
-        <div className={styles.loading}>
-          <p>Redirecting...</p>
-        </div>
-      </AppLayout>
+      <div className={styles.loading}>
+        <p>Redirecting...</p>
+      </div>
     );
   }
 
@@ -114,12 +112,24 @@ export default function CheckoutPage() {
   };
 
   return (
+    <div className={styles.checkoutContainer}>
+      <Elements stripe={stripePromise} options={options}>
+        <CheckoutForm clientSecret={clientSecret} />
+      </Elements>
+    </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
     <AppLayout>
-      <div className={styles.checkoutContainer}>
-        <Elements stripe={stripePromise} options={options}>
-          <CheckoutForm clientSecret={clientSecret} />
-        </Elements>
-      </div>
+      <Suspense fallback={
+        <div className={styles.loading}>
+          <p>Loading checkout...</p>
+        </div>
+      }>
+        <CheckoutContent />
+      </Suspense>
     </AppLayout>
   );
 } 

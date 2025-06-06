@@ -50,8 +50,8 @@ export async function GET(request: NextRequest) {
       ? subscriptions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
       : null;
 
-    // Check if user should be premium based on subscription status
-    const shouldBePremium = latestSubscription && (
+    // Check if user should be member based on subscription status
+    const shouldBeMEMBER = latestSubscription && (
       latestSubscription.status === 'active' || 
       (latestSubscription.status === 'incomplete' && latestSubscription.current_period_end)
     );
@@ -68,8 +68,8 @@ export async function GET(request: NextRequest) {
         stripe_customer_id: 'stripe_customer_id' in (userData || {}),
         membership_expires_at: 'membership_expires_at' in (userData || {})
       },
-      shouldBePremium,
-      membershipMismatch: shouldBePremium && userData?.membership_type !== 'PREMIUM'
+      shouldBeMEMBER,
+      membershipMismatch: shouldBeMEMBER && userData?.membership_type !== 'MEMBER'
     });
 
   } catch (error) {

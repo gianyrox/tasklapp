@@ -4,10 +4,10 @@ export interface User {
   email: string;
   avatarUrl?: string;
   createdAt: Date;
-  membershipType: 'FREE' | 'PREMIUM';
+  membershipType: 'FREE' | 'MEMBER';
   stripeCustomerId?: string;
   membershipExpiresAt?: Date;
-  isPremium?: boolean;
+  isMember?: boolean;
   stats: {
     rank: number;
     tasksCompleted: number;

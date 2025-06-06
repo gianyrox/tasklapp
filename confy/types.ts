@@ -5,12 +5,17 @@ export interface User {
   email: string;
   avatarUrl?: string;
   createdAt: Date;
+  membershipType: 'FREE' | 'MEMBER';
+  stripeCustomerId?: string;
+  membershipExpiresAt?: Date;
+  isMember?: boolean;
   stats: {
     rank: number;
     tasksCompleted: number;
     completionRate: number;
     averageCompletionTime: number;
   };
+  isPending?: boolean; // User created via invitation but hasn't completed signup
 }
 
 export interface Friendship {

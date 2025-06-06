@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2025-05-28.basil',
 });
 
 const supabase = createClient(
@@ -55,12 +55,12 @@ export async function POST(request: NextRequest) {
         stripe_product_id: priceId.startsWith('price_') ? '' : priceId, // You may need to get this from the price
         stripe_price_id: priceId,
         status: subscription.status,
-        current_period_start: new Date(subscription.current_period_start * 1000),
-        current_period_end: new Date(subscription.current_period_end * 1000),
+        current_period_start: new Date((subscription as any).current_period_start * 1000),
+        current_period_end: new Date((subscription as any).current_period_end * 1000),
       });
 
-    const invoice = subscription.latest_invoice as Stripe.Invoice;
-    const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent;
+    const invoice = (subscription as any).latest_invoice as Stripe.Invoice;
+    const paymentIntent = (invoice as any).payment_intent as Stripe.PaymentIntent;
 
     return NextResponse.json({
       subscriptionId: subscription.id,

@@ -18,6 +18,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   
+  // Debug logging
+  console.log('🔍 AppLayout Debug:', {
+    user: user,
+    membershipType: user?.membershipType,
+    isMEMBER: user?.membershipType === 'MEMBER',
+    userKeys: user ? Object.keys(user) : 'No user'
+  });
+  
   // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -130,39 +138,64 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           
           {/* Desktop User Menu */}
           <div className={styles.userMenu}>
-            {/* Add upgrade button for non-premium users */}
-            {user?.membershipType !== 'PREMIUM' && (
-              <Link 
-                href="/upgrade" 
-                className={`${buttonStyles.button} ${buttonStyles['variant-primary']} ${buttonStyles['size-sm']}`}
-                style={{ marginRight: '1rem', textDecoration: 'none' }}
-              >
-                <span className={buttonStyles.leftIcon}>
-                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '16px', height: '16px' }}>
-                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </span>
-                <span className={buttonStyles.content}>Upgrade</span>
-              </Link>
-            )}
+            {/* Show upgrade button only for non-member users */}
+            {(() => {
+              const isMEMBER = user?.membershipType === 'MEMBER';
+              console.log('🔍 Button Debug:', {
+                membershipType: user?.membershipType,
+                isMEMBER,
+                showUpgrade: !isMEMBER
+              });
+              
+              if (isMEMBER) {
+                return (
+                  <div className={styles.memberBadge}>
+                    <span>member</span>
+                  </div>
+                );
+              } else {
+                return (
+                  <Link 
+                    href="/upgrade" 
+                    className={`${buttonStyles.button} ${buttonStyles['variant-primary']} ${buttonStyles['size-sm']}`}
+                    style={{ marginRight: '1rem', textDecoration: 'none' }}
+                  >
+                    <span className={buttonStyles.leftIcon}>
+                      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '16px', height: '16px' }}>
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </span>
+                    <span className={buttonStyles.content}>Upgrade</span>
+                  </Link>
+                );
+              }
+              return null;
+            })()}
             
             <div className={styles.userInfo}>
               <span className={styles.userName}>{user?.name}</span>
-              {user?.membershipType === 'PREMIUM' && (
-                <span className={styles.premiumBadge}>Premium</span>
-              )}
             </div>
-            <div 
-              className={styles.avatar} 
-              onClick={handleUserMenuToggle}
-            >
-              {user?.avatarUrl ? (
-                <img src={user.avatarUrl} alt={user.name} />
-              ) : (
-                <span>{getInitials()}</span>
-              )}
-              {user?.membershipType === 'PREMIUM' && (
-                <div className={styles.premiumIcon}>
+            <div className={styles.avatarContainer}>
+              <div 
+                className={styles.avatar} 
+                onClick={handleUserMenuToggle}
+              >
+                {user?.avatarUrl ? (
+                  <img src={user.avatarUrl} alt={user.name} />
+                ) : (
+                  <span>{getInitials()}</span>
+                )}
+              </div>
+              {(() => {
+                const shouldShowMEMBERIcon = user?.membershipType === 'MEMBER';
+                console.log('🔍 MEMBER Icon Debug:', {
+                  membershipType: user?.membershipType,
+                  shouldShowMEMBERIcon,
+                  condition: 'user?.membershipType === "MEMBER"'
+                });
+                return shouldShowMEMBERIcon;
+              })() && (
+                <div className={styles.MEMBERIcon}>
                   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor" strokeWidth="0"/>
                   </svg>
@@ -179,7 +212,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 >
                   Settings
                 </Link>
-                {user?.membershipType === 'PREMIUM' && (
+                {user?.membershipType === 'MEMBER' && (
                   <Link 
                     href="/upgrade" 
                     className={styles.dropdownItem}
@@ -214,14 +247,16 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   )}
                 </svg>
               </div>
-              <div className={styles.avatar} style={{ width: '32px', height: '32px', margin: 0, boxShadow: 'none' }}>
-                {user?.avatarUrl ? (
-                  <img src={user.avatarUrl} alt={user.name} />
-                ) : (
-                  <span>{getInitials()}</span>
-                )}
-                {user?.membershipType === 'PREMIUM' && (
-                  <div className={styles.premiumIcon} style={{ width: '10px', height: '10px', top: '1px', right: '1px' }}>
+              <div className={styles.avatarContainer} style={{ position: 'relative' }}>
+                <div className={styles.avatar} style={{ width: '32px', height: '32px', margin: 0, boxShadow: 'none' }}>
+                  {user?.avatarUrl ? (
+                    <img src={user.avatarUrl} alt={user.name} />
+                  ) : (
+                    <span>{getInitials()}</span>
+                  )}
+                </div>
+                {user?.membershipType === 'MEMBER' && (
+                  <div className={styles.MEMBERIcon} style={{ width: '10px', height: '10px', top: '1px', right: '1px' }}>
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor" strokeWidth="0"/>
                     </svg>
@@ -233,14 +268,16 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             {showMobileMenu && (
               <div className={styles.mobileMenuItems}>
                 <div className={styles.mobileUserHeader}>
-                  <div className={styles.avatar}>
-                    {user?.avatarUrl ? (
-                      <img src={user.avatarUrl} alt={user.name} />
-                    ) : (
-                      <span>{getInitials()}</span>
-                    )}
-                    {user?.membershipType === 'PREMIUM' && (
-                      <div className={styles.premiumIcon}>
+                  <div className={styles.avatarContainer}>
+                    <div className={styles.avatar}>
+                      {user?.avatarUrl ? (
+                        <img src={user.avatarUrl} alt={user.name} />
+                      ) : (
+                        <span>{getInitials()}</span>
+                      )}
+                    </div>
+                    {user?.membershipType === 'MEMBER' && (
+                      <div className={styles.MEMBERIcon}>
                         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor" strokeWidth="0"/>
                         </svg>
@@ -305,7 +342,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                       Tasks
                     </Link>
                   </li>
-                  {user?.membershipType !== 'PREMIUM' && (
+                  {user?.membershipType !== 'MEMBER' && (
                     <li className={styles.mobileNavItem}>
                       <Link 
                         href="/upgrade" 

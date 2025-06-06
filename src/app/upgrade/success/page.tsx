@@ -30,8 +30,8 @@ export default function SuccessPage() {
             </svg>
           </div>
           
-          <h1>Welcome to Premium!</h1>
-          <p>Your subscription has been successfully activated. You now have access to all premium features.</p>
+          <h1>Welcome to member!</h1>
+          <p>Your subscription has been successfully activated. You now have access to all member features.</p>
           
           <div className={styles.features}>
             <h3>What's unlocked for you:</h3>
@@ -80,7 +80,7 @@ export default function SuccessPage() {
               Go to Dashboard
             </Link>
             <Link href="/task" className={styles.secondaryButton}>
-              Create Your First Premium Task
+              Create Your First member Task
             </Link>
           </div>
           

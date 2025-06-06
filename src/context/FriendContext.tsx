@@ -78,6 +78,7 @@ export function FriendProvider({ children }: { children: React.ReactNode }) {
           name: friend.name || friend.display_name || friend.username || 'User',
           avatarUrl: friend.avatar_url || '',
           createdAt: new Date(friend.created_at as string),
+          membershipType: friend.membership_type || 'FREE',
           stats: {
             rank: 0, // These would be populated in a real app
             tasksCompleted: 0,

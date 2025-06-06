@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2025-05-28.basil',
 });
 
 const supabase = createClient(
@@ -73,8 +73,8 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   console.log('📊 Subscription details:', {
     id: subscription.id,
     status: subscription.status,
-    current_period_end: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null,
-    current_period_start: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) : null,
+    current_period_end: (subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000) : null,
+    current_period_start: (subscription as any).current_period_start ? new Date((subscription as any).current_period_start * 1000) : null,
     product: subscription.items.data[0].price.product,
     price: subscription.items.data[0].price.id
   });
@@ -101,10 +101,10 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     stripe_product_id: subscription.items.data[0].price.product as string,
     stripe_price_id: subscription.items.data[0].price.id,
     status: subscription.status,
-    current_period_start: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) : new Date(),
-    current_period_end: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Default to 30 days from now
+    current_period_start: (subscription as any).current_period_start ? new Date((subscription as any).current_period_start * 1000) : new Date(),
+    current_period_end: (subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Default to 30 days from now
     cancel_at_period_end: subscription.cancel_at_period_end,
-    canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null,
+    canceled_at: (subscription as any).canceled_at ? new Date((subscription as any).canceled_at * 1000) : null,
     updated_at: new Date(),
   };
 
@@ -125,11 +125,11 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
 
   // Update user membership type
   const membershipType = (subscription.status === 'active' || 
-                         (subscription.status === 'incomplete' && subscription.latest_invoice)) 
-                         ? 'PREMIUM' : 'FREE';
+                         (subscription.status === 'incomplete' && (subscription as any).latest_invoice)) 
+                         ? 'MEMBER' : 'FREE';
   const membershipExpiresAt = (subscription.status === 'active' || 
-                              (subscription.status === 'incomplete' && subscription.latest_invoice))
-    ? (subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))
+                              (subscription.status === 'incomplete' && (subscription as any).latest_invoice))
+    ? ((subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))
     : null;
 
   console.log('👤 Updating user membership:', {
@@ -191,7 +191,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 }
 
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
-  if (invoice.subscription) {
+  if ((invoice as any).subscription) {
     const customerId = invoice.customer as string;
     
     // Get user ID from customer
@@ -210,7 +210,7 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
     const { data: subscription } = await supabase
       .from('subscriptions')
       .select('id')
-      .eq('stripe_subscription_id', invoice.subscription)
+      .eq('stripe_subscription_id', (invoice as any).subscription)
       .single();
 
     // Record payment in payment history
@@ -219,17 +219,17 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
       .insert({
         user_id: user.id,
         subscription_id: subscription?.id,
-        stripe_payment_intent_id: invoice.payment_intent as string,
-        amount: invoice.amount_paid,
+        stripe_payment_intent_id: typeof (invoice as any).payment_intent === 'string' ? (invoice as any).payment_intent : (invoice as any).payment_intent?.id,
+        amount: (invoice as any).amount_paid,
         currency: invoice.currency,
         status: 'succeeded',
-        payment_method_type: invoice.charge ? 'card' : 'unknown', // You might want to get more specific info
+        payment_method_type: (invoice as any).charge ? 'card' : 'unknown', // You might want to get more specific info
       });
   }
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice) {
-  if (invoice.subscription) {
+  if ((invoice as any).subscription) {
     const customerId = invoice.customer as string;
     
     // Get user ID from customer
@@ -248,7 +248,7 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
     const { data: subscription } = await supabase
       .from('subscriptions')
       .select('id')
-      .eq('stripe_subscription_id', invoice.subscription)
+      .eq('stripe_subscription_id', (invoice as any).subscription)
       .single();
 
     // Record failed payment
@@ -257,8 +257,8 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
       .insert({
         user_id: user.id,
         subscription_id: subscription?.id,
-        stripe_payment_intent_id: invoice.payment_intent as string,
-        amount: invoice.amount_due,
+        stripe_payment_intent_id: typeof (invoice as any).payment_intent === 'string' ? (invoice as any).payment_intent : (invoice as any).payment_intent?.id,
+        amount: (invoice as any).amount_due,
         currency: invoice.currency,
         status: 'requires_payment_method',
       });

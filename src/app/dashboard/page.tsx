@@ -70,6 +70,7 @@ const transformTaskFromDb = (task: any): Task => {
       email: task.assigner.email,
       avatarUrl: task.assigner.avatar_url,
       createdAt: new Date(task.assigner.created_at || Date.now()),
+      membershipType: 'FREE',
       stats: {
         rank: 0,
         tasksCompleted: 0,
@@ -83,6 +84,7 @@ const transformTaskFromDb = (task: any): Task => {
       email: task.assignee.email,
       avatarUrl: task.assignee.avatar_url,
       createdAt: new Date(task.assignee.created_at || Date.now()),
+      membershipType: 'FREE',
       stats: {
         rank: 0,
         tasksCompleted: 0,
@@ -324,24 +326,8 @@ const DashboardPage: React.FC = () => {
   };
 
   const handleTaskCreated = async () => {
-    // Refresh task list based on who the task was assigned to
-    if (selectedAssigneeId === user?.id) {
-      // It was a self-assigned task, need to refresh my tasks
-      const tasksFromFriends = await getTasksFromFriends();
-      const selfTasks = await getSelfAssignedTasks(user?.id || '');
-      const allMyTasks = [...tasksFromFriends, ...selfTasks];
-      setMyTasks(allMyTasks);
-    } else {
-      // It was assigned to a friend
-      const updatedFriendTasks = await getTasksByFriend(selectedAssigneeId);
-      setFriendTasks(prev => ({
-        ...prev,
-        [selectedAssigneeId]: updatedFriendTasks
-      }));
-    }
-    
-    // Refresh overall dashboard data
-    fetchDashboardData();
+    // Refresh dashboard data since tasks might have been created for multiple people
+    await fetchDashboardData();
   };
 
   // Add Find Friends handler
@@ -379,7 +365,7 @@ const DashboardPage: React.FC = () => {
           <div className={styles.header}>
             <h1>Dashboard</h1>
             <div className={styles.actions}>
-              <Button onClick={handleAddTask}>Add Task</Button>
+              <Button onClick={handleAddTask}>Assign Task</Button>
               <Button onClick={handleFindFriends}>Find Friends</Button>
               </div>
           </div>

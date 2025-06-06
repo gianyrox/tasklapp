@@ -45,21 +45,21 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // For incomplete subscriptions, we'll still grant premium access if they have a period end date
+    // For incomplete subscriptions, we'll still grant MEMBER access if they have a period end date
     // This indicates payment was processed even if the subscription setup isn't fully complete
-    const shouldGrantPremium = subscription.status === 'active' || 
+    const shouldGrantMEMBER = subscription.status === 'active' || 
                               (subscription.status === 'incomplete' && subscription.current_period_end);
 
-    if (!shouldGrantPremium) {
+    if (!shouldGrantMEMBER) {
       return NextResponse.json({ 
-        message: 'Subscription found but not eligible for premium access',
+        message: 'Subscription found but not eligible for MEMBER access',
         subscriptionStatus: subscription.status,
         action: 'No changes made'
       });
     }
 
     // Update user membership based on subscription
-    const membershipType = 'PREMIUM';
+    const membershipType = 'MEMBER';
     const membershipExpiresAt = new Date(subscription.current_period_end);
 
     const { error: updateError } = await supabase
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       expiresAt: membershipExpiresAt,
       subscriptionId: subscription.stripe_subscription_id,
       subscriptionStatus: subscription.status,
-      note: subscription.status === 'incomplete' ? 'Granted premium access for incomplete subscription with valid period end' : 'Normal active subscription'
+      note: subscription.status === 'incomplete' ? 'Granted MEMBER access for incomplete subscription with valid period end' : 'Normal active subscription'
     });
 
   } catch (error) {

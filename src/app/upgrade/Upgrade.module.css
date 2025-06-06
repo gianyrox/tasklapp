@@ -158,12 +158,12 @@
   background: #e5e7eb;
 }
 
-.planButton.premium {
+.planButton.MEMBER {
   background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   color: white;
 }
 
-.planButton.premium:hover:not(:disabled) {
+.planButton.MEMBER:hover:not(:disabled) {
   background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);

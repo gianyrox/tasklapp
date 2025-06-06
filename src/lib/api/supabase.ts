@@ -239,7 +239,7 @@ export const getCurrentUser = async (): Promise<User | null> => {
     // Get user profile data with proper typing
     let result = await supabase
       .from('users')
-      .select('id, name, email, avatar_url, created_at, is_pending')
+      .select('id, name, email, avatar_url, created_at, is_pending, membership_type, stripe_customer_id, membership_expires_at')
       .eq('id', session.user.id)
       .single();
     
@@ -256,6 +256,7 @@ export const getCurrentUser = async (): Promise<User | null> => {
           name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'New User',
           avatar_url: session.user.user_metadata?.avatar_url,
           is_pending: false,
+          membership_type: 'FREE', // Default to FREE membership
           created_at: new Date().toISOString()
         });
       
@@ -267,7 +268,7 @@ export const getCurrentUser = async (): Promise<User | null> => {
       // Fetch the newly created user
       result = await supabase
         .from('users')
-        .select('id, name, email, avatar_url, created_at, is_pending')
+        .select('id, name, email, avatar_url, created_at, is_pending, membership_type, stripe_customer_id, membership_expires_at')
         .eq('id', session.user.id)
         .single();
     }
@@ -285,6 +286,9 @@ export const getCurrentUser = async (): Promise<User | null> => {
       avatar_url?: string;
       created_at: string;
       is_pending?: boolean;
+      membership_type?: 'FREE' | 'MEMBER';
+      stripe_customer_id?: string;
+      membership_expires_at?: string;
     };
 
     return {
@@ -293,6 +297,9 @@ export const getCurrentUser = async (): Promise<User | null> => {
       email: userData.email,
       avatarUrl: userData.avatar_url,
       createdAt: new Date(userData.created_at),
+      membershipType: userData.membership_type || 'FREE',
+      stripeCustomerId: userData.stripe_customer_id,
+      membershipExpiresAt: userData.membership_expires_at ? new Date(userData.membership_expires_at) : undefined,
       isPending: userData.is_pending || false,
       stats: {
         rank: 0,
@@ -387,9 +394,8 @@ export const getAllUsers = async (): Promise<User[]> => {
   // Cast data to our defined type
   const usersData = data as unknown as UserDB[];
   
-  const users = usersData.map(user => {
-    console.log(`Processing user ${user.id} (${user.name})`);
-    console.log('Stats object:', JSON.stringify(user.stats, null, 2));
+  const users = usersData.map((user: UserDB) => {
+    console.log(`Processing user ${user.id}: ${user.name}`);
     
     return {
       id: user.id,
@@ -397,6 +403,7 @@ export const getAllUsers = async (): Promise<User[]> => {
       email: user.email,
       avatarUrl: user.avatar_url,
       createdAt: new Date(user.created_at),
+      membershipType: 'FREE' as const, // Default to FREE
       stats: {
         tasksCompleted: user.stats?.tasks_completed || 0,
         completionRate: user.stats?.completion_rate || 0,
@@ -499,6 +506,7 @@ export const getFriendships = async (status?: FriendshipStatus): Promise<Friends
         email: friendData.email,
         avatarUrl: friendData.avatar_url,
         createdAt: new Date(friendData.created_at),
+        membershipType: 'FREE', // Default to FREE for friends
         stats: {
           rank: 0,
           tasksCompleted: 0,
@@ -608,12 +616,13 @@ export const searchUsers = async (query: string): Promise<User[]> => {
   
   const usersData = data as unknown as UserDB[];
   
-  const users = usersData.map(user => ({
+  const users = usersData.map((user: UserDB) => ({
     id: user.id,
     name: user.name,
     email: user.email,
     avatarUrl: user.avatar_url,
     createdAt: new Date(user.created_at),
+    membershipType: 'FREE' as 'FREE' | 'MEMBER',
     stats: {
       rank: 0,
       tasksCompleted: 0,
@@ -837,6 +846,7 @@ export const createTask = async (task: Omit<Task, 'id' | 'createdAt'>): Promise<
         // Call the edge function directly using supabase.functions.invoke
         const { data: notificationResult, error: notificationError } = await supabase.functions.invoke('notify-task-assignment', {
           body: {
+            type: 'assignment',
             assigneeEmail: assigneeResult.data.email,
             assigneeName: assigneeResult.data.name,
             assignerName: assignerResult.data.name,
@@ -1368,6 +1378,7 @@ export const getFriendById = async (friendId: string): Promise<{ friendProfile: 
     email: data.email,
     avatarUrl: data.avatar_url,
     createdAt: new Date(data.created_at),
+    membershipType: 'FREE',
     stats: {
       rank: 0,
       tasksCompleted: 0,
@@ -1485,6 +1496,7 @@ const transformTaskFromDb = (task: any): Task => {
       email: task.assigner.email,
       avatarUrl: task.assigner.avatar_url,
       createdAt: new Date(task.assigner.created_at || Date.now()),
+      membershipType: 'FREE',
       stats: {
         rank: 0,
         tasksCompleted: 0,
@@ -1498,6 +1510,7 @@ const transformTaskFromDb = (task: any): Task => {
       email: task.assignee.email,
       avatarUrl: task.assignee.avatar_url,
       createdAt: new Date(task.assignee.created_at || Date.now()),
+      membershipType: 'FREE',
       stats: {
         rank: 0,
         tasksCompleted: 0,
@@ -1537,6 +1550,7 @@ export const getUserById = async (userId: string): Promise<User | null> => {
     email: data.email,
     avatarUrl: data.avatar_url,
     createdAt: new Date(data.created_at),
+    membershipType: 'FREE',
     stats: {
       rank: 0,
       tasksCompleted: 0,

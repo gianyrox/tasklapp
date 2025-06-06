@@ -130,15 +130,24 @@
   color: var(--text-primary);
 }
 
-.premiumBadge {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+.memberBadge {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   color: white;
-  padding: 0.125rem 0.5rem;
+  padding: 4px 12px;
   border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+  margin-right: 1rem;
+}
+
+.avatarContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .avatar {
@@ -155,7 +164,6 @@
   transition: transform var(--transition-fast);
   overflow: hidden;
   box-shadow: 0 4px 10px rgba(var(--primary-rgb), 0.2);
-  position: relative;
 }
 
 .avatar img {
@@ -168,26 +176,28 @@
   transform: scale(1.05);
 }
 
-.premiumIcon {
+/* MEMBER icon styling - positioned outside the avatar */
+.MEMBERIcon {
   position: absolute;
-  top: 2px;
-  right: 2px;
-  width: 14px;
-  height: 14px;
-  background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
+  top: -8px;
+  right: -8px;
+  width: 18px;
+  height: 18px;
+  background: #1e40af; /* Dark blue background */
+  border: 2px solid #fff;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #1a1a1a;
-  box-shadow: 0 2px 6px rgba(255, 215, 0, 0.4);
-  border: 2px solid white;
-  z-index: 1;
+  z-index: 2;
+  box-shadow: 0 2px 4px rgba(30, 64, 175, 0.3);
 }
 
-.premiumIcon svg {
-  width: 8px;
-  height: 8px;
+.MEMBERIcon svg {
+  width: 10px;
+  height: 10px;
+  color: #ffffff; /* White electric bolt on dark blue background */
+  fill: currentColor;
 }
 
 .dropdown {

@@ -28,7 +28,7 @@ This adds:
 ### 2.1 Create Products and Prices in Stripe
 
 1. Go to your Stripe Dashboard → Products
-2. Create a "Premium" product
+2. Create a "member" product
 3. Add a price (e.g., $9.99/month) to the product
 4. Copy the Price ID (starts with `price_`) and Product ID (starts with `prod_`)
 
@@ -53,8 +53,8 @@ Add these variables to your `.env.local` file:
 STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
 STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
-NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID=price_your_premium_price_id
-NEXT_PUBLIC_STRIPE_PREMIUM_PRODUCT_ID=prod_your_premium_product_id
+NEXT_PUBLIC_STRIPE_member_PRICE_ID=price_your_member_price_id
+NEXT_PUBLIC_STRIPE_member_PRODUCT_ID=prod_your_member_product_id
 
 # Supabase Service Role Key (for webhook access)
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
@@ -65,7 +65,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 ### 4.1 Test Subscription Flow
 
 1. Navigate to `/upgrade` in your app
-2. Click "Upgrade Now" on the Premium plan
+2. Click "Upgrade Now" on the member plan
 3. Use Stripe test card: `4242 4242 4242 4242`
 4. Complete the payment flow
 5. Verify the user's membership is updated in the database
@@ -91,7 +91,7 @@ stripe trigger customer.subscription.created
 - `/upgrade/checkout` - Payment form with Stripe Elements
 - `/upgrade/success` - Success page after payment
 - Upgrade button in navigation (desktop and mobile)
-- Premium badge for premium users
+- member badge for member users
 
 ### Backend
 - `/api/stripe/create-subscription` - Creates subscription and payment intent
@@ -103,23 +103,23 @@ stripe trigger customer.subscription.created
 - Subscription management in `subscriptions` table
 - Payment history in `payment_history` table
 
-## 6. Adding Premium Features
+## 6. Adding member Features
 
-To add premium-only features to your app:
+To add member-only features to your app:
 
 1. Check user membership in components:
 ```typescript
-if (user?.membershipType === 'PREMIUM') {
-  // Show premium feature
+if (user?.membershipType === 'member') {
+  // Show member feature
 }
 ```
 
 2. Use database function for server-side checks:
 ```sql
-SELECT is_premium_member('user-id');
+SELECT is_member_member('user-id');
 ```
 
-3. Add premium limits/features in your business logic
+3. Add member limits/features in your business logic
 
 ## 7. Production Deployment
 

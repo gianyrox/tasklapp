@@ -123,7 +123,7 @@ export default function DebugMembershipPage() {
               <div>
                 <strong>Membership Type:</strong> 
                 <span className={`ml-2 px-2 py-1 rounded text-sm ${
-                  debugData.userData?.membership_type === 'PREMIUM' 
+                  debugData.userData?.membership_type === 'MEMBER' 
                     ? 'bg-green-200 text-green-800' 
                     : 'bg-gray-200 text-gray-800'
                 }`}>
@@ -180,7 +180,7 @@ export default function DebugMembershipPage() {
             </div>
           )}
 
-          {debugData.shouldBePremium && !debugData.membershipMismatch && (
+          {debugData.shouldBeMEMBER && !debugData.membershipMismatch && (
             <div className="bg-green-50 border border-green-200 p-4 rounded">
               <h2 className="text-xl font-semibold mb-4 text-green-800">✅ Everything looks good!</h2>
               <p className="text-green-700">Your membership status matches your subscription.</p>

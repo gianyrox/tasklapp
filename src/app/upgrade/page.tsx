@@ -8,14 +8,14 @@ import styles from './Upgrade.module.css';
 
 const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   {
-    id: 'member',
+    id: 'MEMBER',
     name: 'Member',
     description: 'Upgrade to unlock collaborative features',
     price: 200, // $2.00 in cents
     currency: 'usd',
     interval: 'month',
-    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID || '',
-    stripeProductId: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRODUCT_ID || '',
+    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_MEMBER_PRICE_ID || '',
+    stripeProductId: process.env.NEXT_PUBLIC_STRIPE_MEMBER_PRODUCT_ID || '',
     features: [
       'All free features',
       'Create tasks for multiple friends at once',
@@ -39,7 +39,7 @@ export default function UpgradePage() {
   };
 
   const handleSubscribe = async (plan: SubscriptionPlan) => {
-    if (!user || user?.membershipType === 'PREMIUM') return;
+    if (!user || user?.membershipType === 'MEMBER') return;
     
     setLoading(plan.id);
     try {
@@ -91,10 +91,10 @@ export default function UpgradePage() {
           {SUBSCRIPTION_PLANS.map((plan) => (
             <div 
               key={plan.id} 
-              className={`${styles.planCard} ${plan.popular ? styles.popular : ''} ${user?.membershipType === 'PREMIUM' ? styles.current : ''}`}
+              className={`${styles.planCard} ${plan.popular ? styles.popular : ''} ${user?.membershipType === 'MEMBER' ? styles.current : ''}`}
             >
               {plan.popular && <div className={styles.popularBadge}>Recommended</div>}
-              {user?.membershipType === 'PREMIUM' && (
+              {user?.membershipType === 'MEMBER' && (
                 <div className={styles.currentBadge}>Current Plan</div>
               )}
               
@@ -119,13 +119,13 @@ export default function UpgradePage() {
               </ul>
 
               <button
-                className={`${styles.planButton} ${styles.premium}`}
+                className={`${styles.planButton} ${styles.MEMBER}`}
                 onClick={() => handleSubscribe(plan)}
-                disabled={loading === plan.id || user?.membershipType === 'PREMIUM'}
+                disabled={loading === plan.id || user?.membershipType === 'MEMBER'}
               >
                 {loading === plan.id ? (
                   'Processing...'
-                ) : user?.membershipType === 'PREMIUM' ? (
+                ) : user?.membershipType === 'MEMBER' ? (
                   'Current Plan'
                 ) : (
                   'Become a Member'
@@ -135,7 +135,7 @@ export default function UpgradePage() {
           ))}
         </div>
 
-        {user?.membershipType === 'PREMIUM' && (
+        {user?.membershipType === 'MEMBER' && (
           <div className={styles.managementSection}>
             <h2>Manage Your Membership</h2>
             <p>Need to update your payment method or cancel your membership?</p>

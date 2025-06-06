@@ -19,7 +19,10 @@ export const sendTaskAssignmentNotification = async (
   try {
     // Call the Supabase Edge Function
     const { data, error } = await supabase.functions.invoke('notify-task-assignment', {
-      body: notificationData,
+      body: {
+        type: 'assignment',
+        ...notificationData,
+      },
     });
 
     if (error) {
