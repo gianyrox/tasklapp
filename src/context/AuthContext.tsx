@@ -14,6 +14,7 @@ type AuthContextType = {
   error: string | null;
   signIn: (email: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
+  getCurrentSession: () => Promise<any>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -533,8 +534,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const getCurrentSession = async () => {
+    try {
+      const { data: { session } } = await getSession();
+      return session;
+    } catch (error) {
+      console.error('Error getting session:', error);
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, error, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, isLoading, error, signIn, signOut, getCurrentSession }}>
       {children}
     </AuthContext.Provider>
   );

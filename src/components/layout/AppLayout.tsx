@@ -4,6 +4,7 @@ import React, { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
+import buttonStyles from '../ui/Button.module.css';
 import styles from './AppLayout.module.css';
 
 interface AppLayoutProps {
@@ -129,8 +130,27 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           
           {/* Desktop User Menu */}
           <div className={styles.userMenu}>
+            {/* Add upgrade button for non-premium users */}
+            {user?.membershipType !== 'PREMIUM' && (
+              <Link 
+                href="/upgrade" 
+                className={`${buttonStyles.button} ${buttonStyles['variant-primary']} ${buttonStyles['size-sm']}`}
+                style={{ marginRight: '1rem', textDecoration: 'none' }}
+              >
+                <span className={buttonStyles.leftIcon}>
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '16px', height: '16px' }}>
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
+                <span className={buttonStyles.content}>Upgrade</span>
+              </Link>
+            )}
+            
             <div className={styles.userInfo}>
               <span className={styles.userName}>{user?.name}</span>
+              {user?.membershipType === 'PREMIUM' && (
+                <span className={styles.premiumBadge}>Premium</span>
+              )}
             </div>
             <div 
               className={styles.avatar} 
@@ -152,6 +172,15 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 >
                   Settings
                 </Link>
+                {user?.membershipType === 'PREMIUM' && (
+                  <Link 
+                    href="/upgrade" 
+                    className={styles.dropdownItem}
+                    onClick={() => setShowDropdown(false)}
+                  >
+                    Manage Subscription
+                  </Link>
+                )}
                 <button 
                   className={`${styles.dropdownItem} ${isSigningOut ? styles.signingOut : ''}`}
                   onClick={handleSignOut}
@@ -255,6 +284,20 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                       Tasks
                     </Link>
                   </li>
+                  {user?.membershipType !== 'PREMIUM' && (
+                    <li className={styles.mobileNavItem}>
+                      <Link 
+                        href="/upgrade" 
+                        className={`${styles.mobileNavLink} ${styles.upgradeLink} ${pathname.startsWith('/upgrade') ? styles.active : ''}`}
+                        onClick={() => setShowMobileMenu(false)}
+                      >
+                        <svg className={styles.icon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        Upgrade
+                      </Link>
+                    </li>
+                  )}
                   <li className={styles.mobileNavItem}>
                     <Link 
                       href="/settings" 

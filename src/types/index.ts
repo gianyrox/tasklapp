@@ -4,6 +4,10 @@ export interface User {
   email: string;
   avatarUrl?: string;
   createdAt: Date;
+  membershipType: 'FREE' | 'PREMIUM';
+  stripeCustomerId?: string;
+  membershipExpiresAt?: Date;
+  isPremium?: boolean;
   stats: {
     rank: number;
     tasksCompleted: number;
@@ -110,4 +114,46 @@ export enum TaskPriority {
   MEDIUM = 'MEDIUM',
   HIGH = 'HIGH',
   URGENT = 'URGENT'
+}
+
+// Add membership-related interfaces
+export interface Subscription {
+  id: string;
+  userId: string;
+  stripeSubscriptionId: string;
+  stripeCustomerId: string;
+  stripeProductId: string;
+  stripePriceId: string;
+  status: 'active' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'past_due' | 'trialing' | 'unpaid';
+  currentPeriodStart: Date;
+  currentPeriodEnd: Date;
+  cancelAtPeriodEnd: boolean;
+  canceledAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PaymentHistory {
+  id: string;
+  userId: string;
+  subscriptionId?: string;
+  stripePaymentIntentId: string;
+  amount: number; // Amount in cents
+  currency: string;
+  status: 'succeeded' | 'requires_payment_method' | 'requires_confirmation' | 'requires_action' | 'processing' | 'requires_capture' | 'canceled';
+  paymentMethodType?: string;
+  createdAt: Date;
+}
+
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  description: string;
+  price: number; // In cents
+  currency: string;
+  interval: 'month' | 'year';
+  stripePriceId: string;
+  stripeProductId: string;
+  features: string[];
+  popular?: boolean;
 } 
