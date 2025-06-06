@@ -10,6 +10,7 @@ export interface User {
     completionRate: number;
     averageCompletionTime: number;
   };
+  isPending?: boolean; // User created via invitation but hasn't completed signup
 }
 
 export interface Friendship {
@@ -41,7 +42,7 @@ export interface Task {
   createdAt: Date;
   dueDate: Date;
   assignerId: string;
-  assigneeId: string;
+  assigneeId?: string;
   status: TaskStatus;
   priority: TaskPriority;
   completedAt?: Date;
@@ -57,6 +58,8 @@ export interface Task {
   effortRating?: number; // 1-5 rating
   accuracyRating?: number; // 1-5 rating
   feedback?: string;
+  isInvitation?: boolean; // Flag to indicate if this is an invitation task for unregistered users
+  emailPending?: string; // Email address for invitation tasks where the user has not yet registered
   attachments?: TaskAttachment[];
   assigner?: User; // Populated with assigner profile information
   assignee?: User; // Populated with assignee profile information

@@ -30,87 +30,124 @@ const logger = {
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-// Create a singleton instance for better performance
-let supabaseInstance: ReturnType<typeof createClient> | null = null;
-
-export const supabase = (() => {
-  if (supabaseInstance) return supabaseInstance;
-
-  supabaseInstance = createClient(supabaseUrl, supabaseKey, {
+// Create a simple, reliable Supabase client
+export const supabase = createClient(supabaseUrl, supabaseKey, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: true,
-      storageKey: 'supabase.auth.token',
-      storage: {
-        getItem: (key) => {
-          if (typeof window === 'undefined') {
-            return null;
-          }
-          // Avoid excessive logging in production
-          try {
-            const value = localStorage.getItem(key);
-            // Only log in development
-            if (process.env.NODE_ENV === 'development') {
-              console.log(`Getting auth storage: ${key.substring(0, 15)}... exists: ${Boolean(value)}`);
-            }
-            return value;
-          } catch (error) {
-            console.error('Error getting from localStorage:', error);
-            return null;
-          }
-        },
-        setItem: (key, value) => {
-          if (typeof window === 'undefined') {
-            return;
-          }
-          try {
-            // Only log in development
-            if (process.env.NODE_ENV === 'development') {
-              console.log(`Setting auth storage: ${key.substring(0, 15)}...`);
-            }
-            localStorage.setItem(key, value);
-          } catch (error) {
-            console.error('Error setting localStorage:', error);
-          }
-        },
-        removeItem: (key) => {
-          if (typeof window === 'undefined') {
-            return;
-          }
-          try {
-            // Only log in development
-            if (process.env.NODE_ENV === 'development') {
-              console.log(`Removing auth storage: ${key.substring(0, 15)}...`);
-            }
-            localStorage.removeItem(key);
-          } catch (error) {
-            console.error('Error removing from localStorage:', error);
-          }
-        }
-      }
-    },
-    global: {
-      fetch: (...args) => {
-        // Add a timeout to fetch requests
-        return Promise.race([
-          fetch(...args),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Fetch timeout')), 10000)
-          )
-        ]) as Promise<Response>;
-      }
-    }
-  });
+    detectSessionInUrl: true
+  }
+});
 
-  return supabaseInstance;
-})();
+// Helper function to get session with timeout protection
+const getSessionWithTimeout = async (timeoutMs: number = 10000) => {
+  logger.info('getSessionWithTimeout', `Attempting to get session with ${timeoutMs}ms timeout`);
+  
+  try {
+    const result = await Promise.race([
+      supabase.auth.getSession(),
+      new Promise((_, reject) => 
+        setTimeout(() => {
+          logger.error('getSessionWithTimeout', 'Session call timed out');
+          reject(new Error('Session timeout'));
+        }, timeoutMs)
+      )
+    ]) as Promise<{ data: { session: any }, error: any }>;
+    
+    logger.info('getSessionWithTimeout', 'Session retrieved successfully');
+    return result;
+          } catch (error) {
+    logger.error('getSessionWithTimeout', 'Session retrieval failed:', error);
+    throw error;
+  }
+};
 
 // Cache to store session to avoid repeated auth.getSession() calls
 let sessionCache: {
   session: any;
   timestamp: number;
 } | null = null;
+
+// Helper function to create friendship if needed
+const createFriendshipIfNeeded = async (userId: string, friendId: string): Promise<void> => {
+  try {
+    logger.info('createFriendshipIfNeeded', `Checking friendship between ${userId} and ${friendId}`);
+    
+    // Check if friendship already exists (bidirectional check)
+    const { data: existingFriendship, error: checkError } = await supabase
+      .from('friendships')
+      .select('id, status')
+      .or(`and(user_id.eq.${userId},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${userId})`)
+      .maybeSingle();
+
+    if (checkError) {
+      logger.error('createFriendshipIfNeeded', 'Error checking existing friendship:', checkError);
+            return;
+          }
+
+    if (existingFriendship) {
+      logger.info('createFriendshipIfNeeded', `Friendship already exists with status: ${existingFriendship.status}`);
+      return;
+    }
+
+    // Create new friendship
+    logger.info('createFriendshipIfNeeded', `Creating new friendship between ${userId} and ${friendId}`);
+    const { data: newFriendship, error: insertError } = await supabase
+      .from('friendships')
+      .insert({
+        user_id: userId,
+        friend_id: friendId,
+        status: FriendshipStatus.ACCEPTED // Auto-accept for invitations
+      })
+      .select('id')
+      .single();
+
+    if (insertError) {
+      logger.error('createFriendshipIfNeeded', 'Error creating friendship:', insertError);
+            return;
+          }
+
+    logger.info('createFriendshipIfNeeded', `Successfully created friendship with ID: ${newFriendship?.id}`);
+          } catch (error) {
+    logger.error('createFriendshipIfNeeded', 'Unexpected error in friendship creation:', error);
+    // Don't fail the invitation if friendship creation fails
+  }
+};
+
+// Helper function to find user by email with multiple fallback methods
+async function findUserByEmail(email: string): Promise<any> {
+  logger.info('findUserByEmail', `Starting search for user with email: ${email}`);
+  
+  try {
+    // Simplified approach - just use exact match with proper error handling
+    logger.info('findUserByEmail', 'Attempting exact match query...');
+    
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('id, name, email, avatar_url, is_pending')
+      .eq('email', email)
+      .maybeSingle();
+    
+    logger.info('findUserByEmail', `Query completed. Error: ${error ? JSON.stringify(error) : 'none'}, User found: ${user ? 'yes' : 'no'}`);
+    
+    if (error) {
+      logger.error('findUserByEmail', `Database error for email ${email}:`, error);
+      return null;
+    }
+    
+    if (user) {
+      logger.info('findUserByEmail', `Found user: ${user.id} (pending: ${user.is_pending || false})`);
+      return user;
+    } else {
+      logger.info('findUserByEmail', `No user found with email: ${email}`);
+      return null;
+    }
+    
+  } catch (error) {
+    logger.error('findUserByEmail', `Unexpected error searching for user with email ${email}:`, error);
+    return null;
+  }
+}
 
 // More optimized session getter
 export const getSession = async () => {
@@ -172,10 +209,37 @@ export const getCurrentUser = async (): Promise<User | null> => {
     
     logger.info('getCurrentUser', `Session found, user ID: ${session.user.id}`);
     
-    // Get user profile data
+    // Check if there's a pending user with this email that needs activation
+    if (session.user.email) {
+      const { data: pendingUser, error: pendingError } = await supabase
+        .from('users')
+        .select('id, is_pending, invitation_token')
+        .eq('email', session.user.email)
+        .eq('is_pending', true)
+        .maybeSingle();
+        
+      if (pendingUser && !pendingError) {
+        // Activate the pending user
+        logger.info('getCurrentUser', `Activating pending user ${pendingUser.id} for auth user ${session.user.id}`);
+        
+        const { data: activated, error: activationError } = await supabase
+          .rpc('activate_pending_user', {
+            user_id: pendingUser.id,
+            auth_user_id: session.user.id
+          });
+          
+        if (activationError) {
+          logger.error('getCurrentUser', 'Failed to activate pending user:', activationError);
+        } else {
+          logger.info('getCurrentUser', 'Pending user activated successfully');
+        }
+      }
+    }
+    
+    // Get user profile data with proper typing
     let result = await supabase
       .from('users')
-      .select('*, stats:user_stats(*)')
+      .select('id, name, email, avatar_url, created_at, is_pending')
       .eq('id', session.user.id)
       .single();
     
@@ -191,6 +255,7 @@ export const getCurrentUser = async (): Promise<User | null> => {
           email: session.user.email,
           name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'New User',
           avatar_url: session.user.user_metadata?.avatar_url,
+          is_pending: false,
           created_at: new Date().toISOString()
         });
       
@@ -199,73 +264,44 @@ export const getCurrentUser = async (): Promise<User | null> => {
         return null;
       }
       
-      // Fetch the newly created profile
+      // Fetch the newly created user
       result = await supabase
         .from('users')
-        .select('*, stats:user_stats(*)')
+        .select('id, name, email, avatar_url, created_at, is_pending')
         .eq('id', session.user.id)
         .single();
     }
     
-    // Handle timeout
-    if (result === undefined) {
-      logger.error('getCurrentUser', 'User data fetch timed out');
+    if (result.error || !result.data) {
+      logger.error('getCurrentUser', 'Error fetching user profile:', result.error);
       return null;
     }
     
-    const { data, error } = result;
-      
-    if (error) {
-      logger.error('getCurrentUser', 'Error fetching current user:', error);
-      return null;
-    }
-    
-    if (!data) {
-      logger.error('getCurrentUser', 'No user data returned');
-      return null;
-    }
-    
-    logger.debug('getCurrentUser', 'User data fetched:', {
-      id: data.id,
-      name: data.name,
-      email: data.email,
-      stats: data.stats
-    });
-    
-    // Define explicit type for the data
-    type UserData = {
+    // Type assertion for the result data
+    const userData = result.data as {
       id: string;
       name: string;
       email: string;
       avatar_url?: string;
       created_at: string;
-      stats?: {
-        rank?: number;
-        tasks_completed?: number;
-        completion_rate?: number;
-        average_completion_time?: number;
-      } | null;
+      is_pending?: boolean;
     };
-    
-    // Cast data to our defined type
-    const userData = data as unknown as UserData;
-    
-    const user = {
+
+    return {
       id: userData.id,
       name: userData.name,
       email: userData.email,
       avatarUrl: userData.avatar_url,
       createdAt: new Date(userData.created_at),
+      isPending: userData.is_pending || false,
       stats: {
-        rank: userData.stats?.rank || 0,
-        tasksCompleted: userData.stats?.tasks_completed || 0,
-        completionRate: userData.stats?.completion_rate || 0,
-        averageCompletionTime: userData.stats?.average_completion_time || 0
+        rank: 0,
+        tasksCompleted: 0,
+        completionRate: 0,
+        averageCompletionTime: 0
       }
     };
-    
-    logger.debug('getCurrentUser', 'Returning user object:', user);
-    return user;
+
   } catch (error) {
     logger.error('getCurrentUser', 'Unexpected error:', error);
     return null;
@@ -591,7 +627,9 @@ export const searchUsers = async (query: string): Promise<User[]> => {
 
 // Task API functions
 export const getUserTasks = async (userId: string): Promise<Task[]> => {
-  // Get tasks assigned to the user
+  logger.info('getUserTasks', `Fetching all tasks for user: ${userId}`);
+  
+  // Get ALL tasks assigned to the user (not just from friends)
   const { data: assignedTasks, error: assignedError } = await supabase
     .from('tasks')
     .select(`
@@ -600,13 +638,15 @@ export const getUserTasks = async (userId: string): Promise<Task[]> => {
       assigner:users!tasks_assigner_id_fkey(id, name, email, avatar_url),
       assignee:users!tasks_assignee_id_fkey(id, name, email, avatar_url)
     `)
-    .eq('assignee_id', userId);
+    .eq('assignee_id', userId)
+    .order('created_at', { ascending: false });
     
   if (assignedError || !assignedTasks) {
-    console.error('Error fetching user tasks:', assignedError);
+    logger.error('getUserTasks', 'Error fetching user tasks:', assignedError);
     return [];
   }
   
+  logger.info('getUserTasks', `Found ${assignedTasks.length} tasks for user`);
   return assignedTasks.map(transformTaskFromDb);
 };
 
@@ -723,7 +763,7 @@ export const createTask = async (task: Omit<Task, 'id' | 'createdAt'>): Promise<
     created_at: string;
     due_date: string;
     assigner_id: string;
-    assignee_id: string;
+    assignee_id: string | null;
     status: string;
     priority: string;
     completed_at?: string;
@@ -739,6 +779,8 @@ export const createTask = async (task: Omit<Task, 'id' | 'createdAt'>): Promise<
     timeliness_rating?: number;
     effort_rating?: number;
     accuracy_rating?: number;
+    is_invitation: boolean;
+    email_pending?: string;
   }
 
   // Create the task first
@@ -749,7 +791,7 @@ export const createTask = async (task: Omit<Task, 'id' | 'createdAt'>): Promise<
       description: task.description,
       due_date: task.dueDate.toISOString(),
       assigner_id: task.assignerId,
-      assignee_id: task.assigneeId,
+      assignee_id: task.assigneeId || null, // Handle optional assigneeId
       status: task.status,
       priority: task.priority,
       completed_at: task.completedAt?.toISOString(),
@@ -759,7 +801,9 @@ export const createTask = async (task: Omit<Task, 'id' | 'createdAt'>): Promise<
       quality_rating: task.qualityRating,
       feedback: task.feedback,
       submission_type: task.submissionType,
-      submission_instructions: task.submissionInstructions
+      submission_instructions: task.submissionInstructions,
+      is_invitation: task.isInvitation,
+      email_pending: task.emailPending
     })
     .select()
     .single();
@@ -768,12 +812,12 @@ export const createTask = async (task: Omit<Task, 'id' | 'createdAt'>): Promise<
     console.error('Error creating task:', error);
     return null;
   }
-
+  
   // Type assert the data to our expected structure
   const data = rawData as unknown as InsertedTaskData;
 
-  // Send email notification if task is assigned to someone other than the creator
-  if (task.assignerId !== task.assigneeId) {
+  // Send email notification if task is assigned to someone other than the creator AND assigneeId exists
+  if (task.assigneeId && task.assignerId !== task.assigneeId) {
     try {
       // Fetch assignee and assigner data separately for the notification
       const [assigneeResult, assignerResult] = await Promise.all([
@@ -843,7 +887,7 @@ export const createTask = async (task: Omit<Task, 'id' | 'createdAt'>): Promise<
       createdAt: new Date(data.created_at),
       dueDate: new Date(data.due_date),
       assignerId: data.assigner_id,
-      assigneeId: data.assignee_id,
+      assigneeId: data.assignee_id || undefined,
       status: data.status as TaskStatus,
       priority: data.priority as TaskPriority,
       completedAt: data.completed_at ? new Date(data.completed_at) : undefined,
@@ -859,6 +903,8 @@ export const createTask = async (task: Omit<Task, 'id' | 'createdAt'>): Promise<
       effortRating: data.effort_rating,
       accuracyRating: data.accuracy_rating,
       feedback: data.feedback,
+      isInvitation: data.is_invitation,
+      emailPending: data.email_pending,
       attachments: []
     };
   }
@@ -924,7 +970,7 @@ export const updateTaskStatus = async (
     console.error('Error updating task status:', error);
     return null;
   }
-
+  
   const transformedTask = transformTaskFromDb(data);
 
   // Send notifications based on the type of update
@@ -1407,7 +1453,7 @@ const transformTaskFromDb = (task: any): Task => {
     createdAt: new Date(task.created_at),
     dueDate: new Date(task.due_date),
     assignerId: task.assigner_id,
-    assigneeId: task.assignee_id,
+    assigneeId: task.assignee_id || undefined, // Handle null assignee_id for invitations
     status: task.status as TaskStatus,
     priority: task.priority as TaskPriority,
     completedAt: task.completed_at ? new Date(task.completed_at) : undefined,
@@ -1423,6 +1469,8 @@ const transformTaskFromDb = (task: any): Task => {
     effortRating: task.effort_rating,
     accuracyRating: task.accuracy_rating,
     feedback: task.feedback,
+    isInvitation: task.is_invitation,
+    emailPending: task.email_pending,
     attachments: task.attachments ? task.attachments.map((attachment: TaskAttachmentDB) => ({
       id: attachment.id,
       taskId: attachment.task_id,
@@ -1621,4 +1669,166 @@ export const getTasksAssignedToOthers = async (userId: string): Promise<Task[]> 
   }
   
   return data.map(transformTaskFromDb);
+};
+
+export const createInvitationTask = async (
+  email: string,
+  taskTitle: string,
+  taskDescription: string,
+  dueDate: Date,
+  priority: TaskPriority = TaskPriority.MEDIUM
+): Promise<{ success: boolean; taskId?: string; error?: string }> => {
+  try {
+    logger.info('createInvitationTask', `Creating invitation task for email: ${email}`);
+    
+    logger.info('createInvitationTask', 'Step 1: Getting session...');
+    // Use timeout-protected session getter to avoid hanging
+    let session: any;
+    try {
+      const { data: sessionData, error: sessionError } = await getSessionWithTimeout(10000);
+      if (sessionError || !sessionData.session) {
+        logger.error('createInvitationTask', 'No valid session found:', sessionError);
+        return { success: false, error: 'No active session found' };
+      }
+      session = sessionData.session;
+      logger.info('createInvitationTask', `Step 1 complete: Session found for user ${session.user.id}`);
+    } catch (sessionError) {
+      logger.error('createInvitationTask', 'Session timeout or error:', sessionError);
+      // Try one more time with direct call as fallback
+      try {
+        logger.info('createInvitationTask', 'Attempting direct session call as fallback...');
+        const { data: { session: fallbackSession }, error: fallbackError } = await supabase.auth.getSession();
+        if (fallbackError || !fallbackSession) {
+          logger.error('createInvitationTask', 'Fallback session also failed:', fallbackError);
+          return { success: false, error: 'Unable to authenticate - please refresh and try again' };
+        }
+        session = fallbackSession;
+        logger.info('createInvitationTask', `Fallback session successful for user ${session.user.id}`);
+      } catch (fallbackError) {
+        logger.error('createInvitationTask', 'Both session methods failed:', fallbackError);
+        return { success: false, error: 'Authentication failed - please refresh the page and try again' };
+      }
+    }
+
+    // Look for existing user first
+    logger.info('createInvitationTask', 'Step 2: Looking for existing user...');
+    const existingUser = await findUserByEmail(email);
+    logger.info('createInvitationTask', `Step 2 complete: Existing user ${existingUser ? 'found' : 'not found'}`);
+    
+    let assigneeId: string | null = null;
+    let isInvitation = false;
+    let emailPending: string | null = null;
+
+    if (existingUser) {
+      // User already exists - assign directly
+      assigneeId = existingUser.id;
+      isInvitation = false;
+      emailPending = null;
+      
+      logger.info('createInvitationTask', `Step 3a: Assigning task directly to existing user ${existingUser.id}`);
+    } else {
+      // User doesn't exist - create invitation task
+      assigneeId = null;
+      isInvitation = true;
+      emailPending = email;
+      
+      logger.info('createInvitationTask', `Step 3b: Creating invitation task for email ${email}`);
+    }
+
+    // Create the task
+    logger.info('createInvitationTask', 'Step 4: Creating task...');
+    const { data: task, error: taskError } = await supabase
+      .from('tasks')
+      .insert({
+        title: taskTitle,
+        description: taskDescription,
+        due_date: dueDate.toISOString(),
+        assigner_id: session.user.id,
+        assignee_id: assigneeId,
+        status: TaskStatus.PENDING,
+        priority: priority,
+        submission_type: 'text',
+        submission_instructions: 'Please complete this task and submit your response.',
+        is_invitation: isInvitation,
+        email_pending: emailPending
+      })
+      .select('id')
+      .single();
+
+    logger.info('createInvitationTask', `Step 4 complete: Task creation - Success: ${!!task}, Error: ${taskError ? JSON.stringify(taskError) : 'none'}`);
+
+    if (taskError || !task) {
+      logger.error('createInvitationTask', 'Error creating task:', taskError);
+      return { success: false, error: 'Failed to create task' };
+    }
+
+    // Type assertion for the task data
+    const taskData = task as { id: string };
+
+    // Create friendship if user exists
+    if (existingUser) {
+      logger.info('createInvitationTask', 'Step 5: Creating friendship...');
+      try {
+        await createFriendshipIfNeeded(session.user.id, existingUser.id);
+        logger.info('createInvitationTask', 'Step 5 complete: Friendship created/verified');
+      } catch (friendshipError) {
+        logger.warn('createInvitationTask', 'Step 5 failed: Failed to create friendship:', friendshipError);
+        // Don't fail the task creation if friendship fails
+      }
+    } else {
+      logger.info('createInvitationTask', 'Step 5 skipped: No friendship needed for invitation task');
+    }
+
+    logger.info('createInvitationTask', `Task created successfully: ${taskData.id}`);
+
+    // Send invitation email if this is an invitation task
+    if (isInvitation && emailPending) {
+      logger.info('createInvitationTask', 'Step 6: Sending invitation email...');
+      try {
+        // Get the assigner's information for the email
+        const { data: assignerData, error: assignerError } = await supabase
+          .from('users')
+          .select('id, name, email')
+          .eq('id', session.user.id)
+          .single();
+
+        if (assignerData && !assignerError) {
+          // Send invitation email using the edge function
+          const { data: notificationResult, error: notificationError } = await supabase.functions.invoke('notify-task-assignment', {
+            body: {
+              type: 'invitation',
+              assigneeEmail: emailPending,
+              assigneeName: emailPending.split('@')[0], // Use email prefix as temporary name
+              assignerName: assignerData.name,
+              taskTitle: taskTitle,
+              taskDescription: taskDescription,
+              dueDate: dueDate.toISOString(),
+              taskId: taskData.id,
+              isNewUser: true // Since we're creating this because user doesn't exist
+            }
+          });
+
+          if (notificationError) {
+            logger.error('createInvitationTask', 'Failed to send invitation email:', notificationError);
+            // Don't fail the task creation if email fails
+          } else {
+            logger.info('createInvitationTask', 'Step 6 complete: Invitation email sent successfully');
+          }
+        } else {
+          logger.error('createInvitationTask', 'Could not fetch assigner data for invitation email:', assignerError);
+        }
+      } catch (emailError) {
+        logger.error('createInvitationTask', 'Error sending invitation email:', emailError);
+        // Don't fail the task creation if email fails
+      }
+    } else {
+      logger.info('createInvitationTask', 'Step 6 skipped: No invitation email needed');
+    }
+
+    return { success: true, taskId: taskData.id };
+
+  } catch (error) {
+    logger.error('createInvitationTask', 'Unexpected error:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
 }; 

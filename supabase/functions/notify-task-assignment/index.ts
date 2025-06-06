@@ -7,7 +7,7 @@
 // @ts-ignore - Deno globals available in Supabase runtime
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
 
-type NotificationType = 'assignment' | 'completion' | 'grading';
+type NotificationType = 'assignment' | 'completion' | 'grading' | 'invitation';
 
 interface BaseNotification {
   type: NotificationType;
@@ -45,7 +45,17 @@ interface TaskGradingNotification extends BaseNotification {
   feedback?: string;
 }
 
-type NotificationData = TaskAssignmentNotification | TaskCompletionNotification | TaskGradingNotification;
+interface TaskInvitationNotification extends BaseNotification {
+  type: 'invitation';
+  assigneeEmail: string;
+  assigneeName: string;
+  assignerName: string;
+  dueDate: string;
+  isNewUser: boolean;
+  inviteUrl?: string;
+}
+
+type NotificationData = TaskAssignmentNotification | TaskCompletionNotification | TaskGradingNotification | TaskInvitationNotification;
 
 // @ts-ignore - Deno.serve available in Supabase runtime
 Deno.serve(async (req: Request) => {
@@ -170,6 +180,37 @@ Deno.serve(async (req: Request) => {
         html = createGradingEmailTemplate(gradingData, appUrl);
         subject = `Task Graded: ${gradingData.taskTitle}`;
         to = gradingData.assigneeEmail;
+        break;
+
+      case 'invitation':
+        const invitationData = notificationData as TaskInvitationNotification;
+        if (!invitationData.assigneeEmail || !invitationData.assigneeName || !invitationData.assignerName || !invitationData.dueDate) {
+          return new Response(
+            JSON.stringify({ error: 'Missing required fields for invitation notification' }), 
+            { 
+              status: 400,
+              headers: { 
+                'Content-Type': 'application/json',
+                ...corsHeaders
+              } 
+            }
+          )
+        }
+
+        const formattedInviteDueDate = new Date(invitationData.dueDate).toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+        html = createInvitationEmailTemplate(invitationData, formattedInviteDueDate, appUrl);
+        subject = invitationData.isNewUser 
+          ? `You're invited to join TaskLapp! ${invitationData.taskTitle}` 
+          : `New Task Invitation: ${invitationData.taskTitle}`;
+        to = invitationData.assigneeEmail;
         break;
 
       default:
@@ -483,6 +524,143 @@ function createGradingEmailTemplate(data: TaskGradingNotification, appUrl: strin
         <div class="footer">
           <p>Thank you for completing this task! Keep up the great work.</p>
           <p>This is an automated notification from your TaskLapp system.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+function createInvitationEmailTemplate(data: TaskInvitationNotification, formattedDueDate: string, appUrl: string): string {
+  const signupUrl = data.inviteUrl || `${appUrl}/signup?email=${encodeURIComponent(data.assigneeEmail)}`;
+  const loginUrl = `${appUrl}/login`;
+  
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${data.isNewUser ? 'Join TaskLapp!' : 'Task Invitation'}</title>
+      <style>
+        ${getCommonEmailStyles()}
+        .invitation-card {
+          background: #f0f9ff;
+          border-radius: 8px;
+          padding: 24px;
+          margin: 24px 0;
+          border-left: 4px solid #0ea5e9;
+        }
+        .signup-section {
+          background: #ecfdf5;
+          border-radius: 8px;
+          padding: 24px;
+          margin: 24px 0;
+          text-align: center;
+          border: 2px solid #10b981;
+        }
+        .invitation-badge {
+          background: #dbeafe;
+          color: #1e40af;
+          padding: 6px 12px;
+          border-radius: 6px;
+          font-weight: 500;
+          font-size: 14px;
+          display: inline-block;
+          margin-bottom: 16px;
+        }
+        .benefits-list {
+          text-align: left;
+          margin: 16px 0;
+        }
+        .benefits-list li {
+          margin: 8px 0;
+          color: #374151;
+        }
+        .cta-secondary {
+          display: inline-block;
+          background: #10b981;
+          color: white;
+          text-decoration: none;
+          padding: 14px 28px;
+          border-radius: 8px;
+          font-weight: 600;
+          margin: 12px;
+          transition: background 0.2s;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>${data.isNewUser ? '🎉 You\'re Invited to TaskLapp!' : '📋 Task Invitation'}</h1>
+        </div>
+        
+        <div class="greeting">
+          Hi ${data.assigneeName}! 👋
+        </div>
+        
+        <div class="message">
+          <strong>${data.assignerName}</strong> has ${data.isNewUser ? 'invited you to join TaskLapp and assigned you' : 'assigned you'} a task${data.isNewUser ? '!' : '.'}
+        </div>
+
+        ${data.isNewUser ? `
+          <div class="signup-section">
+            <div class="invitation-badge">
+              🌟 Welcome to TaskLapp!
+            </div>
+            <h3>What is TaskLapp?</h3>
+            <p>TaskLapp is a collaborative task management platform where friends and teams can assign tasks to each other, track progress, and celebrate completions together!</p>
+            
+            <ul class="benefits-list">
+              <li>📝 Assign and receive tasks from friends</li>
+              <li>⏰ Track deadlines and progress</li>
+              <li>⭐ Rate and provide feedback on completed work</li>
+              <li>🏆 Compete on leaderboards with friends</li>
+              <li>📧 Get email notifications for important updates</li>
+            </ul>
+            
+            <div style="margin: 24px 0;">
+              <a href="${signupUrl}" class="cta-secondary">
+                🚀 Join TaskLapp & View Your Task
+              </a>
+            </div>
+            <p style="font-size: 14px; color: #6b7280;">
+              Already have an account? <a href="${loginUrl}" style="color: #3b82f6;">Sign in here</a>
+            </p>
+          </div>
+        ` : ''}
+        
+        <div class="invitation-card">
+          <div class="task-title">${data.taskTitle}</div>
+          ${data.taskDescription ? `<div class="task-description">${data.taskDescription}</div>` : ''}
+          <div class="task-meta">
+            <div class="due-date">
+              📅 Due: ${formattedDueDate}
+            </div>
+          </div>
+        </div>
+        
+        <div style="text-align: center;">
+          ${data.isNewUser ? `
+            <a href="${signupUrl}" class="cta-button">
+              Get Started with TaskLapp
+            </a>
+          ` : `
+            <a href="${appUrl}/task/${data.taskId}" class="cta-button">
+              View Task Details
+            </a>
+          `}
+        </div>
+        
+        <div class="footer">
+          ${data.isNewUser ? `
+            <p>You've been invited by ${data.assignerName} to join TaskLapp, a collaborative task management platform.</p>
+            <p>Create your account to start managing tasks together!</p>
+          ` : `
+            <p>This is an automated notification from your TaskLapp system.</p>
+            <p>If you have any questions, please contact ${data.assignerName} directly.</p>
+          `}
         </div>
       </div>
     </body>

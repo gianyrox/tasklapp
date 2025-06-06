@@ -11,9 +11,10 @@ import {
   searchUsers, 
   sendFriendRequest, 
   respondToFriendRequest,
-  getAllUsers
+  getAllUsers,
+  createInvitationTask
 } from '../../lib/api/supabase';
-import { User, Friendship, FriendshipStatus } from '../../types';
+import { User, Friendship, FriendshipStatus, TaskPriority } from '../../types';
 
 import styles from './Friend.module.css';
 
@@ -24,6 +25,14 @@ const FriendPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  
+  // Email invitation state
+  const [showInviteForm, setShowInviteForm] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteTaskTitle, setInviteTaskTitle] = useState('');
+  const [inviteTaskDescription, setInviteTaskDescription] = useState('');
+  const [inviteDueDate, setInviteDueDate] = useState('');
+  const [isInviting, setIsInviting] = useState(false);
   
   const [pendingRequests, setPendingRequests] = useState<Friendship[]>([]);
   const [friends, setFriends] = useState<Friendship[]>([]);
@@ -209,6 +218,76 @@ const FriendPage: React.FC = () => {
     return 'none';
   };
 
+  const handleSendInvitation = async () => {
+    if (!user || !inviteEmail || !inviteTaskTitle || !inviteDueDate) {
+      setStatusMessage({
+        text: 'Please fill in all required fields',
+        type: 'error'
+      });
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(inviteEmail)) {
+      setStatusMessage({
+        text: 'Please enter a valid email address',
+        type: 'error'
+      });
+      return;
+    }
+
+    // Validate due date is in the future
+    const dueDateTime = new Date(inviteDueDate);
+    if (dueDateTime <= new Date()) {
+      setStatusMessage({
+        text: 'Due date must be in the future',
+        type: 'error'
+      });
+      return;
+    }
+
+    setIsInviting(true);
+    setStatusMessage(null);
+
+    try {
+      const result = await createInvitationTask(
+        inviteEmail,
+        inviteTaskTitle,
+        inviteTaskDescription || 'Complete this task to get started with TaskLapp!',
+        dueDateTime,
+        TaskPriority.MEDIUM
+      );
+
+      if (result.success) {
+        setStatusMessage({
+          text: `Invitation sent successfully to ${inviteEmail}!`,
+          type: 'success'
+        });
+        
+        // Reset form
+        setInviteEmail('');
+        setInviteTaskTitle('');
+        setInviteTaskDescription('');
+        setInviteDueDate('');
+        setShowInviteForm(false);
+      } else {
+        setStatusMessage({
+          text: result.error || 'Failed to send invitation',
+          type: 'error'
+        });
+      }
+    } catch (err) {
+      console.error('Error sending invitation:', err);
+      setStatusMessage({
+        text: 'An error occurred while sending the invitation',
+        type: 'error'
+      });
+    } finally {
+      setIsInviting(false);
+    }
+  };
+
   return (
     <ProtectedRoute>
       <AppLayout>
@@ -310,6 +389,94 @@ const FriendPage: React.FC = () => {
                 </div>
               )
             )}
+
+            {/* Email Invitation Section */}
+            <div className={styles.inviteSection}>
+              <div className={styles.inviteContainer}>
+                <div className={styles.inviteText}>
+                  <h3 className={styles.inviteTitle}>Can't find a friend?</h3>
+                  <p className={styles.inviteDescription}>
+                    Invite them by email and they'll get a task to join TaskLapp!
+                  </p>
+                </div>
+                <Button 
+                  variant={showInviteForm ? "outline" : "primary"} 
+                  size="sm" 
+                  onClick={() => setShowInviteForm(!showInviteForm)}
+                >
+                  {showInviteForm ? 'Cancel' : 'Invite by Email'}
+                </Button>
+              </div>
+
+              {showInviteForm && (
+                <div className={styles.inviteForm}>
+                  <div className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                      <label className={styles.label}>Email Address *</label>
+                      <input
+                        type="email"
+                        className={styles.input}
+                        placeholder="friend@example.com"
+                        value={inviteEmail}
+                        onChange={(e) => setInviteEmail(e.target.value)}
+                      />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label className={styles.label}>Task Title *</label>
+                      <input
+                        type="text"
+                        className={styles.input}
+                        placeholder="Welcome to TaskLapp!"
+                        value={inviteTaskTitle}
+                        onChange={(e) => setInviteTaskTitle(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>Task Description</label>
+                    <textarea
+                      className={styles.textarea}
+                      placeholder="A simple task to get you started..."
+                      value={inviteTaskDescription}
+                      onChange={(e) => setInviteTaskDescription(e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>Due Date *</label>
+                    <input
+                      type="datetime-local"
+                      className={styles.input}
+                      value={inviteDueDate}
+                      onChange={(e) => setInviteDueDate(e.target.value)}
+                      min={new Date().toISOString().slice(0, 16)}
+                      style={{ maxWidth: '300px' }}
+                    />
+                  </div>
+
+                  <div className={styles.formActions}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setShowInviteForm(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      variant="primary" 
+                      size="sm" 
+                      onClick={handleSendInvitation}
+                      disabled={isInviting || !inviteEmail || !inviteTaskTitle || !inviteDueDate}
+                    >
+                      {isInviting ? 'Sending...' : 'Send Invitation'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Pending Friend Requests */}

@@ -30,7 +30,8 @@ import {
   getLeaderboard,
   updateTaskStatus, 
   updateTaskSubmissionType,
-  updateTaskSubmissionContent
+  updateTaskSubmissionContent,
+  getUserTasks
 } from '../../lib/api/supabase';
 import Board from '../../components/ui/Board';
 import Button, { ButtonSize } from '../../components/ui/Button';
@@ -219,24 +220,15 @@ const DashboardPage: React.FC = () => {
 
     try {
       if (!user?.id) {
-      console.log('No user found, aborting dashboard data fetch');
-      setIsLoading(false);
-      return;
-    }
+        console.log('No user found, aborting dashboard data fetch');
+        setIsLoading(false);
+        return;
+      }
 
       console.log('Fetching data for user:', user.id);
       
-      // Fetch tasks assigned by friends
-      const allTasksFromFriends = await getTasksFromFriends();
-      
-      // Fetch self-assigned tasks
-      const allSelfTasks = await getSelfAssignedTasks(user.id);
-      
-      // Fetch tasks the user assigned to others
-      const assignedToOthers = await getTasksAssignedToOthers(user.id);
-
-      // Combine tasks assigned to current user
-      const allMyTasks = [...allTasksFromFriends, ...allSelfTasks];
+      // Fetch ALL tasks assigned to the user (including invitation tasks)
+      const allMyTasks = await getUserTasks(user.id);
       setMyTasks(allMyTasks);
       
       // Filter tasks into different categories
@@ -244,8 +236,11 @@ const DashboardPage: React.FC = () => {
       const selfAssigned = filterSelfAssignedTasks(allMyTasks, user.id);
       
       setTasksFromFriends(fromFriends);
-      setTasksAssignedToOthers(assignedToOthers);
       setSelfAssignedTasks(selfAssigned);
+      
+      // Fetch tasks the user assigned to others
+      const assignedToOthers = await getTasksAssignedToOthers(user.id);
+      setTasksAssignedToOthers(assignedToOthers);
       
       // Fetch accepted friendships
       const friendships = await getFriendships(FriendshipStatus.ACCEPTED);
