@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Tasklapp",
+  "version": "0.1",
+  "description": "The official Tasklapp Chrome Extension.",
+  "permissions": ["tabs", "storage"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  },
+  "host_permissions": ["<all_urls>"]
+} 

@@ -228,9 +228,9 @@ const HomePage: React.FC = () => {
             &copy; {new Date().getFullYear()} Taskl.app. All rights reserved.
           </p>
           <div className={styles.footerLinks}>
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
-            <a href="#">Contact Us</a>
+            <Link href="/privacy">Privacy Policy</Link>
+            <Link href="/terms">Terms of Service</Link>
+            <a href="mailto:hello@taskl.app">Contact Us</a>
           </div>
         </div>
       </footer>
