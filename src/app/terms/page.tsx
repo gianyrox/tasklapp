@@ -309,9 +309,9 @@ const TermsPage: React.FC = () => {
             <h2>16. Contact Information</h2>
             <p>If you have questions about these Terms, please contact us:</p>
             <div className={styles.contactInfo}>
-              <p><strong>Email:</strong> <a href="mailto:legal@taskl.app">legal@taskl.app</a></p>
-              <p><strong>Support:</strong> <a href="mailto:support@taskl.app">support@taskl.app</a></p>
-              <p><strong>General:</strong> <a href="mailto:hello@taskl.app">hello@taskl.app</a></p>
+              <p><strong>Email:</strong> <a href="mailto:legal@TasklApp.app">legal@TasklApp.app</a></p>
+              <p><strong>Support:</strong> <a href="mailto:support@TasklApp.app">support@TasklApp.app</a></p>
+              <p><strong>General:</strong> <a href="mailto:hello@TasklApp.app">hello@TasklApp.app</a></p>
             </div>
           </section>
 

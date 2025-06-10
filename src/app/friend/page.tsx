@@ -254,7 +254,7 @@ const FriendPage: React.FC = () => {
       const result = await createInvitationTask(
         inviteEmail,
         inviteTaskTitle,
-        inviteTaskDescription || 'Complete this task to get started with TaskLapp!',
+        inviteTaskDescription || 'Complete this task to get started with TasklApp!',
         dueDateTime,
         TaskPriority.MEDIUM
       );
@@ -396,7 +396,7 @@ const FriendPage: React.FC = () => {
                 <div className={styles.inviteText}>
                   <h3 className={styles.inviteTitle}>Can't find a friend?</h3>
                   <p className={styles.inviteDescription}>
-                    Invite them by email and they'll get a task to join TaskLapp!
+                    Invite them by email and they'll get a task to join TasklApp!
                   </p>
                 </div>
                 <Button 
@@ -427,7 +427,7 @@ const FriendPage: React.FC = () => {
                       <input
                         type="text"
                         className={styles.input}
-                        placeholder="Welcome to TaskLapp!"
+                        placeholder="Welcome to TasklApp!"
                         value={inviteTaskTitle}
                         onChange={(e) => setInviteTaskTitle(e.target.value)}
                       />

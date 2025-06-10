@@ -21,7 +21,7 @@ export const TaskList: React.FC<TaskListProps> = ({
   ownership = 'self'
 }) => {
   return (
-    <div className={styles.taskList}>
+    <div className={styles.TaskList}>
       {tasks.map(task => (
         <TaskCard
           key={task.id}

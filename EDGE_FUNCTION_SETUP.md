@@ -96,7 +96,7 @@ The email template is defined in the edge function. To customize:
 Update the `from` field in the edge function:
 
 ```typescript
-from: 'TaskLapp <notifications@your-verified-domain.com>',
+from: 'TasklApp <notifications@your-verified-domain.com>',
 ```
 
 **Important**: The domain must be verified in your Resend account.

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Tasklapp",
+  "name": "TasklApp",
   "version": "0.1",
-  "description": "The official Tasklapp Chrome Extension.",
+  "description": "The official TasklApp Chrome Extension.",
   "permissions": ["activeTab", "storage"],
   "action": {
     "default_popup": "popup.html",

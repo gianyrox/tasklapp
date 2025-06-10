@@ -128,7 +128,7 @@ const SettingsPage: React.FC = () => {
       const result = await createInvitationTask(
         inviteEmail,
         inviteTaskTitle,
-        inviteTaskDescription || 'Complete this task to get started with TaskLapp!',
+        inviteTaskDescription || 'Complete this task to get started with TasklApp!',
         dueDateTime,
         TaskPriority.MEDIUM
       );
@@ -292,7 +292,7 @@ const SettingsPage: React.FC = () => {
               <div className={styles.inviteForm}>
                 <h3 className={styles.inviteFormTitle}>Send Task Invitation</h3>
                 <p className={styles.inviteFormDescription}>
-                  Invite someone to join TaskLapp by sending them a task!
+                  Invite someone to join TasklApp by sending them a task!
                 </p>
                 
                 <div className={styles.formGroup}>
@@ -311,7 +311,7 @@ const SettingsPage: React.FC = () => {
                   <input
                     type="text"
                     className={styles.input}
-                    placeholder="Welcome to TaskLapp!"
+                    placeholder="Welcome to TasklApp!"
                     value={inviteTaskTitle}
                     onChange={(e) => setInviteTaskTitle(e.target.value)}
                   />
@@ -321,7 +321,7 @@ const SettingsPage: React.FC = () => {
                   <label className={styles.label}>Task Description</label>
                   <textarea
                     className={styles.textarea}
-                    placeholder="A simple task to get you started with TaskLapp..."
+                    placeholder="A simple task to get you started with TasklApp..."
                     value={inviteTaskDescription}
                     onChange={(e) => setInviteTaskDescription(e.target.value)}
                     rows={3}

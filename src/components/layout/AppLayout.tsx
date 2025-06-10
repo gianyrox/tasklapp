@@ -95,7 +95,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         <div className={styles.container}>
           <div className={styles.leftSection}>
             <Link href="/dashboard" className={styles.logo}>
-              Taskl
+              TasklApp
             </Link>
             
             <nav className={styles.navigation}>
@@ -395,7 +395,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       
       <footer className={styles.footer}>
         <div className={styles.container}>
-          <p>&copy; {new Date().getFullYear()} Taskl.app. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} TasklApp.app. All rights reserved.</p>
         </div>
       </footer>
     </div>

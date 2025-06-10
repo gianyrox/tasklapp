@@ -156,4 +156,200 @@ export interface SubscriptionPlan {
   stripeProductId: string;
   features: string[];
   popular?: boolean;
+}
+
+// Public Tasks Types
+export enum TaskCompletionType {
+  APPLICATION_BASED = 'APPLICATION_BASED',
+  PROOF_BASED = 'PROOF_BASED'
+}
+
+export enum TasklAppocationType {
+  REMOTE = 'REMOTE',
+  ONSITE = 'ONSITE',
+  HYBRID = 'HYBRID'
+}
+
+export enum PayoutMethod {
+  CRYPTO = 'CRYPTO',
+  WIRE_TRANSFER = 'WIRE_TRANSFER',
+  VENMO = 'VENMO',
+  ZELLE = 'ZELLE',
+  PAYPAL = 'PAYPAL',
+  WESTERN_UNION = 'WESTERN_UNION',
+  MONEYGRAM = 'MONEYGRAM',
+  WISE = 'WISE',
+  REMITLY = 'REMITLY',
+  XOOM = 'XOOM'
+}
+
+export enum GradingMethod {
+  CREATOR_ONLY = 'CREATOR_ONLY',
+  COMMUNITY_VOTING = 'COMMUNITY_VOTING',
+  BOTH = 'BOTH'
+}
+
+export enum ApplicationStatus {
+  PENDING = 'PENDING',
+  ACCEPTED = 'ACCEPTED',
+  REJECTED = 'REJECTED',
+  COMPLETED = 'COMPLETED',
+  GRADED = 'GRADED'
+}
+
+export interface PublicTask {
+  id: string;
+  title: string;
+  description: string;
+  creatorId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  
+  // Task details
+  completionType: TaskCompletionType;
+  locationType: TasklAppocationType;
+  locationAddress?: string;
+  locationLat?: number;
+  locationLng?: number;
+  locationCity?: string;
+  locationCountry?: string;
+  language: string;
+  
+  // Payment information
+  paymentAmount: number;
+  paymentCurrency: string;
+  supportedPayoutMethods: PayoutMethod[];
+  
+  // Task management
+  maxApplicants?: number;
+  deadline?: Date;
+  gradingMethod: GradingMethod;
+  isActive: boolean;
+  
+  // Submission requirements
+  submissionInstructions?: string;
+  
+  // Stats
+  applicationCount: number;
+  viewCount: number;
+  
+  // Populated fields
+  creator?: User;
+  tags?: PublicTaskTag[];
+  media?: PublicTaskMedia[];
+  applications?: PublicTaskApplication[];
+}
+
+export interface PublicTaskTag {
+  id: string;
+  taskId: string;
+  tagName: string;
+  createdAt: Date;
+}
+
+export interface PublicTaskMedia {
+  id: string;
+  taskId: string;
+  fileUrl: string;
+  fileType: 'image' | 'video';
+  fileName?: string;
+  fileSize?: number;
+  mimeType?: string;
+  createdAt: Date;
+}
+
+export interface PublicTaskApplication {
+  id: string;
+  taskId: string;
+  applicantId: string;
+  appliedAt: Date;
+  status: ApplicationStatus;
+  
+  // Application details
+  applicationMessage?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  
+  // For proof-based tasks
+  submissionContent?: string;
+  submissionMediaUrls?: string[];
+  submittedAt?: Date;
+  
+  // Grading
+  creatorRating?: number;
+  creatorFeedback?: string;
+  communityRating?: number;
+  communityVotes: number;
+  gradedAt?: Date;
+  
+  // Populated fields
+  applicant?: User;
+  task?: PublicTask;
+}
+
+export interface PublicTaskComment {
+  id: string;
+  taskId: string;
+  userId?: string;
+  commenterName: string;
+  commentText: string;
+  isAnonymous: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  
+  // Populated fields
+  user?: User;
+}
+
+export interface PublicTaskVote {
+  id: string;
+  applicationId: string;
+  voterId?: string;
+  voterIp?: string;
+  rating: number;
+  createdAt: Date;
+}
+
+export interface CreatePublicTaskData {
+  title: string;
+  description: string;
+  completionType: TaskCompletionType;
+  locationType: TasklAppocationType;
+  locationAddress?: string;
+  locationLat?: number;
+  locationLng?: number;
+  locationCity?: string;
+  locationCountry?: string;
+  language: string;
+  paymentAmount: number;
+  paymentCurrency: string;
+  supportedPayoutMethods: PayoutMethod[];
+  maxApplicants?: number;
+  deadline?: Date;
+  gradingMethod: GradingMethod;
+  submissionInstructions?: string;
+  tags: string[];
+  mediaFiles?: File[];
+}
+
+export interface MediaFile {
+  file: File;
+  preview: string;
+  type: 'image' | 'video';
+}
+
+export interface PublicTaskFilters {
+  locationType?: TasklAppocationType;
+  minPayment?: number;
+  maxPayment?: number;
+  tags?: string[];
+  language?: string;
+  completionType?: TaskCompletionType;
+  search?: string;
+}
+
+export interface PublicTaskListResponse {
+  tasks: PublicTask[];
+  totalCount: number;
+  hasMore: boolean;
 } 

@@ -14,7 +14,7 @@ A modern, edtech-focused task management application built with Next.js and Supa
 
 ## 🔠 Branding
 
-Taskl.app is pronounced "task lap," relating the completion of tasks to running laps on a track. This competitive, race-inspired theme is incorporated throughout the application, treating productivity as a friendly competition.
+TasklApp.app is pronounced "task lap," relating the completion of tasks to running laps on a track. This competitive, race-inspired theme is incorporated throughout the application, treating productivity as a friendly competition.
 
 ## 🛠️ Technology Stack
 

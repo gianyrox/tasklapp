@@ -1,6 +1,6 @@
 # A string used to distinguish different Supabase projects on the same machine.
 # Not used by Supabase or Edge Functions.
-project_id = "tasklapp"
+project_id = "TasklApp"
 
 [api]
 # Port to use for the API URL.

@@ -2,7 +2,7 @@
 
 > **CURSOR AI NOTE**: This is a configuration context system. When `@confy` is mentioned in prompts, use this as a reference for understanding the application's data structure and functionality. Do not modify these files unless explicitly instructed to update the configuration system itself.
 
-This folder contains the core configuration and schema definitions for the Taskl.app application. It serves as the central source of truth for data types, database schema, and context that provides application state management.
+This folder contains the core configuration and schema definitions for the TasklApp.app application. It serves as the central source of truth for data types, database schema, and context that provides application state management.
 
 ## @comfy Tag Usage
 
@@ -102,7 +102,7 @@ const supabase = createTypedSupabaseClient();
 | Notifications | true | Enable/disable notifications |
 | Default Task Due Days | 7 | Default number of days for task due dates |
 | App Version | '1.0.0' | Current application version |
-| App Name | 'Taskl.app' | Application name |
+| App Name | 'TasklApp.app' | Application name |
 
 ## Data Flow
 

@@ -20,6 +20,6 @@ Create a competitive task completion application where users can assign tasks to
 
 ### TypeScript Types
 
-the website is called https://taskl.app
+the website is called https://TasklApp.app
 Branding based on a track and you can do task laps
-Taskl
+TasklApp

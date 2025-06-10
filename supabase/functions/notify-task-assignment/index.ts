@@ -97,7 +97,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // @ts-ignore - Deno.env available in Supabase runtime
-    const appUrl = Deno.env.get('APP_URL') || 'https://taskl.app';
+    const appUrl = Deno.env.get('APP_URL') || 'https://TasklApp.app';
 
     let html: string;
     let subject: string;
@@ -208,7 +208,7 @@ Deno.serve(async (req: Request) => {
 
         html = createInvitationEmailTemplate(invitationData, formattedInviteDueDate, appUrl);
         subject = invitationData.isNewUser 
-          ? `You're invited to join TaskLapp! ${invitationData.taskTitle}` 
+          ? `You're invited to join TasklApp! ${invitationData.taskTitle}` 
           : `New Task Invitation: ${invitationData.taskTitle}`;
         to = invitationData.assigneeEmail;
         break;
@@ -234,7 +234,7 @@ Deno.serve(async (req: Request) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'TaskLapp <notifications@taskl.app>',
+        from: 'TasklApp <notifications@TasklApp.app>',
         to,
         subject,
         html,
@@ -326,7 +326,7 @@ function createAssignmentEmailTemplate(data: TaskAssignmentNotification, formatt
         </div>
         
         <div class="footer">
-          <p>This is an automated notification from your TaskLapp system.</p>
+          <p>This is an automated notification from your TasklApp system.</p>
           <p>If you have any questions, please contact ${data.assignerName} directly.</p>
         </div>
       </div>
@@ -403,7 +403,7 @@ function createCompletionEmailTemplate(data: TaskCompletionNotification, complet
         
         <div class="footer">
           <p>You can now review the submission and provide feedback or ratings.</p>
-          <p>This is an automated notification from your TaskLapp system.</p>
+          <p>This is an automated notification from your TasklApp system.</p>
         </div>
       </div>
     </body>
@@ -523,7 +523,7 @@ function createGradingEmailTemplate(data: TaskGradingNotification, appUrl: strin
         
         <div class="footer">
           <p>Thank you for completing this task! Keep up the great work.</p>
-          <p>This is an automated notification from your TaskLapp system.</p>
+          <p>This is an automated notification from your TasklApp system.</p>
         </div>
       </div>
     </body>
@@ -541,7 +541,7 @@ function createInvitationEmailTemplate(data: TaskInvitationNotification, formatt
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>${data.isNewUser ? 'Join TaskLapp!' : 'Task Invitation'}</title>
+      <title>${data.isNewUser ? 'Join TasklApp!' : 'Task Invitation'}</title>
       <style>
         ${getCommonEmailStyles()}
         .invitation-card {
@@ -593,7 +593,7 @@ function createInvitationEmailTemplate(data: TaskInvitationNotification, formatt
     <body>
       <div class="container">
         <div class="header">
-          <h1>${data.isNewUser ? '🎉 You\'re Invited to TaskLapp!' : '📋 Task Invitation'}</h1>
+          <h1>${data.isNewUser ? '🎉 You\'re Invited to TasklApp!' : '📋 Task Invitation'}</h1>
         </div>
         
         <div class="greeting">
@@ -601,16 +601,16 @@ function createInvitationEmailTemplate(data: TaskInvitationNotification, formatt
         </div>
         
         <div class="message">
-          <strong>${data.assignerName}</strong> has ${data.isNewUser ? 'invited you to join TaskLapp and assigned you' : 'assigned you'} a task${data.isNewUser ? '!' : '.'}
+          <strong>${data.assignerName}</strong> has ${data.isNewUser ? 'invited you to join TasklApp and assigned you' : 'assigned you'} a task${data.isNewUser ? '!' : '.'}
         </div>
 
         ${data.isNewUser ? `
           <div class="signup-section">
             <div class="invitation-badge">
-              🌟 Welcome to TaskLapp!
+              🌟 Welcome to TasklApp!
             </div>
-            <h3>What is TaskLapp?</h3>
-            <p>TaskLapp is a collaborative task management platform where friends and teams can assign tasks to each other, track progress, and celebrate completions together!</p>
+            <h3>What is TasklApp?</h3>
+            <p>TasklApp is a collaborative task management platform where friends and teams can assign tasks to each other, track progress, and celebrate completions together!</p>
             
             <ul class="benefits-list">
               <li>📝 Assign and receive tasks from friends</li>
@@ -622,7 +622,7 @@ function createInvitationEmailTemplate(data: TaskInvitationNotification, formatt
             
             <div style="margin: 24px 0;">
               <a href="${signupUrl}" class="cta-secondary">
-                🚀 Join TaskLapp & View Your Task
+                🚀 Join TasklApp & View Your Task
               </a>
             </div>
             <p style="font-size: 14px; color: #6b7280;">
@@ -644,7 +644,7 @@ function createInvitationEmailTemplate(data: TaskInvitationNotification, formatt
         <div style="text-align: center;">
           ${data.isNewUser ? `
             <a href="${signupUrl}" class="cta-button">
-              Get Started with TaskLapp
+              Get Started with TasklApp
             </a>
           ` : `
             <a href="${appUrl}/task/${data.taskId}" class="cta-button">
@@ -655,10 +655,10 @@ function createInvitationEmailTemplate(data: TaskInvitationNotification, formatt
         
         <div class="footer">
           ${data.isNewUser ? `
-            <p>You've been invited by ${data.assignerName} to join TaskLapp, a collaborative task management platform.</p>
+            <p>You've been invited by ${data.assignerName} to join TasklApp, a collaborative task management platform.</p>
             <p>Create your account to start managing tasks together!</p>
           ` : `
-            <p>This is an automated notification from your TaskLapp system.</p>
+            <p>This is an automated notification from your TasklApp system.</p>
             <p>If you have any questions, please contact ${data.assignerName} directly.</p>
           `}
         </div>

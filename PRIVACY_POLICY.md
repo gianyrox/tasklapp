@@ -5,7 +5,7 @@
 
 ## 1. Introduction
 
-TasklApp ("we," "our," or "us") respects your privacy and is committed to protecting your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our web application at taskl.app and our Chrome browser extension (collectively, the "Service").
+TasklApp ("we," "our," or "us") respects your privacy and is committed to protecting your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our web application at TasklApp.app and our Chrome browser extension (collectively, the "Service").
 
 By using our Service, you agree to the collection and use of information in accordance with this Privacy Policy.
 
@@ -167,7 +167,7 @@ If applicable, you have the right to:
 - Object to certain data processing
 - Restrict data processing
 
-To exercise these rights, contact us at privacy@taskl.app.
+To exercise these rights, contact us at privacy@TasklApp.app.
 
 ## 8. Data Retention
 
@@ -208,7 +208,7 @@ Continued use of the Service after changes constitutes acceptance of the updated
 
 For privacy-related questions or concerns:
 
-**Email**: privacy@taskl.app  
+**Email**: privacy@TasklApp.app  
 **Address**: [INSERT COMPANY ADDRESS]  
 **Privacy Officer**: [INSERT CONTACT NAME]
 
@@ -224,7 +224,7 @@ For data subject requests under GDPR or CCPA, please use the subject line "Priva
 - **Legal Basis**: Consent, contract performance, legitimate interests
 - **Data Controller**: TasklApp
 - **EU Representative**: [IF APPLICABLE]
-- **DPO Contact**: dpo@taskl.app [IF APPLICABLE]
+- **DPO Contact**: dpo@TasklApp.app [IF APPLICABLE]
 
 ### 14.2 California (CCPA)
 California residents have additional rights under the California Consumer Privacy Act:

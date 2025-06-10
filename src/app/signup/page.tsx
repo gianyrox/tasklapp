@@ -250,11 +250,11 @@ const SignupPage: React.FC = () => {
       <div className={styles.card}>
         <div className={styles.header}>
           <Link href="/" className={styles.logo}>
-            Taskl
+            TasklApp
           </Link>
           <h1>Create an account</h1>
           {step === 'email' ? (
-            <p>Join Taskl and start managing your tasks more efficiently</p>
+            <p>Join TasklApp and start managing your tasks more efficiently</p>
           ) : (
             <p>Enter the 6-digit code sent to {email}</p>
           )}

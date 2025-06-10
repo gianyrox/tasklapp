@@ -3,7 +3,7 @@ INSERT INTO users (id, name, email, created_at, avatar_url)
 VALUES (
     '00000000-0000-0000-0000-000000000001',
     'System Invitation User',
-    'system+invitations@tasklapp.com',
+    'system+invitations@TasklApp.com',
     NOW(),
     NULL
 )

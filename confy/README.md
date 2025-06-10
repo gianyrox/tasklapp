@@ -1,6 +1,6 @@
 # Confy - Task App Configuration System
 
-A comprehensive configuration and state management system for the Taskl.app task management application. This folder serves as the central hub for type definitions, database schema, and application state management.
+A comprehensive configuration and state management system for the TasklApp.app task management application. This folder serves as the central hub for type definitions, database schema, and application state management.
 
 ## Overview
 
@@ -124,4 +124,4 @@ When extending the system:
 
 ## License
 
-This system is part of the main Taskl.app application and is covered by its license. 
+This system is part of the main TasklApp.app application and is covered by its license. 

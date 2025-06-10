@@ -100,7 +100,7 @@ const HomePage: React.FC = () => {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <div className={styles.logo}>TaskLapp</div>
+        <div className={styles.logo}>TasklApp</div>
       </header>
 
       <main className={styles.main}>
@@ -128,7 +128,7 @@ const HomePage: React.FC = () => {
                   Compete.
                 </h1>
                 <p className={styles.subtitle}>
-                  Taskl.app transforms ordinary task management into a competitive
+                  TasklApp.app transforms ordinary task management into a competitive
                   experience. Assign tasks, track performance, and race to the top
                   of the leaderboard.
                 </p>
@@ -225,12 +225,12 @@ const HomePage: React.FC = () => {
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
           <p>
-            &copy; {new Date().getFullYear()} Taskl.app. All rights reserved.
+            &copy; {new Date().getFullYear()} TasklApp.app. All rights reserved.
           </p>
           <div className={styles.footerLinks}>
             <Link href="/privacy">Privacy Policy</Link>
             <Link href="/terms">Terms of Service</Link>
-            <a href="mailto:hello@taskl.app">Contact Us</a>
+            <a href="mailto:hello@TasklApp.app">Contact Us</a>
           </div>
         </div>
       </footer>

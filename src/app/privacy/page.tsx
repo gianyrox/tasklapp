@@ -22,7 +22,7 @@ const PrivacyPage: React.FC = () => {
             <p>
               TasklApp ("we," "our," or "us") respects your privacy and is committed to protecting your personal information. 
               This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our 
-              web application at taskl.app and our Chrome browser extension (collectively, the "Service").
+              web application at TasklApp.app and our Chrome browser extension (collectively, the "Service").
             </p>
             <p>
               By using our Service, you agree to the collection and use of information in accordance with this Privacy Policy.
@@ -188,7 +188,7 @@ const PrivacyPage: React.FC = () => {
               <li>Object to certain data processing</li>
               <li>Restrict data processing</li>
             </ul>
-            <p>To exercise these rights, contact us at <a href="mailto:privacy@taskl.app">privacy@taskl.app</a>.</p>
+            <p>To exercise these rights, contact us at <a href="mailto:privacy@TasklApp.app">privacy@TasklApp.app</a>.</p>
           </section>
 
           <section>
@@ -235,8 +235,8 @@ const PrivacyPage: React.FC = () => {
             <h2>10. Contact Information</h2>
             <p>For privacy-related questions or concerns:</p>
             <div className={styles.contactInfo}>
-              <p><strong>Email:</strong> <a href="mailto:privacy@taskl.app">privacy@taskl.app</a></p>
-              <p><strong>Support:</strong> <a href="mailto:support@taskl.app">support@taskl.app</a></p>
+              <p><strong>Email:</strong> <a href="mailto:privacy@TasklApp.app">privacy@TasklApp.app</a></p>
+              <p><strong>Support:</strong> <a href="mailto:support@TasklApp.app">support@TasklApp.app</a></p>
             </div>
 
             <p>For data subject requests under GDPR or CCPA, please use the subject line "Privacy Rights Request" and include:</p>

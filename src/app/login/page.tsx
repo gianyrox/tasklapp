@@ -471,7 +471,7 @@ const LoginContent: React.FC = () => {
       <div className={styles.card}>
         <div className={styles.header}>
           <Link href="/" className={styles.logo}>
-            Taskl
+            TasklApp
           </Link>
           <h1>Log in to your account</h1>
           {step === 'email' ? (
@@ -586,7 +586,7 @@ const LoginFallback: React.FC = () => {
     <div className={styles.container}>
       <div className={styles.card}>
         <div className={styles.header}>
-          <span className={styles.logo}>Taskl</span>
+          <span className={styles.logo}>TasklApp</span>
           <h1>Log in to your account</h1>
           <p>Loading...</p>
         </div>

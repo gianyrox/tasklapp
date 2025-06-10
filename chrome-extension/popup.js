@@ -1,7 +1,7 @@
 // Initialize Supabase client
 let supabaseClient = null;
 
-// Configuration for Tasklapp backend
+// Configuration for TasklApp backend
 const SUPABASE_URL = 'https://xgfdypewsviakeabgvms.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhnZmR5cGV3c3ZpYWtlYWJndm1zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ3NTMyMTMsImV4cCI6MjA2MDMyOTIxM30.XqJQbIey99IUpqryrikFPCUAftDpPEj4XO3UnPgqDcA';
 
@@ -59,7 +59,7 @@ function showStatusMessage(message, type = 'info') {
     const statusEl = document.getElementById('statusMessage');
     if (!statusEl) return;
     
-    console.log(`[Tasklapp] ${type.toUpperCase()}: ${message}`);
+    console.log(`[TasklApp] ${type.toUpperCase()}: ${message}`);
     
     // Clear existing classes
     statusEl.className = 'status-message';
@@ -128,7 +128,7 @@ function updateUIForAuthState(isAuthenticated, user = null) {
     const taskSection = document.getElementById('taskSection');
     
     if (isAuthenticated && user) {
-        console.log('[Tasklapp] User authenticated, showing task interface');
+        console.log('[TasklApp] User authenticated, showing task interface');
         
         // Hide auth section
         if (authSection) {
@@ -147,7 +147,7 @@ function updateUIForAuthState(isAuthenticated, user = null) {
         showStatusMessage(`Welcome! 👋 Ready to create tasks`, 'success');
         
     } else {
-        console.log('[Tasklapp] User not authenticated, showing auth interface');
+        console.log('[TasklApp] User not authenticated, showing auth interface');
         
         // Show auth section
         if (authSection) {
@@ -323,10 +323,10 @@ async function loadFriends() {
     }
 }
 
-// Submit a task to Tasklapp
+// Submit a task to TasklApp
 async function submitTask() {
     if (!supabaseClient) {
-        showStatusMessage('Not connected to Tasklapp', 'error');
+        showStatusMessage('Not connected to TasklApp', 'error');
         return;
     }
     
@@ -472,7 +472,7 @@ async function checkAuthStatus() {
 
 // Initialize extension when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('[Tasklapp] Extension popup loaded');
+    console.log('[TasklApp] Extension popup loaded');
     
     // Initialize Supabase
     initializeSupabase();
@@ -546,10 +546,10 @@ function initializeUI() {
             }
             
             // Show ready status
-            showStatusMessage('🚀 Tasklapp extension ready!', 'success');
+            showStatusMessage('🚀 TasklApp extension ready!', 'success');
             
         } else {
-            showStatusMessage('❌ Failed to initialize Tasklapp connection', 'error');
+            showStatusMessage('❌ Failed to initialize TasklApp connection', 'error');
         }
     }, 100);
 }
@@ -576,7 +576,7 @@ function initializeFormDefaults() {
 // Handle sign out
 async function handleSignOut() {
     try {
-        console.log('[Tasklapp] Signing out user...');
+        console.log('[TasklApp] Signing out user...');
         
         if (supabaseClient) {
             const { error } = await supabaseClient.auth.signOut();
@@ -602,7 +602,7 @@ async function handleSignOut() {
         
         showStatusMessage('👋 Successfully signed out', 'success');
         
-        console.log('[Tasklapp] User signed out successfully');
+        console.log('[TasklApp] User signed out successfully');
         
     } catch (error) {
         console.error('Unexpected error during sign out:', error);
