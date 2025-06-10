@@ -100,7 +100,7 @@ const HomePage: React.FC = () => {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <div className={styles.logo}>TasklApp</div>
+        <div className={styles.logo}>Tasklapp</div>
       </header>
 
       <main className={styles.main}>

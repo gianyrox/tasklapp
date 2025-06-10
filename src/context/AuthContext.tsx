@@ -27,6 +27,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const loadingUserDataRef = useRef<boolean>(false);
   const initialCheckDoneRef = useRef<boolean>(false);
+  const globalLoadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Global safety mechanism to ensure loading never gets stuck permanently
+  useEffect(() => {
+    if (isLoading) {
+      // Clear any existing timeout
+      if (globalLoadingTimeoutRef.current) {
+        clearTimeout(globalLoadingTimeoutRef.current);
+      }
+      
+      // Set a new timeout
+      globalLoadingTimeoutRef.current = setTimeout(() => {
+        console.warn('Global auth loading timeout - forcing completion');
+        setIsLoading(false);
+        addLog({
+          category: LogCategory.ERROR,
+          action: 'auth_global_loading_timeout',
+          details: { 
+            timestamp: new Date().toISOString(),
+            hasUser: !!user,
+            url: typeof window !== 'undefined' ? window.location.pathname : 'unknown'
+          }
+        });
+      }, 20000); // 20 second global timeout
+    } else {
+      // Clear timeout when not loading
+      if (globalLoadingTimeoutRef.current) {
+        clearTimeout(globalLoadingTimeoutRef.current);
+        globalLoadingTimeoutRef.current = null;
+      }
+    }
+    
+    return () => {
+      if (globalLoadingTimeoutRef.current) {
+        clearTimeout(globalLoadingTimeoutRef.current);
+      }
+    };
+  }, [isLoading, user]);
 
   // Load user data - optimized to prevent redundant fetches
   const loadUserData = async (userId: string) => {
@@ -44,6 +82,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       loadingUserDataRef.current = true;
+      
+      // Ensure loading state is set to false after a timeout as a safety net
+      const safetyTimeout = setTimeout(() => {
+        console.warn('LoadUserData safety timeout triggered - resetting loading state');
+        setIsLoading(false);
+        loadingUserDataRef.current = false;
+      }, 10000); // 10 second safety timeout
       
       // Start with a small timeout to allow batching of potential multiple calls
       await new Promise(resolve => setTimeout(resolve, 50));
@@ -67,6 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log('Using cached user data');
             setUser(JSON.parse(cachedUserData));
             setIsLoading(false);
+            clearTimeout(safetyTimeout);
             loadingUserDataRef.current = false;
             
             // Fetch fresh data in the background if cache is older than 2 minutes
@@ -145,6 +191,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         });
       }
+      
+      // Clear timeout since we completed successfully
+      clearTimeout(safetyTimeout);
     } catch (error) {
       console.error('Error loading user data:', error);
       setError('Failed to get user data');
@@ -326,6 +375,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         } catch (e) {
           console.error('Error clearing session storage:', e);
+        }
+      } else if (event === 'TOKEN_REFRESHED' && session) {
+        // Handle token refresh - ensure loading state is not stuck
+        console.log('Token refreshed - checking loading state');
+        
+        // If we have a session and user data already, just ensure loading is false
+        if (user && !loadingUserDataRef.current) {
+          setIsLoading(false);
+        } else if (session.user.id && !loadingUserDataRef.current) {
+          // If we don't have user data, load it
+          await loadUserData(session.user.id);
+        }
+        
+        await addLog({
+          userId: session.user.id,
+          category: LogCategory.AUTH,
+          action: 'token_refreshed_handled',
+          details: { 
+            hasUser: !!user,
+            wasLoading: loadingUserDataRef.current,
+            timestamp: new Date().toISOString()
+          }
+        });
+      } else if (event === 'USER_UPDATED' && session) {
+        // Handle user updates - refresh user data if needed
+        if (!loadingUserDataRef.current) {
+          await refreshUserDataSilently(session.user.id);
         }
       }
     });
@@ -514,8 +590,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       console.log(`Sign out completed in ${endTime - startTime}ms`);
       
-      // Redirect to homepage
-      if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+      // Redirect to root page
+      if (typeof window !== 'undefined') {
         router.push('/');
       }
     } catch (error) {

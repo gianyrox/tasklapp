@@ -2,7 +2,7 @@
 
 import React, { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import buttonStyles from '../ui/Button.module.css';
 import styles from './AppLayout.module.css';
@@ -13,6 +13,7 @@ interface AppLayoutProps {
 
 export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, signOut } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -82,7 +83,6 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       console.log('Starting sign out process from UI');
       setIsSigningOut(true);
       await signOut();
-      // No need to update state as we'll be redirected
     } catch (error) {
       console.error('Error during sign out:', error);
       setIsSigningOut(false);

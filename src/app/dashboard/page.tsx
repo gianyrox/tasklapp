@@ -145,6 +145,31 @@ const DashboardPage: React.FC = () => {
     authStateRef.current = { user, authLoading };
   }, [user, authLoading]);
 
+  // Add a separate effect to handle loading state recovery
+  useEffect(() => {
+    // If we have a user but are still loading and haven't fetched data, force completion
+    if (user && (authLoading || isLoading) && !dataFetchedRef.current) {
+      const recoveryTimeout = setTimeout(() => {
+        console.warn('Dashboard recovery timeout - user exists but still loading');
+        setIsLoading(false);
+        // Try to fetch data one more time
+        fetchDashboardData();
+      }, 5000); // 5 second recovery timeout
+      
+      return () => clearTimeout(recoveryTimeout);
+    }
+    
+    // If we have a user and data has been fetched, ensure loading is false
+    if (user && dataFetchedRef.current && (authLoading || isLoading)) {
+      const clearLoadingTimeout = setTimeout(() => {
+        console.log('Clearing loading state - user and data both available');
+        setIsLoading(false);
+      }, 1000);
+      
+      return () => clearTimeout(clearLoadingTimeout);
+    }
+  }, [user, authLoading, isLoading]);
+
   // Fetch data when component mounts or user changes
   useEffect(() => {
     const logAuthState = async () => {
@@ -223,11 +248,45 @@ const DashboardPage: React.FC = () => {
           
           router.push('/login?redirect=/dashboard');
         }
+      } else if (event === 'TOKEN_REFRESHED') {
+        // Handle token refresh without re-fetching data
+        console.log('Token refreshed in dashboard - maintaining current state');
+        await addLog({
+          userId: session?.user?.id,
+          category: LogCategory.AUTH,
+          action: 'dashboard_token_refreshed',
+          details: { 
+            url: window.location.pathname,
+            hasData: dataFetchedRef.current,
+            timestamp: new Date().toISOString()
+          }
+        });
       }
     });
     
+    // Add a safety timeout to prevent infinite loading
+    const safetyTimeout = setTimeout(() => {
+      if (authLoading || isLoading) {
+        console.warn('Dashboard loading timeout - forcing completion');
+        setIsLoading(false);
+        addLog({
+          userId: user?.id,
+          category: LogCategory.ERROR,
+          action: 'dashboard_loading_timeout',
+          details: { 
+            authLoading,
+            isLoading,
+            hasUser: !!user,
+            dataFetched: dataFetchedRef.current,
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
+    }, 15000); // 15 second safety timeout
+    
     return () => {
       subscription.unsubscribe();
+      clearTimeout(safetyTimeout);
       dataFetchedRef.current = false;
     };
   }, [user, authLoading, router]);
@@ -237,10 +296,18 @@ const DashboardPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
 
+    // Set a timeout to prevent this function from running forever
+    const dataFetchTimeout = setTimeout(() => {
+      console.error('Dashboard data fetch timeout - forcing completion');
+      setIsLoading(false);
+      setError('Loading took longer than expected. Please refresh the page.');
+    }, 30000); // 30 second timeout for data fetching
+
     try {
       if (!user?.id) {
         console.log('No user found, aborting dashboard data fetch');
         setIsLoading(false);
+        clearTimeout(dataFetchTimeout);
         return;
       }
 
@@ -283,9 +350,13 @@ const DashboardPage: React.FC = () => {
       setPublicTasks(userPublicTasks);
       
       console.log('Dashboard data fetch complete');
+      
+      // Clear the timeout since we completed successfully
+      clearTimeout(dataFetchTimeout);
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
       setError('Failed to load dashboard data. Please try again later.');
+      clearTimeout(dataFetchTimeout);
     } finally {
       setIsLoading(false);
     }
@@ -371,167 +442,172 @@ const DashboardPage: React.FC = () => {
   // Combined loading state
   const isPageLoading = isLoading || authLoading;
 
-  // Display loading state
-  if (isPageLoading) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingSpinner}></div>
-        <p>Loading your dashboard...</p>
-      </div>
-    );
-  }
-
-  // Display error state
-  if (error) {
-    return (
-      <div className={styles.errorContainer}>
-        <p className={styles.errorMessage}>{error}</p>
-        <Button onClick={fetchDashboardData}>Retry</Button>
-          </div>
-    );
-  }
-
   return (
     <ProtectedRoute>
       <AppLayout>
-        <div className={styles.dashboard}>
-          <div className={styles.header}>
-            <h1>Dashboard</h1>
-            <div className={styles.actions}>
+        {/* Display loading state within the layout */}
+        {isPageLoading ? (
+          <div className={styles.dashboard}>
+            <div className={styles.header}>
+              <h1>Dashboard</h1>
+            </div>
+            <div className={styles.loadingContainer}>
+              <div className={styles.loadingSpinner}></div>
+              <p>Loading your dashboard...</p>
+            </div>
+          </div>
+        ) : error ? (
+          /* Display error state within the layout */
+          <div className={styles.dashboard}>
+            <div className={styles.header}>
+              <h1>Dashboard</h1>
+            </div>
+            <div className={styles.errorContainer}>
+              <p className={styles.errorMessage}>{error}</p>
+              <Button onClick={fetchDashboardData}>Retry</Button>
+            </div>
+          </div>
+        ) : (
+          /* Main dashboard content */
+          <div className={styles.dashboard}>
+            <div className={styles.header}>
+              <h1>Dashboard</h1>
+              <div className={styles.actions}>
+                {activeTab === 'personal' ? (
+                  <>
+                    <Button onClick={handleAddTask}>Add Task</Button>
+                    <Button onClick={handleFindFriends}>Find Friends</Button>
+                  </>
+                ) : (
+                  <>
+                    <Button onClick={() => setShowCreatePublicTaskModal(true)}>Create Public Task</Button>
+                    <Button onClick={handleViewAllPublicTasks}>View All Public Tasks</Button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Tab Navigation */}
+            <div className={styles.tabsContainer}>
+              <div className={styles.tabs}>
+                <button
+                  className={`${styles.tab} ${activeTab === 'personal' ? styles.activeTab : ''}`}
+                  onClick={() => setActiveTab('personal')}
+                >
+                  Personal Tasks
+                </button>
+                <button
+                  className={`${styles.tab} ${activeTab === 'public' ? styles.activeTab : ''}`}
+                  onClick={() => setActiveTab('public')}
+                >
+                  Public Tasks
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.content}>
               {activeTab === 'personal' ? (
                 <>
-                  <Button onClick={handleAddTask}>Add Task</Button>
-                  <Button onClick={handleFindFriends}>Find Friends</Button>
+                  <div className={styles.mainContent}>
+                    <Board title="My Tasks">
+                      <TaskList 
+                        tasks={myTasks}
+                        onStatusChange={handleStatusChange} 
+                        onSubmissionTypeChange={handleSubmissionTypeChange}
+                        onSubmissionContentChange={handleSubmissionContentChange}
+                      />
+                    </Board>
+                  </div>
+
+                  <div className={styles.sidebar}>
+                    <Board title="Leaderboard" className={styles.leaderboard}>
+                      {leaderboard.map((entry, index) => (
+                        <div key={entry.id} className={styles.leaderboardEntry}>
+                          <span className={styles.rank}>#{index + 1}</span>
+                          <span className={styles.name}>{entry.name}</span>
+                          <span className={styles.score}>{entry.tasksCompleted} tasks</span>
+                        </div>
+                      ))}
+                    </Board>
+
+                    <Board title="Friends" className={styles.friends}>
+                      {friends.map(friendship => {
+                        const friend = friendship.friend;
+                        if (!friend) return null;
+                        
+                        return (
+                          <div key={friend.id} className={styles.friendEntry}>
+                            <div className={styles.friendInfo}>
+                              <span className={styles.name}>{friend.name}</span>
+                              <Button 
+                                size="xs"
+                                onClick={() => handleAddTaskToFriend(friend.id, friend.name)}
+                              >
+                                Assign Task
+                              </Button>
+                            </div>
+                            {friendTasks[friend.id] && (
+                              <div className={styles.friendTasks}>
+                                <TaskList 
+                                  tasks={friendTasks[friend.id]}
+                                  onStatusChange={handleStatusChange}
+                                  onSubmissionTypeChange={handleSubmissionTypeChange}
+                                  onSubmissionContentChange={handleSubmissionContentChange}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </Board>
+                  </div>
                 </>
               ) : (
-                <>
-                  <Button onClick={() => setShowCreatePublicTaskModal(true)}>Create Public Task</Button>
-                  <Button onClick={handleViewAllPublicTasks}>View All Public Tasks</Button>
-                </>
+                <div className={styles.publicTasksContent}>
+                  <Board title="My Public Tasks">
+                    {publicTasks.length > 0 ? (
+                      <div className={styles.publicTasksList}>
+                        {publicTasks.map(task => (
+                          <div key={task.id} className={styles.publicTaskCard}>
+                            <h3>{task.title}</h3>
+                            <p>{task.description}</p>
+                            <div className={styles.taskMeta}>
+                              <span className={styles.payment}>
+                                {task.paymentCurrency} {task.paymentAmount}
+                              </span>
+                              <span className={styles.locationType}>
+                                {task.locationType}
+                              </span>
+                              <span className={styles.applications}>
+                                {task.applicationCount} applications
+                              </span>
+                            </div>
+                            {task.tags && task.tags.length > 0 && (
+                              <div className={styles.tags}>
+                                {task.tags.map(tag => (
+                                  <span key={tag.id} className={styles.tag}>
+                                    {tag.tagName}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className={styles.emptyState}>
+                        <p>You haven't created any public tasks yet.</p>
+                        <Button onClick={() => setShowCreatePublicTaskModal(true)}>
+                          Create Your First Public Task
+                        </Button>
+                      </div>
+                    )}
+                  </Board>
+                </div>
               )}
             </div>
           </div>
-
-          {/* Tab Navigation */}
-          <div className={styles.tabsContainer}>
-            <div className={styles.tabs}>
-              <button
-                className={`${styles.tab} ${activeTab === 'personal' ? styles.activeTab : ''}`}
-                onClick={() => setActiveTab('personal')}
-              >
-                Personal Tasks
-              </button>
-              <button
-                className={`${styles.tab} ${activeTab === 'public' ? styles.activeTab : ''}`}
-                onClick={() => setActiveTab('public')}
-              >
-                Public Tasks
-              </button>
-            </div>
-          </div>
-
-          <div className={styles.content}>
-            {activeTab === 'personal' ? (
-              <>
-                <div className={styles.mainContent}>
-                  <Board title="My Tasks">
-                    <TaskList 
-                      tasks={myTasks}
-                      onStatusChange={handleStatusChange} 
-                      onSubmissionTypeChange={handleSubmissionTypeChange}
-                      onSubmissionContentChange={handleSubmissionContentChange}
-                    />
-                  </Board>
-                </div>
-
-                <div className={styles.sidebar}>
-                  <Board title="Leaderboard" className={styles.leaderboard}>
-                    {leaderboard.map((entry, index) => (
-                      <div key={entry.id} className={styles.leaderboardEntry}>
-                        <span className={styles.rank}>#{index + 1}</span>
-                        <span className={styles.name}>{entry.name}</span>
-                        <span className={styles.score}>{entry.tasksCompleted} tasks</span>
-                      </div>
-                    ))}
-                  </Board>
-
-                  <Board title="Friends" className={styles.friends}>
-                    {friends.map(friendship => {
-                      const friend = friendship.friend;
-                      if (!friend) return null;
-                      
-                      return (
-                        <div key={friend.id} className={styles.friendEntry}>
-                          <div className={styles.friendInfo}>
-                            <span className={styles.name}>{friend.name}</span>
-                            <Button 
-                              size="xs"
-                              onClick={() => handleAddTaskToFriend(friend.id, friend.name)}
-                            >
-                              Assign Task
-                            </Button>
-                          </div>
-                          {friendTasks[friend.id] && (
-                            <div className={styles.friendTasks}>
-                              <TaskList 
-                                tasks={friendTasks[friend.id]}
-                                onStatusChange={handleStatusChange}
-                                onSubmissionTypeChange={handleSubmissionTypeChange}
-                                onSubmissionContentChange={handleSubmissionContentChange}
-                              />
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </Board>
-                </div>
-              </>
-            ) : (
-              <div className={styles.publicTasksContent}>
-                <Board title="My Public Tasks">
-                  {publicTasks.length > 0 ? (
-                    <div className={styles.publicTasksList}>
-                      {publicTasks.map(task => (
-                        <div key={task.id} className={styles.publicTaskCard}>
-                          <h3>{task.title}</h3>
-                          <p>{task.description}</p>
-                          <div className={styles.taskMeta}>
-                            <span className={styles.payment}>
-                              {task.paymentCurrency} {task.paymentAmount}
-                            </span>
-                            <span className={styles.locationType}>
-                              {task.locationType}
-                            </span>
-                            <span className={styles.applications}>
-                              {task.applicationCount} applications
-                            </span>
-                          </div>
-                          {task.tags && task.tags.length > 0 && (
-                            <div className={styles.tags}>
-                              {task.tags.map(tag => (
-                                <span key={tag.id} className={styles.tag}>
-                                  {tag.tagName}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className={styles.emptyState}>
-                      <p>You haven't created any public tasks yet.</p>
-                      <Button onClick={() => setShowCreatePublicTaskModal(true)}>
-                        Create Your First Public Task
-                      </Button>
-                    </div>
-                  )}
-                </Board>
-              </div>
-            )}
-          </div>
-        </div>
+        )}
 
         {showCreateTaskModal && (
           <CreateTaskModal
@@ -553,4 +629,4 @@ const DashboardPage: React.FC = () => {
   );
 };
 
-export default DashboardPage; 
+export default DashboardPage;
