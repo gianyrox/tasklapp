@@ -339,7 +339,7 @@
 
 /* Combined mobile menu */
 .mobileMenuContainer {
-  display: none;
+  display: block; /* Show by default for non-logged-in users */
   position: relative;
 }
 
@@ -533,5 +533,12 @@
     top: 56px; /* Match header height */
     max-height: calc(100vh - 56px);
     border-top: none;
+  }
+}
+
+/* Desktop: Hide mobile container when user menu is present */
+@media (min-width: 769px) {
+  .userMenu + .mobileMenuContainer {
+    display: none;
   }
 } 

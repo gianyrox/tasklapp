@@ -7,6 +7,7 @@ import styles from "./Home.module.css";
 import Button from "../components/ui/Button";
 import { supabase } from "../lib/api/supabase";
 import RaceTrackVisualization from "./RaceTrack";
+import AuthProfile from "../components/layout/AuthProfile";
 
 const HomePage: React.FC = () => {
   const router = useRouter();
@@ -101,6 +102,7 @@ const HomePage: React.FC = () => {
     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.logo}>Tasklapp</div>
+        <AuthProfile />
       </header>
 
       <main className={styles.main}>
