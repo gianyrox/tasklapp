@@ -837,6 +837,7 @@ export const createTask = async (task: Omit<Task, 'id' | 'createdAt'>): Promise<
         // Call the edge function directly using supabase.functions.invoke
         const { data: notificationResult, error: notificationError } = await supabase.functions.invoke('notify-task-assignment', {
           body: {
+            type: 'assignment',
             assigneeEmail: assigneeResult.data.email,
             assigneeName: assigneeResult.data.name,
             assignerName: assignerResult.data.name,

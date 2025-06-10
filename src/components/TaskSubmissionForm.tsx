@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Task, SubmissionType, TaskStatus } from '../types';
+import { validateFileSize } from '../lib/utils/fileValidation';
 import './TaskSubmissionForm.css';
 
 interface TaskSubmissionFormProps {
@@ -74,7 +75,16 @@ const TaskSubmissionForm: React.FC<TaskSubmissionFormProps> = ({
   // Handle file selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0]);
+      const file = e.target.files[0];
+      
+      const validation = validateFileSize(file);
+      if (!validation.isValid) {
+        setError(validation.error!);
+        return;
+      }
+      
+      setSelectedFile(file);
+      setError(null);
     }
   };
 
