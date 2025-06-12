@@ -13,6 +13,8 @@ import { getPublicTasks } from '../../lib/api/publicTasks';
 import styles from './PublicTasks.module.css';
 import Button from '../../components/ui/Button';
 import AppLayout from '../../components/layout/AppLayout';
+import { useAuth } from '../../context/AuthContext';
+
 
 function formatCurrency(amount: number, currency: string) {
   return new Intl.NumberFormat('en-US', {
@@ -60,6 +62,7 @@ function formatLocationType(type: TasklAppocationType) {
 
 const PublicTasksPage: React.FC = () => {
   const router = useRouter();
+  const { user } = useAuth();
   const [tasks, setTasks] = useState<PublicTask[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -136,17 +139,19 @@ const PublicTasksPage: React.FC = () => {
             <p className={styles.subtitle}>
               Discover tasks, earn money, and build your reputation
             </p>
-            <div className={styles.headerActions}>
-              <Button onClick={handleCreateAccount}>
-                Join TasklApp.app
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => router.push('/login')}
-              >
-                Sign In
-              </Button>
-            </div>
+            {!user && (
+              <div className={styles.headerActions}>
+                <Button onClick={handleCreateAccount}>
+                  Join TasklApp.app
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => router.push('/login')}
+                >
+                  Sign In
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -398,4 +403,4 @@ const PublicTasksPage: React.FC = () => {
   );
 };
 
-export default PublicTasksPage; 
+export default PublicTasksPage;

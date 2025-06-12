@@ -23,193 +23,71 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isAuthChecked, setIsAuthChecked] = useState(false);
   const router = useRouter();
   const loadingUserDataRef = useRef<boolean>(false);
-  const initialCheckDoneRef = useRef<boolean>(false);
-  const globalLoadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Global safety mechanism to ensure loading never gets stuck permanently
+  // Simplified and unified authentication logic
   useEffect(() => {
-    if (isLoading) {
-      // Clear any existing timeout
-      if (globalLoadingTimeoutRef.current) {
-        clearTimeout(globalLoadingTimeoutRef.current);
-      }
-      
-      // Set a new timeout
-      globalLoadingTimeoutRef.current = setTimeout(() => {
-        console.warn('Global auth loading timeout - forcing completion');
-        setIsLoading(false);
-        addLog({
-          category: LogCategory.ERROR,
-          action: 'auth_global_loading_timeout',
-          details: { 
-            timestamp: new Date().toISOString(),
-            hasUser: !!user,
-            url: typeof window !== 'undefined' ? window.location.pathname : 'unknown'
-          }
-        });
-      }, 20000); // 20 second global timeout
-    } else {
-      // Clear timeout when not loading
-      if (globalLoadingTimeoutRef.current) {
-        clearTimeout(globalLoadingTimeoutRef.current);
-        globalLoadingTimeoutRef.current = null;
-      }
-    }
-    
-    return () => {
-      if (globalLoadingTimeoutRef.current) {
-        clearTimeout(globalLoadingTimeoutRef.current);
-      }
-    };
-  }, [isLoading, user]);
+    let isMounted = true;
 
-  // Load user data - optimized to prevent redundant fetches
-  const loadUserData = async (userId: string) => {
-    try {
-      // Use debounce to avoid multiple rapid fetches
-      if (loadingUserDataRef.current) {
-        console.log('User data already being loaded, skipping duplicate request');
-        await addLog({
-          userId,
-          category: LogCategory.DATA,
-          action: 'load_user_data_skipped',
-          details: { reason: 'already_loading' }
-        });
-        return;
-      }
-      
-      loadingUserDataRef.current = true;
-      
-      // Ensure loading state is set to false after a timeout as a safety net
-      const safetyTimeout = setTimeout(() => {
-        console.warn('LoadUserData safety timeout triggered - resetting loading state');
-        setIsLoading(false);
-        loadingUserDataRef.current = false;
-      }, 10000); // 10 second safety timeout
-      
-      // Start with a small timeout to allow batching of potential multiple calls
-      await new Promise(resolve => setTimeout(resolve, 50));
-      
-      await addLog({
-        userId,
-        category: LogCategory.DATA,
-        action: 'load_user_data_started',
-        details: { timestamp: new Date().toISOString() }
-      });
-      
-      // Check for cached data first
-      try {
-        const cachedUserData = sessionStorage.getItem(`user_${userId}`);
-        const cachedTime = sessionStorage.getItem(`user_${userId}_time`);
-        
-        // Use cached data if it's less than 5 minutes old
-        if (cachedUserData && cachedTime) {
-          const cacheAge = Date.now() - parseInt(cachedTime);
-          if (cacheAge < 5 * 60 * 1000) { // 5 minutes in milliseconds
-            console.log('Using cached user data');
-            setUser(JSON.parse(cachedUserData));
-            setIsLoading(false);
-            clearTimeout(safetyTimeout);
-            loadingUserDataRef.current = false;
-            
-            // Fetch fresh data in the background if cache is older than 2 minutes
-            if (cacheAge > 2 * 60 * 1000) {
-              setTimeout(() => {
-                refreshUserDataSilently(userId);
-              }, 100);
-            }
-            
-            await addLog({
-              userId,
-              category: LogCategory.DATA,
-              action: 'load_user_data_from_cache',
-              details: { 
-                cacheAge,
-                cacheAgeMinutes: Math.round(cacheAge / 60000),
-                timestamp: new Date().toISOString()
-              }
-            });
-            
-            return;
-          }
-        }
-      } catch (e) {
-        // If there's an error with sessionStorage, continue to fetch fresh data
-        console.error('Error accessing session storage:', e);
-        
-        await addLog({
-          userId,
-          category: LogCategory.ERROR,
-          action: 'session_storage_error',
-          details: { error: String(e) }
-        });
-      }
-      
-      console.log('Fetching fresh user data');
-      const userData = await getCurrentUser();
-      
-      if (userData) {
-        // Cache the user data with timestamp
+    // The onAuthStateChange listener is the single source of truth.
+    // It fires once on registration with the initial session state, and then
+    // on every subsequent auth event.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!isMounted) return;
+
+        console.log(`AuthContext event: ${event}`);
+
         try {
-          sessionStorage.setItem(`user_${userId}`, JSON.stringify(userData));
-          sessionStorage.setItem(`user_${userId}_time`, Date.now().toString());
-        } catch (e) {
-          console.error('Error caching user data:', e);
-          
-          await addLog({
-            userId,
-            category: LogCategory.ERROR,
-            action: 'user_data_cache_error',
-            details: { error: String(e) }
-          });
+          setIsLoading(true);
+
+          if (session) {
+            // User is signed in or token has been refreshed
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+              // Load user data only if we don't have a user object yet,
+              // or if the user ID has changed.
+              if (!user || user.id !== session.user.id) {
+                await loadUserData(session.user.id);
+              }
+            } else if (event === 'USER_UPDATED' && session.user) {
+              await refreshUserDataSilently(session.user.id);
+            }
+          } else if (event === 'SIGNED_OUT') {
+            setUser(null);
+          }
+        } catch (err) {
+          console.error(`Error in AuthContext onAuthStateChange: ${err}`);
+          setError('An error occurred during authentication.');
+          setUser(null);
+        } finally {
+          if (isMounted) {
+            setIsLoading(false);
+          }
         }
-        
-        setUser(userData);
-        
-        await addLog({
-          userId,
-          category: LogCategory.DATA,
-          action: 'load_user_data_success',
-          details: { 
-            hasUserData: true,
-            timestamp: new Date().toISOString()
-          }
-        });
-      } else {
-        setUser(null);
-        
-        await addLog({
-          userId,
-          category: LogCategory.DATA,
-          action: 'load_user_data_empty',
-          details: { 
-            hasUserData: false,
-            timestamp: new Date().toISOString()
-          }
-        });
       }
-      
-      // Clear timeout since we completed successfully
-      clearTimeout(safetyTimeout);
+    );
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [user]); // Re-run when user object changes to handle updates correctly
+
+  // Load user data - simplified to be more robust
+  const loadUserData = async (userId: string) => {
+    if (loadingUserDataRef.current) return;
+
+    loadingUserDataRef.current = true;
+    try {
+      console.log('Fetching fresh user data in AuthContext');
+      const userData = await getCurrentUser();
+      setUser(userData);
     } catch (error) {
       console.error('Error loading user data:', error);
       setError('Failed to get user data');
       setUser(null);
-      
-      await addLog({
-        userId,
-        category: LogCategory.ERROR,
-        action: 'load_user_data_failed',
-        details: { 
-          error: String(error),
-          timestamp: new Date().toISOString()
-        }
-      });
     } finally {
-      setIsLoading(false);
       loadingUserDataRef.current = false;
     }
   };
@@ -221,14 +99,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const userData = await getCurrentUser();
       
       if (userData) {
-        // Update cache
-        try {
-          sessionStorage.setItem(`user_${userId}`, JSON.stringify(userData));
-          sessionStorage.setItem(`user_${userId}_time`, Date.now().toString());
-        } catch (e) {
-          console.error('Error updating user data cache:', e);
-        }
-        
         // Update state without changing loading state
         setUser(userData);
         
@@ -249,167 +119,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
     }
   };
-
-  useEffect(() => {
-    const checkUser = async () => {
-      if (initialCheckDoneRef.current) return;
-      
-      setIsLoading(true);
-      try {
-        // Check if user is authenticated
-        await addLog({
-          category: LogCategory.AUTH,
-          action: 'auth_check_started',
-          details: { 
-            url: window.location.pathname,
-            timestamp: new Date().toISOString()
-          }
-        });
-        
-        // Use optimized getSession
-        const { data: { session } } = await getSession();
-        
-        if (session) {
-          setIsAuthChecked(true);
-          
-          await addLog({
-            userId: session.user.id,
-            category: LogCategory.AUTH,
-            action: 'session_detected',
-            details: { 
-              provider: session.user.app_metadata?.provider,
-              expires: session.expires_at ? new Date(session.expires_at * 1000).toISOString() : null,
-              url: window.location.pathname,
-              hasCookies: document.cookie.includes('supabase-auth'),
-              timestamp: new Date().toISOString()
-            }
-          });
-          
-          await loadUserData(session.user.id);
-        } else {
-          setUser(null);
-          setIsLoading(false);
-          
-          await addLog({
-            category: LogCategory.AUTH,
-            action: 'no_session_detected',
-            details: { 
-              url: window.location.pathname,
-              hasCookies: document.cookie.includes('supabase-auth'),
-              timestamp: new Date().toISOString()
-            }
-          });
-        }
-      } catch (error) {
-        console.error('Error checking user:', error);
-        setError('Failed to get user data');
-        setUser(null);
-        setIsLoading(false);
-        
-        await addLog({
-          category: LogCategory.ERROR,
-          action: 'auth_check_failed',
-          details: { 
-            error: String(error),
-            url: window.location.pathname,
-            timestamp: new Date().toISOString()
-          }
-        });
-      } finally {
-        initialCheckDoneRef.current = true;
-      }
-    };
-
-    // Check user on mount
-    checkUser();
-
-    // Listen for auth changes with optimizations
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // Only log events that actually change the auth state
-      const importantEvents = ['SIGNED_IN', 'SIGNED_OUT', 'USER_UPDATED', 'TOKEN_REFRESHED'];
-      
-      if (importantEvents.includes(event)) {
-        await addLog({
-          userId: session?.user?.id,
-          category: LogCategory.AUTH,
-          action: 'auth_state_change',
-          details: { 
-            event,
-            provider: session?.user?.app_metadata?.provider,
-            url: window.location.pathname,
-            timestamp: new Date().toISOString()
-          }
-        });
-      }
-      
-      // Update session cache in supabase module
-      if (session) {
-        try {
-          // Refresh the session cache for future API calls
-          if (typeof window !== 'undefined') {
-            // Update session storage to ensure cache coherence
-            sessionStorage.setItem('last_auth_event', JSON.stringify({
-              event,
-              timestamp: Date.now()
-            }));
-          }
-        } catch (e) {
-          console.error('Error updating session cache:', e);
-        }
-      }
-      
-      if (event === 'SIGNED_IN' && session) {
-        await loadUserData(session.user.id);
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        setIsLoading(false);
-        
-        // Clear session storage on sign out
-        try {
-          if (typeof window !== 'undefined') {
-            Object.keys(sessionStorage).forEach(key => {
-              if (key.startsWith('user_')) {
-                sessionStorage.removeItem(key);
-              }
-            });
-          }
-        } catch (e) {
-          console.error('Error clearing session storage:', e);
-        }
-      } else if (event === 'TOKEN_REFRESHED' && session) {
-        // Handle token refresh - ensure loading state is not stuck
-        console.log('Token refreshed - checking loading state');
-        
-        // If we have a session and user data already, just ensure loading is false
-        if (user && !loadingUserDataRef.current) {
-          setIsLoading(false);
-        } else if (session.user.id && !loadingUserDataRef.current) {
-          // If we don't have user data, load it
-          await loadUserData(session.user.id);
-        }
-        
-        await addLog({
-          userId: session.user.id,
-          category: LogCategory.AUTH,
-          action: 'token_refreshed_handled',
-          details: { 
-            hasUser: !!user,
-            wasLoading: loadingUserDataRef.current,
-            timestamp: new Date().toISOString()
-          }
-        });
-      } else if (event === 'USER_UPDATED' && session) {
-        // Handle user updates - refresh user data if needed
-        if (!loadingUserDataRef.current) {
-          await refreshUserDataSilently(session.user.id);
-        }
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
 
   const signIn = async (email: string) => {
     try {

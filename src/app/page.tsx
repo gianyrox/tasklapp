@@ -17,86 +17,95 @@ const HomePage: React.FC = () => {
   const [processingAuth, setProcessingAuth] = useState(false);
 
   useEffect(() => {
-    // Process auth token from URL hash immediately if present
-    const processAuthToken = async () => {
-      if (typeof window !== "undefined" && window.location.hash) {
-        try {
-          const hashParams = new URLSearchParams(
-            window.location.hash.substring(1)
-          );
+    // This effect consolidates all authentication logic to prevent race conditions
+    // and ensure loading states are handled correctly.
 
-          if (hashParams.get("access_token")) {
-            setProcessingAuth(true);
-            const accessToken = hashParams.get("access_token");
-            const refreshToken = hashParams.get("refresh_token");
+    let isMounted = true;
 
-            if (accessToken && refreshToken) {
-              console.log("Setting session from URL hash tokens");
-              const { data, error } = await supabase.auth.setSession({
-                access_token: accessToken,
-                refresh_token: refreshToken,
-              });
+    // 1. Unified Authentication Check
+    const checkAuthentication = async () => {
+      if (!isMounted) return;
+      
+      setIsLoading(true);
+      setProcessingAuth(true);
 
-              if (error) {
-                console.error("Error setting session:", error);
-              } else if (data?.session) {
-                console.log("Successfully set session");
-                // Clear the URL hash to avoid sharing tokens
-                window.history.replaceState(
-                  {},
-                  document.title,
-                  window.location.pathname
-                );
-                // Update state before redirecting
-                setIsLoggedIn(true);
-                setUserId(data.session.user.id);
-                // No longer auto-redirecting to dashboard
-              }
+      try {
+        // First, attempt to process auth tokens from the URL hash
+        // This is for handling redirects from OAuth or magic links
+        const hash = window.location.hash;
+        if (hash) {
+          const hashParams = new URLSearchParams(hash.substring(1));
+          const accessToken = hashParams.get("access_token");
+          const refreshToken = hashParams.get("refresh_token");
+
+          if (accessToken && refreshToken) {
+            console.log("Setting session from URL hash tokens");
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+
+            if (error) {
+              console.error("Error setting session from URL:", error);
+            } else if (data.session) {
+              console.log("Successfully set session from URL");
+              // The onAuthStateChange listener below will handle the state update
             }
-            setProcessingAuth(false);
-            return true; // Token processed successfully
+            
+            // Clean the URL
+            window.history.replaceState({}, document.title, window.location.pathname);
           }
-        } catch (e) {
-          console.error("Error processing auth token:", e);
+        }
+        
+        // 2. Initial Session Check (if no hash was processed)
+        // This is for returning users who already have a session cookie.
+        // We let the onAuthStateChange listener handle the result of this.
+        const { data: { session } } = await supabase.auth.getSession();
+        if (isMounted) {
+          setIsLoggedIn(!!session);
+          setUserId(session?.user?.id || null);
+        }
+
+      } catch (error) {
+        console.error("Error during initial auth check:", error);
+        if (isMounted) {
+          setIsLoggedIn(false);
+          setUserId(null);
+        }
+      } finally {
+        if (isMounted) {
+          setProcessingAuth(false);
+          setIsLoading(false);
+        }
+      }
+    };
+
+    // 3. Auth State Change Listener
+    // This is the single source of truth for auth state changes.
+    // It fires on mount with the initial session AND on any subsequent auth event.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (isMounted) {
+          console.log("Auth state changed:", event, session);
+          setIsLoggedIn(!!session);
+          setUserId(session?.user.id || null);
+          
+          // Ensure loading is always false after the listener has processed an event.
+          setIsLoading(false);
           setProcessingAuth(false);
         }
       }
-      return false; // No token or failed to process
-    };
-
-    // Set up auth listener for real-time updates
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log("Auth state changed:", event);
-        setIsLoggedIn(!!session);
-        setUserId(session?.user.id || null);
-        setIsLoading(false);
-
-        // Don't auto-redirect to dashboard on sign in
-      }
     );
 
-    // Initial check for session
-    const checkAuth = async () => {
-      setIsLoading(true);
-      const tokenProcessed = await processAuthToken();
-      if (!tokenProcessed) {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        setIsLoggedIn(!!session);
-        setUserId(session?.user.id || null);
-        setIsLoading(false);
-      }
-    };
+    // Run the initial check
+    checkAuthentication();
 
-    checkAuth();
-
-    // Cleanup subscription
+    // 4. Cleanup Logic
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
-  }, [router]);
+  }, []);
 
   return (
     <div className={styles.container}>
