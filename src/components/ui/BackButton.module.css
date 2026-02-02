@@ -1,0 +1,31 @@
+.backButton {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: #F3F4F6;
+  color: #4B5563;
+  border: 1px solid #E5E7EB;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  align-self: flex-start;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.backButton:hover {
+  background-color: #E5E7EB;
+  transform: translateX(-2px);
+}
+
+.backButton:active {
+  background-color: #d5d5d5;
+  transform: translateX(0);
+}
+
+.backButton:focus {
+  outline: 2px solid #4a90e2;
+  outline-offset: 2px;
+}

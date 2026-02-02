@@ -1,0 +1,632 @@
+'use client';
+
+import React, { useState, useEffect, useRef } from 'react';
+import AppLayout from '../../components/layout/AppLayout';
+import TaskList from '../../components/task/TaskList';
+import { 
+  TaskStatus, 
+  FriendshipStatus, 
+  SubmissionType, 
+  TaskPriority,
+  PublicTask
+} from '../../types';
+import type { 
+  Friendship, 
+  Task, 
+  LeaderboardEntry, 
+  User
+} from '../../types';
+import styles from './Dashboard.module.css';
+import ProtectedRoute from '../../components/layout/ProtectedRoute';
+import { useAuth } from '../../context/AuthContext';
+import { addLog } from '../../lib/logging';
+import { LogCategory } from '../../../confy/types';
+import { 
+  supabase,
+  getFriendships, 
+  getTasksFromFriends, 
+  getSelfAssignedTasks,
+  getTasksAssignedToOthers,
+  getTasksByFriend, 
+  getLeaderboard,
+  updateTaskStatus, 
+  updateTaskSubmissionType,
+  updateTaskSubmissionContent,
+  getUserTasks
+} from '../../lib/api/supabase';
+import { getUserPublicTasks } from '../../lib/api/publicTasks';
+import Board from '../../components/ui/Board';
+import Button, { ButtonSize } from '../../components/ui/Button';
+import CreateTaskModal from '../../components/task/CreateTaskModal';
+import CreatePublicTaskModal from '../../components/task/CreatePublicTaskModal';
+import { useRouter } from 'next/navigation';
+// Helper function to transform task data from Supabase format to our app format
+const transformTaskFromDb = (task: any): Task => {
+  return {
+    id: task.id,
+    title: task.title,
+    description: task.description,
+    createdAt: new Date(task.created_at),
+    dueDate: new Date(task.due_date),
+    assignerId: task.assigner_id,
+    assigneeId: task.assignee_id,
+    status: task.status as TaskStatus,
+    priority: task.priority as TaskPriority,
+    completedAt: task.completed_at ? new Date(task.completed_at) : undefined,
+    estimatedTimeMinutes: task.estimated_time_minutes,
+    actualTimeMinutes: task.actual_time_minutes,
+    submissionType: task.submission_type as SubmissionType,
+    submissionInstructions: task.submission_instructions,
+    startedAt: task.started_at ? new Date(task.started_at) : undefined,
+    submissionDate: task.submission_date ? new Date(task.submission_date) : undefined,
+    submissionContent: task.submission_content,
+    qualityRating: task.quality_rating,
+    timelinessRating: task.timeliness_rating,
+    effortRating: task.effort_rating,
+    accuracyRating: task.accuracy_rating,
+    feedback: task.feedback,
+    attachments: task.attachments ? task.attachments.map((attachment: any) => ({
+      id: attachment.id,
+      taskId: attachment.task_id,
+      fileUrl: attachment.file_url,
+      fileType: attachment.file_type,
+      fileName: attachment.file_name,
+      createdAt: new Date(attachment.created_at)
+    })) : [],
+    assigner: task.assigner ? {
+      id: task.assigner.id,
+      name: task.assigner.name,
+      email: task.assigner.email,
+      avatarUrl: task.assigner.avatar_url,
+      createdAt: new Date(task.assigner.created_at || Date.now()),
+      membershipType: 'FREE',
+      stats: {
+        rank: 0,
+        tasksCompleted: 0,
+        completionRate: 0,
+        averageCompletionTime: 0
+      }
+    } : undefined,
+    assignee: task.assignee ? {
+      id: task.assignee.id,
+      name: task.assignee.name,
+      email: task.assignee.email,
+      avatarUrl: task.assignee.avatar_url,
+      createdAt: new Date(task.assignee.created_at || Date.now()),
+      membershipType: 'FREE',
+      stats: {
+        rank: 0,
+        tasksCompleted: 0,
+        completionRate: 0,
+        averageCompletionTime: 0
+      }
+    } : undefined,
+    isInvitation: task.is_invitation,
+    emailPending: task.email_pending
+  };
+};
+
+// Helper functions
+const filterTasksFromFriends = (tasks: Task[], userId: string): Task[] => {
+  return tasks.filter(task => task.assignerId !== userId);
+};
+
+const filterSelfAssignedTasks = (tasks: Task[], userId: string): Task[] => {
+  return tasks.filter(task => task.assignerId === userId);
+};
+
+const DashboardPage: React.FC = () => {
+  const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [myTasks, setMyTasks] = useState<Task[]>([]);
+  const [friends, setFriends] = useState<Friendship[]>([]);
+  const [friendTasks, setFriendTasks] = useState<{[friendId: string]: Task[]}>({});
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
+  const [selectedAssigneeId, setSelectedAssigneeId] = useState<string>('');
+  const [selectedAssigneeName, setSelectedAssigneeName] = useState<string>('');
+  const [tasksFromFriends, setTasksFromFriends] = useState<Task[]>([]);
+  const [tasksAssignedToOthers, setTasksAssignedToOthers] = useState<Task[]>([]);
+  const [selfAssignedTasks, setSelfAssignedTasks] = useState<Task[]>([]);
+  const dataFetchedRef = useRef(false);
+  const authStateRef = useRef<{ user: User | null; authLoading: boolean }>({ user: null, authLoading: true });
+  const initialAuthCheckRef = useRef(false);
+
+  // New state for tabs and public tasks
+  const [activeTab, setActiveTab] = useState<'personal' | 'public'>('personal');
+  const [publicTasks, setPublicTasks] = useState<PublicTask[]>([]);
+  const [showCreatePublicTaskModal, setShowCreatePublicTaskModal] = useState(false);
+
+  // Update auth state ref when it changes
+  useEffect(() => {
+    console.log('Auth state changed:', { user, authLoading });
+    authStateRef.current = { user, authLoading };
+  }, [user, authLoading]);
+
+  // Add a separate effect to handle loading state recovery
+  useEffect(() => {
+    // If we have a user but are still loading and haven't fetched data, force completion
+    if (user && (authLoading || isLoading) && !dataFetchedRef.current) {
+      const recoveryTimeout = setTimeout(() => {
+        console.warn('Dashboard recovery timeout - user exists but still loading');
+        setIsLoading(false);
+        // Try to fetch data one more time
+        fetchDashboardData();
+      }, 5000); // 5 second recovery timeout
+      
+      return () => clearTimeout(recoveryTimeout);
+    }
+    
+    // If we have a user and data has been fetched, ensure loading is false
+    if (user && dataFetchedRef.current && (authLoading || isLoading)) {
+      const clearLoadingTimeout = setTimeout(() => {
+        console.log('Clearing loading state - user and data both available');
+        setIsLoading(false);
+      }, 1000);
+      
+      return () => clearTimeout(clearLoadingTimeout);
+    }
+  }, [user, authLoading, isLoading]);
+
+  // Fetch data when component mounts or user changes
+  useEffect(() => {
+    const logAuthState = async () => {
+    console.log('Dashboard auth state:', { user, authLoading });
+    
+      if (!authLoading) {
+        if (!user) {
+          console.log('No user found, redirecting to login');
+          await addLog({
+            category: LogCategory.AUTH,
+            action: 'dashboard_no_user',
+            details: { 
+              url: window.location.pathname,
+              hasCookies: document.cookie.includes('supabase-auth'),
+              timestamp: new Date().toISOString()
+            }
+          });
+          
+          router.push('/login?redirect=/dashboard');
+          return;
+        }
+        
+        // Only fetch data if we have a user and haven't fetched yet
+        if (user?.id && !dataFetchedRef.current) {
+      console.log('Starting dashboard data fetch for user:', user.id);
+      dataFetchedRef.current = true;
+          await fetchDashboardData();
+        }
+    }
+    };
+    
+    logAuthState();
+    
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Dashboard detected auth event:', event);
+      
+      if (event === 'INITIAL_SESSION') {
+        if (session?.user?.id && !dataFetchedRef.current) {
+          console.log('Initial session detected, fetching data');
+          dataFetchedRef.current = true;
+          await fetchDashboardData();
+        }
+        return;
+      }
+      
+      // Only handle events that change auth state
+      if (['SIGNED_IN', 'SIGNED_OUT', 'USER_UPDATED'].includes(event)) {
+        await addLog({
+          userId: session?.user?.id,
+          category: LogCategory.AUTH,
+          action: 'dashboard_auth_event',
+          details: { 
+            event,
+            url: window.location.pathname,
+            timestamp: new Date().toISOString()
+          }
+        });
+        
+        if (event === 'SIGNED_IN' && session?.user?.id) {
+        console.log('Auth event triggered dashboard refresh');
+        dataFetchedRef.current = true;
+          await fetchDashboardData();
+        } else if (event === 'SIGNED_OUT') {
+          // Clear dashboard state
+          setMyTasks([]);
+          setFriends([]);
+          setFriendTasks({});
+          setLeaderboard([]);
+          setTasksFromFriends([]);
+          setTasksAssignedToOthers([]);
+          setSelfAssignedTasks([]);
+          setPublicTasks([]);
+          dataFetchedRef.current = false;
+          initialAuthCheckRef.current = false;
+          
+          router.push('/login?redirect=/dashboard');
+        }
+      } else if (event === 'TOKEN_REFRESHED') {
+        // Handle token refresh without re-fetching data
+        console.log('Token refreshed in dashboard - maintaining current state');
+        await addLog({
+          userId: session?.user?.id,
+          category: LogCategory.AUTH,
+          action: 'dashboard_token_refreshed',
+          details: { 
+            url: window.location.pathname,
+            hasData: dataFetchedRef.current,
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
+    });
+    
+    // Add a safety timeout to prevent infinite loading
+    const safetyTimeout = setTimeout(() => {
+      if (authLoading || isLoading) {
+        console.warn('Dashboard loading timeout - forcing completion');
+        setIsLoading(false);
+        addLog({
+          userId: user?.id,
+          category: LogCategory.ERROR,
+          action: 'dashboard_loading_timeout',
+          details: { 
+            authLoading,
+            isLoading,
+            hasUser: !!user,
+            dataFetched: dataFetchedRef.current,
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
+    }, 15000); // 15 second safety timeout
+    
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(safetyTimeout);
+      dataFetchedRef.current = false;
+    };
+  }, [user, authLoading, router]);
+
+  const fetchDashboardData = async () => {
+    console.log('Fetching dashboard data...');
+    setIsLoading(true);
+    setError(null);
+
+    // Set a timeout to prevent this function from running forever
+    const dataFetchTimeout = setTimeout(() => {
+      console.error('Dashboard data fetch timeout - forcing completion');
+      setIsLoading(false);
+      setError('Loading took longer than expected. Please refresh the page.');
+    }, 30000); // 30 second timeout for data fetching
+
+    try {
+      if (!user?.id) {
+        console.log('No user found, aborting dashboard data fetch');
+        setIsLoading(false);
+        clearTimeout(dataFetchTimeout);
+        return;
+      }
+
+      console.log('Fetching data for user:', user.id);
+      
+      // Fetch ALL tasks assigned to the user (including invitation tasks)
+      const allMyTasks = await getUserTasks(user.id);
+      setMyTasks(allMyTasks);
+      
+      // Filter tasks into different categories
+      const fromFriends = filterTasksFromFriends(allMyTasks, user.id);
+      const selfAssigned = filterSelfAssignedTasks(allMyTasks, user.id);
+      
+      setTasksFromFriends(fromFriends);
+      setSelfAssignedTasks(selfAssigned);
+      
+      // Fetch tasks the user assigned to others
+      const assignedToOthers = await getTasksAssignedToOthers(user.id);
+      setTasksAssignedToOthers(assignedToOthers);
+      
+      // Fetch accepted friendships
+      const friendships = await getFriendships(FriendshipStatus.ACCEPTED);
+      setFriends(friendships);
+      
+      // Fetch tasks for each friend
+      const tasksByFriend: {[friendId: string]: Task[]} = {};
+      for (const friendship of friendships) {
+        const friendId = friendship.userId === user.id ? friendship.friendId : friendship.userId;
+        const friendTasks = await getTasksByFriend(friendId);
+        tasksByFriend[friendId] = friendTasks;
+      }
+      setFriendTasks(tasksByFriend);
+      
+      // Fetch leaderboard data
+      const leaderboardData = await getLeaderboard();
+      setLeaderboard(leaderboardData.slice(0, 3));
+      
+      // Fetch user's public tasks
+      const userPublicTasks = await getUserPublicTasks(user.id);
+      setPublicTasks(userPublicTasks);
+      
+      console.log('Dashboard data fetch complete');
+      
+      // Clear the timeout since we completed successfully
+      clearTimeout(dataFetchTimeout);
+    } catch (err) {
+      console.error('Error fetching dashboard data:', err);
+      setError('Failed to load dashboard data. Please try again later.');
+      clearTimeout(dataFetchTimeout);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (taskId: string, newStatus: TaskStatus) => {
+    setIsLoading(true);
+    try {
+      await updateTaskStatus(taskId, newStatus);
+      // Re-fetch tasks
+      fetchDashboardData();
+    } catch (err) {
+      console.error('Error updating task status:', err);
+      setError('Failed to update task status. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmissionTypeChange = async (taskId: string, newType: SubmissionType) => {
+    setIsLoading(true);
+    try {
+      await updateTaskSubmissionType(taskId, newType);
+      // Re-fetch tasks
+      fetchDashboardData();
+    } catch (err) {
+      console.error('Error updating task submission type:', err);
+      setError('Failed to update task submission type. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmissionContentChange = async (taskId: string, content: string) => {
+    setIsLoading(true);
+    try {
+      await updateTaskSubmissionContent(taskId, content);
+      // Re-fetch tasks
+      fetchDashboardData();
+    } catch (err) {
+      console.error('Error updating task submission content:', err);
+      setError('Failed to update task submission content. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddTask = async () => {
+    // Always set this to the current user when adding your own task
+    setSelectedAssigneeId(user?.id || '');
+    setSelectedAssigneeName('Yourself');
+    setShowCreateTaskModal(true);
+  };
+  
+  const handleAddTaskToFriend = (friendId: string, friendName: string) => {
+    setSelectedAssigneeId(friendId);
+    setSelectedAssigneeName(friendName);
+    setShowCreateTaskModal(true);
+  };
+
+  const handleTaskCreated = async () => {
+    // Refresh dashboard data since tasks might have been created for multiple people
+    await fetchDashboardData();
+  };
+
+  const handlePublicTaskCreated = async () => {
+    // Refresh public tasks
+    if (user?.id) {
+      const userPublicTasks = await getUserPublicTasks(user.id);
+      setPublicTasks(userPublicTasks);
+    }
+  };
+
+  // Add Find Friends handler
+  const handleFindFriends = () => {
+    router.push('/friend');
+  };
+
+  const handleViewAllPublicTasks = () => {
+    router.push('/public-tasks');
+  };
+
+  // Combined loading state
+  const isPageLoading = isLoading || authLoading;
+
+  return (
+    <ProtectedRoute>
+      <AppLayout>
+        {/* Display loading state within the layout */}
+        {isPageLoading ? (
+          <div className={styles.dashboard}>
+            <div className={styles.header}>
+              <h1>Dashboard</h1>
+            </div>
+            <div className={styles.loadingContainer}>
+              <div className={styles.loadingSpinner}></div>
+              <p>Loading your dashboard...</p>
+            </div>
+          </div>
+        ) : error ? (
+          /* Display error state within the layout */
+          <div className={styles.dashboard}>
+            <div className={styles.header}>
+              <h1>Dashboard</h1>
+            </div>
+            <div className={styles.errorContainer}>
+              <p className={styles.errorMessage}>{error}</p>
+              <Button onClick={fetchDashboardData}>Retry</Button>
+            </div>
+          </div>
+        ) : (
+          /* Main dashboard content */
+          <div className={styles.dashboard}>
+            <div className={styles.header}>
+              <h1>Dashboard</h1>
+              <div className={styles.actions}>
+                {activeTab === 'personal' ? (
+                  <>
+                    <Button onClick={handleAddTask}>Add Task</Button>
+                    <Button onClick={handleFindFriends}>Find Friends</Button>
+                  </>
+                ) : (
+                  <>
+                    <Button onClick={() => setShowCreatePublicTaskModal(true)}>Create Public Task</Button>
+                    <Button onClick={handleViewAllPublicTasks}>View All Public Tasks</Button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Tab Navigation */}
+            <div className={styles.tabsContainer}>
+              <div className={styles.tabs}>
+                <button
+                  className={`${styles.tab} ${activeTab === 'personal' ? styles.activeTab : ''}`}
+                  onClick={() => setActiveTab('personal')}
+                >
+                  Personal Tasks
+                </button>
+                <button
+                  className={`${styles.tab} ${activeTab === 'public' ? styles.activeTab : ''}`}
+                  onClick={() => setActiveTab('public')}
+                >
+                  Public Tasks
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.content}>
+              {activeTab === 'personal' ? (
+                <>
+                  <div className={styles.mainContent}>
+                    <Board title="My Tasks">
+                      <TaskList 
+                        tasks={myTasks}
+                        onStatusChange={handleStatusChange} 
+                        onSubmissionTypeChange={handleSubmissionTypeChange}
+                        onSubmissionContentChange={handleSubmissionContentChange}
+                      />
+                    </Board>
+                  </div>
+
+                  <div className={styles.sidebar}>
+                    <Board title="Leaderboard" className={styles.leaderboard}>
+                      {leaderboard.map((entry, index) => (
+                        <div key={entry.id} className={styles.leaderboardEntry}>
+                          <span className={styles.rank}>#{index + 1}</span>
+                          <span className={styles.name}>{entry.name}</span>
+                          <span className={styles.score}>{entry.tasksCompleted} tasks</span>
+                        </div>
+                      ))}
+                    </Board>
+
+                    <Board title="Friends" className={styles.friends}>
+                      {friends.map(friendship => {
+                        const friend = friendship.friend;
+                        if (!friend) return null;
+                        
+                        return (
+                          <div key={friend.id} className={styles.friendEntry}>
+                            <div className={styles.friendInfo}>
+                              <span className={styles.name}>{friend.name}</span>
+                              <Button 
+                                size="xs"
+                                onClick={() => handleAddTaskToFriend(friend.id, friend.name)}
+                              >
+                                Assign Task
+                              </Button>
+                            </div>
+                            {friendTasks[friend.id] && (
+                              <div className={styles.friendTasks}>
+                                <TaskList 
+                                  tasks={friendTasks[friend.id]}
+                                  onStatusChange={handleStatusChange}
+                                  onSubmissionTypeChange={handleSubmissionTypeChange}
+                                  onSubmissionContentChange={handleSubmissionContentChange}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </Board>
+                  </div>
+                </>
+              ) : (
+                <div className={styles.publicTasksContent}>
+                  <Board title="My Public Tasks">
+                    {publicTasks.length > 0 ? (
+                      <div className={styles.publicTasksList}>
+                        {publicTasks.map(task => (
+                          <div key={task.id} className={styles.publicTaskCard}>
+                            <h3>{task.title}</h3>
+                            <p>{task.description}</p>
+                            <div className={styles.taskMeta}>
+                              <span className={styles.payment}>
+                                {task.paymentCurrency} {task.paymentAmount}
+                              </span>
+                              <span className={styles.locationType}>
+                                {task.locationType}
+                              </span>
+                              <span className={styles.applications}>
+                                {task.applicationCount} applications
+                              </span>
+                            </div>
+                            {task.tags && task.tags.length > 0 && (
+                              <div className={styles.tags}>
+                                {task.tags.map(tag => (
+                                  <span key={tag.id} className={styles.tag}>
+                                    {tag.tagName}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className={styles.emptyState}>
+                        <p>You haven't created any public tasks yet.</p>
+                        <Button onClick={() => setShowCreatePublicTaskModal(true)}>
+                          Create Your First Public Task
+                        </Button>
+                      </div>
+                    )}
+                  </Board>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {showCreateTaskModal && (
+          <CreateTaskModal
+            assigneeId={selectedAssigneeId}
+            assigneeName={selectedAssigneeName}
+            onClose={() => setShowCreateTaskModal(false)}
+            onCreated={handleTaskCreated}
+          />
+        )}
+
+        {showCreatePublicTaskModal && (
+          <CreatePublicTaskModal
+            onClose={() => setShowCreatePublicTaskModal(false)}
+            onCreated={handlePublicTaskCreated}
+          />
+        )}
+      </AppLayout>
+    </ProtectedRoute>
+  );
+};
+
+export default DashboardPage;

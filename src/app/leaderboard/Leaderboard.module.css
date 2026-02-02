@@ -1,0 +1,457 @@
+.container {
+  max-width: 95%;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 0;
+}
+
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1800px;
+  }
+}
+
+@media (min-width: 2000px) {
+  .container {
+    max-width: 2400px;
+  }
+}
+
+.header {
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background-color: var(--primary);
+  border-radius: 2px;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.title::before {
+  content: '🏆';
+  margin-right: 10px;
+  font-size: 1.8rem;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #666;
+}
+
+.card {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border-top: 3px solid var(--primary);
+  position: relative;
+  overflow: hidden;
+}
+
+.card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: var(--track-curb-red);
+  opacity: 0.5;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Leaderboard Type Cards */
+.leaderboardTypes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.leaderboardTypeCard {
+  background: white;
+  border: 2px solid #eee;
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.leaderboardTypeCard::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: var(--primary);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.leaderboardTypeCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-color: #ddd;
+}
+
+.leaderboardTypeCard:hover::after {
+  opacity: 0.5;
+}
+
+.leaderboardTypeCard.active {
+  border-color: var(--primary);
+  background-color: #f5f7ff;
+}
+
+.leaderboardTypeCard.active::after {
+  opacity: 1;
+}
+
+.leaderboardIcon {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.leaderboardTypeCard h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.leaderboardTypeCard p {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+/* Leaderboard Table */
+.leaderboardTable {
+  width: 100%;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid #eee;
+  background-color: white;
+}
+
+.tableHeader {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background-color: var(--primary);
+  font-weight: 600;
+  color: white;
+  border-bottom: 1px solid #eee;
+  gap: 0.5rem;
+}
+
+.tableRow {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  position: relative;
+  gap: 0.5rem;
+}
+
+.tableRow:last-child {
+  border-bottom: none;
+}
+
+.tableRow:hover {
+  background-color: #f9f9f9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Hide action column since rows are now clickable */
+.actionColumn {
+  display: none;
+}
+
+/* Style top 3 positions */
+.tableRow:nth-child(1) {
+  background-color: rgba(255, 215, 0, 0.05);
+}
+
+.tableRow:nth-child(2) {
+  background-color: rgba(192, 192, 192, 0.05);
+}
+
+.tableRow:nth-child(3) {
+  background-color: rgba(205, 127, 50, 0.05);
+}
+
+.tableRow.currentUser {
+  background-color: rgba(99, 102, 241, 0.05);
+  border-left: 2px solid var(--primary);
+}
+
+.rankColumn {
+  width: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.userColumn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.statsColumn {
+  width: 150px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.extendedStatsColumn {
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.miniStat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f8fafc;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  border: 1px solid #e5e7eb;
+}
+
+.miniStatLabel {
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.miniStatValue {
+  font-weight: 600;
+  color: #4338ca;
+}
+
+.goldMedal, .silverMedal, .bronzeMedal {
+  font-size: 1.5rem;
+}
+
+.goldMedal {
+  color: #FFD700;
+}
+
+.silverMedal {
+  color: #C0C0C0;
+}
+
+.bronzeMedal {
+  color: #CD7F32;
+}
+
+.rank {
+  font-weight: 600;
+  color: #666;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #f5f5f5;
+}
+
+.tableRow:nth-child(1) .rank,
+.tableRow:nth-child(2) .rank,
+.tableRow:nth-child(3) .rank {
+  color: white;
+}
+
+.tableRow:nth-child(1) .rank {
+  background-color: #FFD700;
+}
+
+.tableRow:nth-child(2) .rank {
+  background-color: #C0C0C0;
+}
+
+.tableRow:nth-child(3) .rank {
+  background-color: #CD7F32;
+}
+
+.userAvatarContainer {
+  margin-right: 1rem;
+}
+
+.userAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.userAvatarPlaceholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1rem;
+  font-weight: 500;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.userInfo {
+  flex: 1;
+}
+
+.userName {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.friendBadge {
+  display: inline-block;
+  font-size: 0.7rem;
+  background-color: #10B981;
+  color: white;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+}
+
+.youBadge {
+  display: inline-block;
+  font-size: 0.7rem;
+  background-color: var(--primary);
+  color: white;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+}
+
+.statValue {
+  font-weight: 600;
+  color: #333;
+  display: inline-block;
+}
+
+/* Simple stat icon */
+.statValue::before {
+  content: '🔥';
+  font-size: 12px;
+  margin-right: 4px;
+  opacity: 0.6;
+}
+
+.loading, .emptyState {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #666;
+}
+
+.emptyState p {
+  margin-bottom: 0.5rem;
+}
+
+.error {
+  background-color: #FEE2E2;
+  color: #B91C1C;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #FECACA;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Add simple flag to empty state */
+.emptyState::before {
+  content: '🏁';
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .leaderboardTypes {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.75rem;
+  }
+  
+  .tableHeader {
+    font-size: 0.85rem;
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .tableRow {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .rankColumn {
+    width: 40px;
+    font-size: 0.9rem;
+  }
+  
+  .userColumn {
+    flex: 2;
+  }
+  
+  .statsColumn {
+    flex: 1;
+    justify-content: flex-end;
+    min-width: 60px;
+  }
+  
+  .extendedStatsColumn {
+    display: none;
+  }
+  
+  .cardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+} 

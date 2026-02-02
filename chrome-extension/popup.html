@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TasklApp Extension</title>
+    <style>
+      /* Import design system variables from main app */
+      :root {
+        --primary: #4f46e5;
+        --primary-dark: #3730a3;
+        --secondary: #8b5cf6;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --info: #3b82f6;
+        --background: #f8fafc;
+        --surface: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --border: #e2e8f0;
+        --spacing-xs: 0.25rem;
+        --spacing-sm: 0.5rem;
+        --spacing-md: 1rem;
+        --spacing-lg: 1.5rem;
+        --border-radius-sm: 0.25rem;
+        --border-radius-md: 0.5rem;
+        --border-radius-lg: 1rem;
+        --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --transition-fast: 150ms ease;
+        --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: var(--font-family);
+        background-color: var(--background);
+        color: var(--text-primary);
+        padding: var(--spacing-md);
+        width: 320px;
+        min-height: 400px;
+        font-size: 14px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* Header with settings */
+      .header {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        padding: var(--spacing-md) var(--spacing-lg);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .header h1 {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      .settings-container {
+        position: relative;
+      }
+
+      .settings-button {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s;
+      }
+
+      .settings-button:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      .settings-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: var(--spacing-sm);
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: var(--border-radius-md);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        min-width: 160px;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.2s ease;
+      }
+
+      .settings-dropdown.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+
+      .settings-dropdown::before {
+        content: '';
+        position: absolute;
+        top: -6px;
+        right: 12px;
+        width: 12px;
+        height: 12px;
+        background: white;
+        border: 1px solid var(--border);
+        border-bottom: none;
+        border-right: none;
+        transform: rotate(45deg);
+      }
+
+      .dropdown-item {
+        padding: var(--spacing-md) var(--spacing-md);
+        color: var(--text-secondary);
+        cursor: pointer;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        transition: background-color 0.2s;
+      }
+
+      .dropdown-item:last-child {
+        border-bottom: none;
+      }
+
+      .dropdown-item:hover {
+        background: var(--background);
+      }
+
+      .dropdown-item.danger:hover {
+        background: #fef2f2;
+        color: var(--danger);
+      }
+
+      /* Container */
+      .container {
+        padding: var(--spacing-lg);
+      }
+
+      /* Status messages */
+      .status-message {
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-lg);
+        border-radius: var(--border-radius-md);
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .status-message.success {
+        background: #d1fae5;
+        color: #15803d;
+        border: 1px solid #a7f3d0;
+      }
+
+      .status-message.error {
+        background: #fef2f2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+      }
+
+      .status-message.info {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+      }
+
+      /* Authentication section */
+      .auth-section {
+        margin-bottom: var(--spacing-xl);
+      }
+
+      .form-group {
+        margin-bottom: var(--spacing-lg);
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: var(--spacing-sm);
+        font-weight: 500;
+        color: var(--text-secondary);
+        font-size: 14px;
+      }
+
+      .form-group input,
+      .form-group textarea,
+      .form-group select {
+        width: 100%;
+        padding: var(--spacing-md);
+        border: 2px solid var(--border);
+        border-radius: var(--border-radius-md);
+        font-size: 14px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        font-family: inherit;
+      }
+
+      .form-group input:focus,
+      .form-group textarea:focus,
+      .form-group select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+      }
+
+      .form-group textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+
+      .form-group select[multiple] {
+        min-height: 100px;
+        padding: var(--spacing-sm);
+      }
+
+      .form-group select[multiple] option {
+        padding: var(--spacing-sm) var(--spacing-md);
+        margin-bottom: 2px;
+        border-radius: var(--border-radius-sm);
+      }
+
+      .form-group select[multiple] option:checked {
+        background: var(--primary);
+        color: white;
+      }
+
+      .form-hint {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-top: var(--spacing-xs);
+        font-style: italic;
+      }
+
+      /* Buttons */
+      .btn {
+        padding: var(--spacing-md) var(--spacing-lg);
+        border: none;
+        border-radius: var(--border-radius-md);
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-sm);
+        text-decoration: none;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+      }
+
+      .btn-secondary {
+        background: var(--background);
+        color: var(--text-secondary);
+        border: 1px solid var(--border);
+      }
+
+      .btn-secondary:hover:not(:disabled) {
+        background: var(--border);
+      }
+
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .btn-full-width {
+        width: 100%;
+      }
+
+      /* Advanced options */
+      .advanced-toggle {
+        margin: var(--spacing-lg) 0;
+      }
+
+      .advanced-panel {
+        border: 1px solid var(--border);
+        border-radius: var(--border-radius-md);
+        padding: var(--spacing-lg);
+        margin-top: var(--spacing-md);
+        background: var(--background);
+      }
+
+      .advanced-panel .form-group {
+        margin-bottom: var(--spacing-md);
+      }
+
+      .advanced-panel .form-group:last-child {
+        margin-bottom: 0;
+      }
+
+      /* URL Preview */
+      #urlPreview {
+        background: #f0f9ff;
+        border: 1px solid #bae6fd;
+        border-radius: var(--border-radius-md);
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-lg);
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+
+      /* Utility classes */
+      .hidden {
+        display: none !important;
+      }
+
+      .text-center {
+        text-align: center;
+      }
+
+      .mt-md {
+        margin-top: var(--spacing-md);
+      }
+
+      .mb-md {
+        margin-bottom: var(--spacing-md);
+      }
+
+      /* Loading states */
+      .loading::after {
+        content: '';
+        width: 16px;
+        height: 16px;
+        border: 2px solid transparent;
+        border-top: 2px solid currentColor;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-left: var(--spacing-sm);
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Debug info */
+      .debug-info {
+        background: var(--background);
+        padding: var(--spacing-md);
+        border-radius: var(--border-radius-md);
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-top: var(--spacing-lg);
+      }
+
+      .debug-info h4 {
+        margin-bottom: var(--spacing-sm);
+        color: var(--text-primary);
+      }
+
+      /* URL Copy Section */
+      .url-copy-section {
+        margin-top: var(--spacing-md);
+      }
+
+      .url-copy-header {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-sm);
+      }
+
+      .url-icon {
+        font-size: 16px;
+      }
+
+      .url-label {
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .copy-url-btn {
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius-sm);
+        padding: var(--spacing-xs) var(--spacing-sm);
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .copy-url-btn:hover {
+        background: var(--primary-dark);
+      }
+
+      .url-content {
+        padding: var(--spacing-md);
+        background: var(--background);
+        border: 1px solid var(--border);
+        border-radius: var(--border-radius-sm);
+      }
+
+      .url-title {
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: var(--spacing-sm);
+      }
+
+      .url-address {
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+
+      /* Paste URL Button */
+      .paste-url-btn {
+        background: var(--info);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius-sm);
+        padding: var(--spacing-xs) var(--spacing-md);
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 12px;
+        margin-top: var(--spacing-sm);
+        width: 100%;
+      }
+
+      .paste-url-btn:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+      }
+
+      .paste-url-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header with settings -->
+    <div class="header">
+      <h1>TasklApp</h1>
+      <div class="settings-container">
+        <button class="settings-button" id="settingsButton" title="Settings">
+          ⚙️
+        </button>
+        <div class="settings-dropdown" id="settingsDropdown">
+          <div class="dropdown-item" id="profileItem">
+            <span class="dropdown-icon">��</span>
+            Profile
+          </div>
+          <div class="dropdown-item" id="signOutItem">
+            <span class="dropdown-icon">🚪</span>
+            Sign Out
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- Status Message -->
+      <div id="statusMessage" class="status-message hidden"></div>
+
+      <!-- URL Preview -->
+      <div id="urlPreview" class="hidden"></div>
+
+      <!-- Authentication Section -->
+      <div id="authSection" class="auth-section">
+        <div class="form-group">
+          <label for="emailInput">Email Address</label>
+          <input type="email" id="emailInput" placeholder="Enter your email" autocomplete="email">
+        </div>
+        
+        <div class="form-group hidden" id="otpGroup">
+          <label for="otpInput">Verification Code</label>
+          <input type="text" id="otpInput" placeholder="Enter 6-digit code" maxlength="6" autocomplete="one-time-code">
+          <button type="button" class="btn btn-secondary mt-md" id="backToEmailBtn">
+            ← Back to Email
+          </button>
+        </div>
+        
+        <button id="authButton" class="btn btn-primary btn-full-width">
+          Send Verification Code
+        </button>
+      </div>
+
+      <!-- Task Creation Section -->
+      <div id="taskSection" class="hidden">
+        <h3 style="margin-bottom: var(--spacing-lg); color: var(--text-primary); font-size: 18px;">Create New Task</h3>
+
+        <div class="form-group">
+          <label for="taskTitle">Task Title *</label>
+          <input type="text" id="taskTitle" placeholder="What needs to be done?" required>
+        </div>
+
+        <div class="form-group">
+          <label for="taskDescription">Description</label>
+          <textarea id="taskDescription" placeholder="Add details about this task..."></textarea>
+          <button type="button" id="pasteUrlBtn" class="paste-url-btn" title="Paste current page URL into description">
+            🔗 Paste Current Page
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label for="assigneeSelect">Assign To</label>
+          <select id="assigneeSelect" multiple size="4">
+            <option value="">Select friends...</option>
+          </select>
+          <div class="form-hint">Hold Ctrl/Cmd to select multiple people</div>
+        </div>
+
+        <!-- Advanced Options -->
+        <div class="advanced-toggle">
+          <button type="button" class="btn btn-secondary" id="advancedToggle">
+            ⚙️ Advanced Options
+          </button>
+
+          <div id="advancedPanel" class="advanced-panel hidden">
+            <div class="form-group">
+              <label for="dueDate">Due Date</label>
+              <input type="date" id="dueDate">
+            </div>
+
+            <div class="form-group">
+              <label for="dueTime">Due Time</label>
+              <input type="time" id="dueTime">
+            </div>
+
+            <div class="form-group">
+              <label for="priority">Priority</label>
+              <select id="priority">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="estimatedTime">Estimated Time (minutes)</label>
+              <input type="number" id="estimatedTime" value="30" min="1" max="9999">
+            </div>
+
+            <div class="form-group">
+              <label for="submissionType">Submission Type</label>
+              <select id="submissionType">
+                <option value="text">Text Response</option>
+                <option value="link">Link/URL</option>
+                <option value="file">File Upload</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="submissionInstructions">Submission Instructions</label>
+              <textarea id="submissionInstructions" placeholder="How should this task be completed?"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <button id="submitTaskButton" class="btn btn-primary btn-full-width">
+          Create Task
+        </button>
+      </div>
+    </div>
+
+    <script src="supabase.min.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html> 

@@ -1,0 +1,286 @@
+:root {
+  /* Color palette - Approachable Track Theme */
+  --primary: #4f46e5; /* Approachable Blue */
+  --primary-dark: #3730a3; /* Darker Blue */
+  --secondary: #8b5cf6; /* Purple Accent */
+  --success: #10b981; /* Green */
+  --danger: #ef4444; /* Red */
+  --warning: #f59e0b; /* Amber */
+  --info: #3b82f6; /* Blue */
+  
+  /* Surface Colors */
+  --background: #f8fafc; /* Light Gray Background */
+  --surface: #ffffff; /* White Surface */
+  --text-primary: #1e293b; /* Dark Text */
+  --text-secondary: #64748b; /* Secondary Text */
+  --border: #e2e8f0; /* Border Color */
+  --track-asphalt: #334155; /* Track Dark Gray */
+  --track-line: #ffffff; /* White Line */
+  --track-curb-red: #f87171; /* Softer Red */
+  --track-curb-white: #ffffff; /* White */
+  --accent-yellow: #fcd34d; /* Gold */
+  --accent-green: #34d399; /* Bright Green */
+  --accent-blue: #60a5fa; /* Bright Blue */
+  
+  /* Layout */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-xxl: 3rem;
+  
+  /* Typography */
+  --font-family-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-family-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-family: var(--font-family-body);
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+  --font-size-xxl: 2.25rem;
+  
+  /* Borders and shadows */
+  --border-radius-sm: 0.25rem;
+  --border-radius-md: 0.5rem;
+  --border-radius-lg: 1rem;
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 300ms ease;
+  --transition-slow: 500ms ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  font-family: var(--font-family);
+  background-color: var(--background);
+  color: var(--text-primary);
+  font-size: var(--font-size-md);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: 0.01em;
+  -webkit-text-size-adjust: 100%; /* Prevents font scaling in landscape */
+  touch-action: manipulation; /* Prevents delays on touch devices */
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: var(--spacing-md);
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: var(--font-size-xxl);
+}
+
+h2 {
+  font-size: var(--font-size-xl);
+}
+
+h3 {
+  font-size: var(--font-size-lg);
+}
+
+p {
+  margin-bottom: var(--spacing-md);
+  color: var(--text-primary);
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+  font-weight: 500;
+  border-bottom: 1px solid transparent;
+}
+
+a:hover {
+  color: var(--primary-dark);
+  border-bottom-color: var(--primary-dark);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  font-weight: 500;
+  min-height: 44px; /* Improved touch target size */
+  padding: 0.5rem 1rem;
+}
+
+input, 
+select, 
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  min-height: 44px; /* Better touch targets */
+}
+
+/* Status indicators with friendly colors */
+.status-pending {
+  background-color: #e0f2fe;
+  color: #1e40af;
+  font-weight: 600;
+  border: 1px solid #bfdbfe;
+}
+
+.status-in-progress {
+  background-color: #fef3c7;
+  color: #92400e;
+  font-weight: 600;
+  border: 1px solid #fde68a;
+}
+
+.status-completed {
+  background-color: #d1fae5;
+  color: #065f46;
+  font-weight: 600;
+  border: 1px solid #a7f3d0;
+}
+
+.status-overdue {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  font-weight: 600;
+  border: 1px solid #fecaca;
+}
+
+/* Priority indicators */
+.priority-low {
+  border-left: 4px solid var(--info);
+}
+
+.priority-medium {
+  border-left: 4px solid var(--warning);
+}
+
+.priority-high {
+  border-left: 4px solid var(--secondary);
+}
+
+.priority-urgent {
+  border-left: 4px solid var(--danger);
+}
+
+/* Container */
+.container {
+  width: 100%;
+  max-width: 95%;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1800px;
+  }
+}
+
+@media (min-width: 2000px) {
+  .container {
+    max-width: 2400px;
+  }
+}
+
+/* Responsive breakpoints */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 var(--spacing-sm);
+    max-width: 100%;
+  }
+  
+  h1 {
+    font-size: var(--font-size-xl);
+  }
+  
+  h2 {
+    font-size: var(--font-size-lg);
+  }
+
+  h3 {
+    font-size: var(--font-size-md);
+  }
+  
+  button,
+  input,
+  select,
+  textarea {
+    width: 100%; /* Full width on mobile */
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+  h1 {
+    font-size: calc(var(--font-size-lg) + 0.1rem);
+  }
+  
+  h2 {
+    font-size: var(--font-size-md);
+  }
+  
+  body {
+    font-size: 0.95rem;
+  }
+  
+  .container {
+    padding: 0 10px;
+  }
+}
+
+/* Utility classes for responsive layouts */
+.hidden-mobile {
+  display: initial;
+}
+
+.visible-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .hidden-mobile {
+    display: none !important;
+  }
+  
+  .visible-mobile {
+    display: initial !important;
+  }
+}
+
+/* Responsive grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--spacing-md);
+}
+
+@media (max-width: 992px) {
+  .grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+} 
