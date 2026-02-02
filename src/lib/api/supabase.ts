@@ -209,7 +209,8 @@ export const getCurrentUser = async (): Promise<User | null> => {
     
     logger.info('getCurrentUser', `Session found, user ID: ${session.user.id}`);
     
-    // Check if there's a pending user with this email that needs activation
+    let userIdToQuery = session.user.id;
+    
     if (session.user.email) {
       const { data: pendingUser, error: pendingError } = await supabase
         .from('users')
@@ -219,7 +220,6 @@ export const getCurrentUser = async (): Promise<User | null> => {
         .maybeSingle();
         
       if (pendingUser && !pendingError) {
-        // Activate the pending user
         logger.info('getCurrentUser', `Activating pending user ${pendingUser.id} for auth user ${session.user.id}`);
         
         const { data: activated, error: activationError } = await supabase
@@ -230,24 +230,33 @@ export const getCurrentUser = async (): Promise<User | null> => {
           
         if (activationError) {
           logger.error('getCurrentUser', 'Failed to activate pending user:', activationError);
+          try {
+            const { addLog } = await import('../logging');
+            await addLog({
+              userId: session.user.id,
+              category: 'ERROR' as any,
+              action: 'pending_user_activation_failed',
+              details: { error: activationError.message }
+            });
+          } catch (logError) {
+            logger.error('getCurrentUser', 'Failed to log activation error:', logError);
+          }
         } else {
           logger.info('getCurrentUser', 'Pending user activated successfully');
+          userIdToQuery = session.user.id;
         }
       }
     }
     
-    // Get user profile data with proper typing
     let result = await supabase
       .from('users')
       .select('id, name, email, avatar_url, created_at, is_pending, membership_type, stripe_customer_id, membership_expires_at')
-      .eq('id', session.user.id)
+      .eq('id', userIdToQuery)
       .single();
     
-    // If no user profile exists, create one
     if (!result.data && !result.error?.message?.includes('Invalid input syntax')) {
       logger.info('getCurrentUser', 'Creating new user profile');
       
-      // Create user profile
       const { error: insertError } = await supabase
         .from('users')
         .insert({
@@ -256,21 +265,30 @@ export const getCurrentUser = async (): Promise<User | null> => {
           name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'New User',
           avatar_url: session.user.user_metadata?.avatar_url,
           is_pending: false,
-          membership_type: 'FREE', // Default to FREE membership
+          membership_type: 'FREE',
           created_at: new Date().toISOString()
         });
       
       if (insertError) {
         logger.error('getCurrentUser', 'Error creating user profile:', insertError);
-        return null;
+        
+        if (insertError.code === '23505') {
+          logger.info('getCurrentUser', 'User profile already exists, fetching it');
+          result = await supabase
+            .from('users')
+            .select('id, name, email, avatar_url, created_at, is_pending, membership_type, stripe_customer_id, membership_expires_at')
+            .eq('id', session.user.id)
+            .single();
+        } else {
+          return null;
+        }
+      } else {
+        result = await supabase
+          .from('users')
+          .select('id, name, email, avatar_url, created_at, is_pending, membership_type, stripe_customer_id, membership_expires_at')
+          .eq('id', session.user.id)
+          .single();
       }
-      
-      // Fetch the newly created user
-      result = await supabase
-        .from('users')
-        .select('id, name, email, avatar_url, created_at, is_pending, membership_type, stripe_customer_id, membership_expires_at')
-        .eq('id', session.user.id)
-        .single();
     }
     
     if (result.error || !result.data) {

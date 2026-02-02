@@ -25,14 +25,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const loadingUserDataRef = useRef<boolean>(false);
+  const currentUserIdRef = useRef<string | null>(null);
 
-  // Simplified and unified authentication logic
   useEffect(() => {
     let isMounted = true;
 
-    // The onAuthStateChange listener is the single source of truth.
-    // It fires once on registration with the initial session state, and then
-    // on every subsequent auth event.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!isMounted) return;
@@ -41,25 +38,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         try {
           setIsLoading(true);
+          setError(null);
 
           if (session) {
-            // User is signed in or token has been refreshed
+            const sessionUserId = session.user.id;
+            
             if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
-              // Load user data only if we don't have a user object yet,
-              // or if the user ID has changed.
-              if (!user || user.id !== session.user.id) {
-                await loadUserData(session.user.id);
+              if (currentUserIdRef.current !== sessionUserId) {
+                currentUserIdRef.current = sessionUserId;
+                await loadUserData(sessionUserId);
               }
             } else if (event === 'USER_UPDATED' && session.user) {
               await refreshUserDataSilently(session.user.id);
             }
           } else if (event === 'SIGNED_OUT') {
+            currentUserIdRef.current = null;
             setUser(null);
           }
         } catch (err) {
           console.error(`Error in AuthContext onAuthStateChange: ${err}`);
           setError('An error occurred during authentication.');
-          setUser(null);
+          if (event === 'SIGNED_OUT') {
+            currentUserIdRef.current = null;
+            setUser(null);
+          }
         } finally {
           if (isMounted) {
             setIsLoading(false);
@@ -72,9 +74,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [user]); // Re-run when user object changes to handle updates correctly
+  }, []);
 
-  // Load user data - simplified to be more robust
   const loadUserData = async (userId: string) => {
     if (loadingUserDataRef.current) return;
 
@@ -82,11 +83,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('Fetching fresh user data in AuthContext');
       const userData = await getCurrentUser();
-      setUser(userData);
+      
+      if (userData) {
+        setUser(userData);
+        setError(null);
+      } else {
+        console.error('getCurrentUser returned null - user profile may not exist yet');
+        setError('User profile not found. Please try refreshing the page.');
+        await addLog({
+          userId,
+          category: LogCategory.ERROR,
+          action: 'user_profile_not_found',
+          details: { timestamp: new Date().toISOString() }
+        });
+      }
     } catch (error) {
       console.error('Error loading user data:', error);
       setError('Failed to get user data');
-      setUser(null);
+      await addLog({
+        userId,
+        category: LogCategory.ERROR,
+        action: 'load_user_data_error',
+        details: { error: String(error) }
+      });
     } finally {
       loadingUserDataRef.current = false;
     }
@@ -276,10 +295,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
       }
       
-      // Set user to null immediately for better perceived performance
+      currentUserIdRef.current = null;
       setUser(null);
       
-      // Execute the actual sign out (don't redirect)
       console.log('Executing Supabase signOut');
       const { error } = await supabase.auth.signOut();
       const endTime = Date.now();
