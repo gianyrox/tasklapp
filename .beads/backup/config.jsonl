@@ -8,4 +8,5 @@
 {"key":"compact_tier2_dep_levels","value":"5"}
 {"key":"compaction_enabled","value":"false"}
 {"key":"issue_prefix","value":"tasklapp"}
+{"key":"kv.memory.2026-03-18-research-task-management-market-5b","value":"2026-03-18-research: Task management market .5B CAGR 13.3%. Top gap: no streak mechanic (Habitica/Duolingo core driver). Annual plans 3-5x less churn. 20-40% churn is involuntary payments — need dunning. Next.js+Supabase stack validated. Auth OTP good, passkeys next. 5 beads created: tasklapp-3mc streak, tasklapp-zr4 annual billing, tasklapp-sc8 dunning, tasklapp-dk2 cancel survey, tasklapp-1j3 realtime leaderboard."}
 {"key":"schema_version","value":"6"}
