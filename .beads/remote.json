@@ -1,0 +1,5 @@
+{
+  "api_url": "https://tasklapp.nucleus.agfarms.dev",
+  "instance_id": "tasklapp",
+  "auth": {"username": "nucleus", "password": "REDACTED_ROTATED_2026_04_14"}
+}
