@@ -1,5 +1,7 @@
 {
   "api_url": "https://tasklapp.nucleus.agfarms.dev",
   "instance_id": "tasklapp",
-  "auth": {"username": "nucleus", "password": "REDACTED_ROTATED_2026_04_14"}
+  "auth_user_env": "NUCLEUS_ADMIN_USER",
+  "auth_pass_env": "NUCLEUS_ADMIN_PASSWORD",
+  "bead_prefix": "tsk-"
 }
