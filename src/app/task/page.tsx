@@ -3,11 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AppLayout from '../../components/layout/AppLayout';
-import { Task, TaskStatus } from '../../types';
+import { Task, TaskStatus, TaskPriority } from '../../types';
 import ProtectedRoute from '../../components/layout/ProtectedRoute';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/ui/Button';
 import { getUserTasks, getUserAssignedTasks } from '../../lib/api/supabase';
+import { filterTasks } from '../../lib/taskFilters';
 import styles from './TasksPage.module.css';
 
 const TasksPage: React.FC = () => {
@@ -20,6 +21,12 @@ const TasksPage: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [activeTab, setActiveTab] = useState<string>('active');
   const [viewMode, setViewMode] = useState<string>('my-tasks');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [priorityFilter, setPriorityFilter] = useState<'all' | TaskPriority>('all');
+
+  // Apply free-text search + priority before any status grouping (spec US-5).
+  const searchedTasks = filterTasks(tasks, { search: searchQuery, priority: priorityFilter });
+  const searchedFriendTasks = filterTasks(friendTasks, { search: searchQuery, priority: priorityFilter });
 
   useEffect(() => {
     if (user) {
@@ -52,63 +59,63 @@ const TasksPage: React.FC = () => {
   };
 
   const getFilteredTasks = () => {
-    // Just filter by status if not showing 'all'
-    let filteredTasks = tasks;
-    
+    // Status is applied on top of the search + priority filtered list.
+    let filteredTasks = searchedTasks;
+
     if (activeFilter !== 'all') {
       if (activeFilter === 'active') {
-        filteredTasks = tasks.filter(task => 
-          task.status === TaskStatus.PENDING || 
+        filteredTasks = searchedTasks.filter(task =>
+          task.status === TaskStatus.PENDING ||
           task.status === TaskStatus.IN_PROGRESS
         );
       } else {
-        filteredTasks = tasks.filter(task => task.status === activeFilter);
+        filteredTasks = searchedTasks.filter(task => task.status === activeFilter);
       }
     }
-    
+
     return filteredTasks;
   };
 
   const getTasks = (status: TaskStatus | 'active' | 'all'): Task[] => {
     if (status === 'all') {
-      return tasks;
+      return searchedTasks;
     } else if (status === 'active') {
-      return tasks.filter(task => 
-        task.status === TaskStatus.PENDING || 
+      return searchedTasks.filter(task =>
+        task.status === TaskStatus.PENDING ||
         task.status === TaskStatus.IN_PROGRESS
       );
     } else {
-      return tasks.filter(task => task.status === status);
+      return searchedTasks.filter(task => task.status === status);
     }
   };
 
   const getFilteredFriendTasks = () => {
-    let filteredTasks = friendTasks;
-    
+    let filteredTasks = searchedFriendTasks;
+
     if (activeFilter !== 'all') {
       if (activeFilter === 'active') {
-        filteredTasks = friendTasks.filter(task => 
-          task.status === TaskStatus.PENDING || 
+        filteredTasks = searchedFriendTasks.filter(task =>
+          task.status === TaskStatus.PENDING ||
           task.status === TaskStatus.IN_PROGRESS
         );
       } else {
-        filteredTasks = friendTasks.filter(task => task.status === activeFilter);
+        filteredTasks = searchedFriendTasks.filter(task => task.status === activeFilter);
       }
     }
-    
+
     return filteredTasks;
   };
 
   const getFriendTasks = (status: TaskStatus | 'active' | 'all'): Task[] => {
     if (status === 'all') {
-      return friendTasks;
+      return searchedFriendTasks;
     } else if (status === 'active') {
-      return friendTasks.filter(task => 
-        task.status === TaskStatus.PENDING || 
+      return searchedFriendTasks.filter(task =>
+        task.status === TaskStatus.PENDING ||
         task.status === TaskStatus.IN_PROGRESS
       );
     } else {
-      return friendTasks.filter(task => task.status === status);
+      return searchedFriendTasks.filter(task => task.status === status);
     }
   };
 
@@ -244,7 +251,7 @@ const TasksPage: React.FC = () => {
             <h2 className={styles.sectionTitle}>Overdue</h2>
             <div className={styles.taskCards}>
               {getTasks(TaskStatus.OVERDUE).map(renderTaskCard)}
-              {tasks
+              {searchedTasks
                 .filter(task => 
                   new Date(task.dueDate) < new Date() && 
                   task.status !== TaskStatus.COMPLETED &&
@@ -252,7 +259,7 @@ const TasksPage: React.FC = () => {
                 )
                 .map(renderTaskCard)}
               {getTasks(TaskStatus.OVERDUE).length === 0 && 
-               tasks.filter(task => 
+               searchedTasks.filter(task => 
                  new Date(task.dueDate) < new Date() && 
                  task.status !== TaskStatus.COMPLETED &&
                  task.status !== TaskStatus.GRADED
@@ -323,15 +330,15 @@ const TasksPage: React.FC = () => {
             <h2 className={styles.sectionTitle}>Overdue</h2>
             <div className={styles.taskCards}>
               {getFriendTasks(TaskStatus.OVERDUE).map(renderTaskCard)}
-              {friendTasks
-                .filter(task => 
-                  new Date(task.dueDate) < new Date() && 
+              {searchedFriendTasks
+                .filter(task =>
+                  new Date(task.dueDate) < new Date() &&
                   task.status !== TaskStatus.COMPLETED &&
                   task.status !== TaskStatus.GRADED
                 )
                 .map(renderTaskCard)}
-              {getFriendTasks(TaskStatus.OVERDUE).length === 0 && 
-               friendTasks.filter(task => 
+              {getFriendTasks(TaskStatus.OVERDUE).length === 0 &&
+               searchedFriendTasks.filter(task =>
                  new Date(task.dueDate) < new Date() && 
                  task.status !== TaskStatus.COMPLETED &&
                  task.status !== TaskStatus.GRADED
@@ -419,6 +426,27 @@ const TasksPage: React.FC = () => {
             </div>
           </div>
           
+          <div className={styles.searchRow}>
+            <input
+              type="search"
+              className={styles.searchInput}
+              placeholder="Search tasks by title or description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <select
+              className={styles.prioritySelect}
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value as 'all' | TaskPriority)}
+            >
+              <option value="all">All priorities</option>
+              <option value={TaskPriority.URGENT}>Urgent</option>
+              <option value={TaskPriority.HIGH}>High</option>
+              <option value={TaskPriority.MEDIUM}>Medium</option>
+              <option value={TaskPriority.LOW}>Low</option>
+            </select>
+          </div>
+
           <div className={styles.filtersContainer}>
             <div className={styles.filters}>
               <button 

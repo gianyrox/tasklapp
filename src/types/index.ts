@@ -99,6 +99,7 @@ export interface LeaderboardEntry {
   perfectTasks?: number; // Number of tasks with perfect (5/5) ratings
   fastestCompletionTime?: number; // Fastest task completion time in minutes
   tasksOnTime?: number; // Number of tasks completed on time
+  compositeScore?: number; // Composite ranking score (spec §3.3)
 }
 
 export enum TaskStatus {

@@ -14,6 +14,12 @@ import styles from './Leaderboard.module.css';
 // Leaderboard types
 const LEADERBOARD_TYPES = [
   {
+    id: 'champions',
+    name: 'Champions',
+    description: 'Ranked by the composite score: throughput × quality × on-time',
+    icon: '👑',
+  },
+  {
     id: 'tasks-completed',
     name: 'Tasks Completed',
     description: 'Users who have completed the most tasks',
@@ -47,24 +53,33 @@ const LeaderboardPage: React.FC = () => {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [friendsOnly, setFriendsOnly] = useState(false);
 
   useEffect(() => {
     if (user) {
       fetchLeaderboardData(activeLeaderboard);
     }
-  }, [user, activeLeaderboard]);
+  }, [user, activeLeaderboard, friendsOnly]);
 
   const fetchLeaderboardData = async (leaderboardType: string) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const leaderboardData = await getLeaderboard();
-      
+
       // Sort the leaderboard based on the type
       let sortedData = [...leaderboardData];
-      
+
+      // Friends-only toggle keeps the current user plus accepted friends.
+      if (friendsOnly) {
+        sortedData = sortedData.filter(entry => entry.isFriend);
+      }
+
       switch (leaderboardType) {
+        case 'champions':
+          sortedData.sort((a, b) => (b.compositeScore || 0) - (a.compositeScore || 0));
+          break;
         case 'tasks-completed':
           sortedData.sort((a, b) => b.tasksCompleted - a.tasksCompleted);
           break;
@@ -135,6 +150,20 @@ const LeaderboardPage: React.FC = () => {
           <div className={styles.header}>
             <h1 className={styles.title}>Leaderboards</h1>
             <p className={styles.subtitle}>See who's leading in different categories</p>
+            <div className={styles.scopeToggle}>
+              <button
+                className={`${styles.scopeButton} ${!friendsOnly ? styles.scopeActive : ''}`}
+                onClick={() => setFriendsOnly(false)}
+              >
+                Everyone
+              </button>
+              <button
+                className={`${styles.scopeButton} ${friendsOnly ? styles.scopeActive : ''}`}
+                onClick={() => setFriendsOnly(true)}
+              >
+                Friends only
+              </button>
+            </div>
           </div>
 
           {error && (
@@ -188,12 +217,14 @@ const LeaderboardPage: React.FC = () => {
                   <div className={styles.rankColumn}>Rank</div>
                   <div className={styles.userColumn}>User</div>
                   <div className={styles.statsColumn}>
+                    {activeLeaderboard === 'champions' && 'Score'}
                     {activeLeaderboard === 'tasks-completed' && 'Tasks Completed'}
                     {activeLeaderboard === 'quality-rating' && 'Avg. Quality'}
                     {activeLeaderboard === 'speed-demons' && 'Avg. Time'}
                     {activeLeaderboard === 'consistency' && 'Tasks Overdue'}
                   </div>
                   <div className={styles.extendedStatsColumn}>
+                    {activeLeaderboard === 'champions' && 'Breakdown'}
                     {activeLeaderboard === 'tasks-completed' && 'Additional Stats'}
                     {activeLeaderboard === 'quality-rating' && 'Rating Breakdown'}
                     {activeLeaderboard === 'speed-demons' && 'Performance'}
@@ -240,12 +271,29 @@ const LeaderboardPage: React.FC = () => {
                       </div>
                     </div>
                     <div className={styles.statsColumn}>
+                      {activeLeaderboard === 'champions' && <span className={styles.statValue}>{(entry.compositeScore || 0).toFixed(1)}</span>}
                       {activeLeaderboard === 'tasks-completed' && <span className={styles.statValue}>{entry.tasksCompleted}</span>}
                       {activeLeaderboard === 'quality-rating' && <span className={styles.statValue}>{formatRating(entry.avgQualityRating)}</span>}
                       {activeLeaderboard === 'speed-demons' && <span className={styles.statValue}>{formatTime(entry.avgCompletionTime)}</span>}
                       {activeLeaderboard === 'consistency' && <span className={styles.statValue}>{entry.tasksOverdue}</span>}
                     </div>
                     <div className={styles.extendedStatsColumn}>
+                      {activeLeaderboard === 'champions' && (
+                        <>
+                          <div className={styles.miniStat}>
+                            <span className={styles.miniStatLabel}>Tasks</span>
+                            <span className={styles.miniStatValue}>{entry.tasksCompleted}</span>
+                          </div>
+                          <div className={styles.miniStat}>
+                            <span className={styles.miniStatLabel}>Quality</span>
+                            <span className={styles.miniStatValue}>{formatRating(entry.avgQualityRating)}</span>
+                          </div>
+                          <div className={styles.miniStat}>
+                            <span className={styles.miniStatLabel}>5★ Tasks</span>
+                            <span className={styles.miniStatValue}>{entry.perfectTasks || 0}</span>
+                          </div>
+                        </>
+                      )}
                       {activeLeaderboard === 'tasks-completed' && (
                         <>
                           <div className={styles.miniStat}>

@@ -455,3 +455,33 @@
     gap: 0.5rem;
   }
 } 
+/* Scope toggle (Everyone / Friends only) */
+.scopeToggle {
+  display: inline-flex;
+  gap: 0.25rem;
+  margin-top: 1rem;
+  background: var(--background-alt, #f1f3f5);
+  padding: 0.25rem;
+  border-radius: 999px;
+}
+
+.scopeButton {
+  border: none;
+  background: transparent;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary, #666);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.scopeButton:hover {
+  color: var(--text, #222);
+}
+
+.scopeActive {
+  background: var(--primary, #4f46e5);
+  color: #fff;
+}

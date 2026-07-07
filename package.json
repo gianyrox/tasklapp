@@ -7,7 +7,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [
     "tasks",
@@ -18,9 +20,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@mapbox/mapbox-gl-geocoder": "^5.0.3",
     "@stripe/react-stripe-js": "^3.7.0",
     "@stripe/stripe-js": "^7.3.1",
-    "@mapbox/mapbox-gl-geocoder": "^5.0.3",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.4",
@@ -37,5 +39,8 @@
     "supabase": "^2.24.3",
     "typescript": "^5.8.3",
     "zod": "^3.24.3"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.9"
   }
 }
