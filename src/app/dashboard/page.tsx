@@ -36,6 +36,8 @@ import {
 } from '../../lib/api/supabase';
 import { getUserPublicTasks } from '../../lib/api/publicTasks';
 import Board from '../../components/ui/Board';
+import RaceTrackVisualization from '../RaceTrack';
+import { computeRaceTasks, computeCarPosition } from '../../lib/raceProgress';
 import Button, { ButtonSize } from '../../components/ui/Button';
 import CreateTaskModal from '../../components/task/CreateTaskModal';
 import CreatePublicTaskModal from '../../components/task/CreatePublicTaskModal';
@@ -520,6 +522,13 @@ const DashboardPage: React.FC = () => {
                   </div>
 
                   <div className={styles.sidebar}>
+                    <Board title="Your Lap">
+                      <RaceTrackVisualization
+                        tasks={computeRaceTasks(myTasks)}
+                        carPosition={computeCarPosition(myTasks)}
+                      />
+                    </Board>
+
                     <Board title="Leaderboard" className={styles.leaderboard}>
                       {leaderboard.map((entry, index) => (
                         <div key={entry.id} className={styles.leaderboardEntry}>

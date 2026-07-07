@@ -10,26 +10,31 @@ type TaskType = {
 
 type RaceTrackVisualizationProps = {
   tasks?: TaskType[];
+  /** Car position 0–100. When provided, the demo animation is disabled. */
+  carPosition?: number;
   className?: string;
 };
 
 const RaceTrackVisualization: React.FC<RaceTrackVisualizationProps> = ({
   tasks = [],
+  carPosition: carPositionProp,
   className = "",
 }) => {
-  const [carPosition, setCarPosition] = useState(10);
+  // Real data drives the car when either tasks or an explicit position is given.
+  const isDriven = tasks.length > 0 || carPositionProp !== undefined;
+  const [demoPosition, setDemoPosition] = useState(10);
 
-  // Demo animation for the placeholder
+  // Demo animation only runs for the empty/placeholder state.
   useEffect(() => {
+    if (isDriven) return;
     const interval = setInterval(() => {
-      setCarPosition((prev) => {
-        if (prev >= 85) return 10;
-        return prev + 5;
-      });
+      setDemoPosition((prev) => (prev >= 85 ? 10 : prev + 5));
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isDriven]);
+
+  const carPosition = isDriven ? (carPositionProp ?? 10) : demoPosition;
 
   // Default placeholder tasks if none provided
   const demoTasks =

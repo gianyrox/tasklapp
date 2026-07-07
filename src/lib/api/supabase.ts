@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { Task, TaskStatus, TaskPriority, User, Friendship, FriendshipStatus, LeaderboardEntry, TaskAttachment, SubmissionType } from '../../types';
+import { computeUserMetrics, ScoringTask } from '../scoring';
+import { trackTaskEvent } from '../analytics';
 
 // Logger utility for consistent logging
 const logger = {
@@ -843,6 +845,15 @@ export const createTask = async (task: Omit<Task, 'id' | 'createdAt'>): Promise<
   // Type assert the data to our expected structure
   const data = rawData as unknown as InsertedTaskData;
 
+  // Instrument the assignment (spec §6): peer vs self is the key signal.
+  trackTaskEvent('assign', {
+    taskId: data.id,
+    assignerId: task.assignerId,
+    assigneeId: task.assigneeId,
+    actorId: task.assignerId,
+    extra: { priority: task.priority, isInvitation: !!task.isInvitation },
+  });
+
   // Send email notification if task is assigned to someone other than the creator AND assigneeId exists
   if (task.assigneeId && task.assignerId !== task.assigneeId) {
     try {
@@ -1000,6 +1011,21 @@ export const updateTaskStatus = async (
   }
   
   const transformedTask = transformTaskFromDb(data);
+
+  // Instrument loop transitions (spec §6). Actor is the assignee for
+  // start/submit and the assigner for grade.
+  const eventType =
+    status === TaskStatus.IN_PROGRESS ? 'start' :
+    status === TaskStatus.COMPLETED ? 'submit' :
+    status === TaskStatus.GRADED ? 'grade' : null;
+  if (eventType) {
+    trackTaskEvent(eventType, {
+      taskId: transformedTask.id,
+      assignerId: transformedTask.assignerId,
+      assigneeId: transformedTask.assigneeId,
+      actorId: eventType === 'grade' ? transformedTask.assignerId : transformedTask.assigneeId,
+    });
+  }
 
   // Send notifications based on the type of update
   try {
@@ -1230,6 +1256,8 @@ export const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
     effort_rating: number | null;
     accuracy_rating: number | null;
     due_date: string;
+    completed_at: string | null;
+    submission_date: string | null;
   }
   
   // First get accepted friendships to mark friends on leaderboard
@@ -1263,91 +1291,60 @@ export const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
   // Get tasks for calculations
   const { data: tasks, error: tasksError } = await supabase
     .from('tasks')
-    .select('id, status, assignee_id, actual_time_minutes, quality_rating, timeliness_rating, effort_rating, accuracy_rating, due_date')
+    .select('id, status, assignee_id, actual_time_minutes, quality_rating, timeliness_rating, effort_rating, accuracy_rating, due_date, completed_at, submission_date')
     .returns<TaskRecord[]>();
-    
+
   if (tasksError || !tasks) {
     console.error('Error fetching tasks for leaderboard:', tasksError);
     return [];
   }
-  
-  // Calculate leaderboard data manually
+
+  const now = new Date();
+
+  // Build the composite-score leaderboard (spec §3.3). Metrics + score come
+  // from lib/scoring so the formula is shared and unit-tested.
   const leaderboardData: LeaderboardEntry[] = users.map(user => {
-    // Get tasks assigned to this user
-    const userTasks = tasks.filter(task => task.assignee_id === user.id);
-    
-    // Calculate metrics
-    const tasksCompleted = userTasks.filter(task => task.status === 'COMPLETED').length;
-    
-    const completedTasksWithTime = userTasks.filter(
-      task => task.status === 'COMPLETED' && task.actual_time_minutes !== null
-    );
-    
-    const avgCompletionTime = completedTasksWithTime.length 
-      ? completedTasksWithTime.reduce((sum, task) => sum + (task.actual_time_minutes || 0), 0) / completedTasksWithTime.length
-      : undefined;
-    
-    const completedTasksWithRating = userTasks.filter(
-      task => task.status === 'COMPLETED' && task.quality_rating !== null
-    );
-    
-    const avgQualityRating = completedTasksWithRating.length
-      ? completedTasksWithRating.reduce((sum, task) => sum + (task.quality_rating || 0), 0) / completedTasksWithRating.length
-      : undefined;
-      
-    const completedTasksWithTimelinessRating = userTasks.filter(
-      task => task.status === 'COMPLETED' && task.timeliness_rating !== null
-    );
-    
-    const avgTimelinessRating = completedTasksWithTimelinessRating.length
-      ? completedTasksWithTimelinessRating.reduce((sum, task) => sum + (task.timeliness_rating || 0), 0) / completedTasksWithTimelinessRating.length
-      : undefined;
-      
-    const completedTasksWithEffortRating = userTasks.filter(
-      task => task.status === 'COMPLETED' && task.effort_rating !== null
-    );
-    
-    const avgEffortRating = completedTasksWithEffortRating.length
-      ? completedTasksWithEffortRating.reduce((sum, task) => sum + (task.effort_rating || 0), 0) / completedTasksWithEffortRating.length
-      : undefined;
-      
-    const completedTasksWithAccuracyRating = userTasks.filter(
-      task => task.status === 'COMPLETED' && task.accuracy_rating !== null
-    );
-    
-    const avgAccuracyRating = completedTasksWithAccuracyRating.length
-      ? completedTasksWithAccuracyRating.reduce((sum, task) => sum + (task.accuracy_rating || 0), 0) / completedTasksWithAccuracyRating.length
-      : undefined;
-    
-    const tasksOverdue = userTasks.filter(task => 
-      task.status === 'OVERDUE' || 
-      (task.status !== 'COMPLETED' && new Date(task.due_date) < new Date())
-    ).length;
-    
+    const userTasks: ScoringTask[] = tasks
+      .filter(task => task.assignee_id === user.id)
+      .map(task => ({
+        status: task.status,
+        qualityRating: task.quality_rating,
+        timelinessRating: task.timeliness_rating,
+        effortRating: task.effort_rating,
+        accuracyRating: task.accuracy_rating,
+        actualTimeMinutes: task.actual_time_minutes,
+        dueDate: task.due_date,
+        completedAt: task.completed_at,
+        submissionDate: task.submission_date,
+      }));
+
+    const m = computeUserMetrics(userTasks, now);
+
     return {
       id: user.id,
       name: user.name,
       avatarUrl: user.avatar_url,
-      tasksCompleted,
-      avgCompletionTime,
-      avgQualityRating,
-      avgTimelinessRating,
-      avgEffortRating,
-      avgAccuracyRating,
-      tasksOverdue,
+      tasksCompleted: m.tasksCompleted,
+      avgCompletionTime: m.avgCompletionTime,
+      avgQualityRating: m.avgQualityRating,
+      avgTimelinessRating: m.avgTimelinessRating,
+      avgEffortRating: m.avgEffortRating,
+      avgAccuracyRating: m.avgAccuracyRating,
+      tasksOverdue: m.tasksOverdue,
+      perfectTasks: m.perfectTasks,
+      tasksOnTime: m.tasksOnTime,
+      fastestCompletionTime: m.fastestCompletionTime,
+      compositeScore: m.compositeScore,
       isFriend: friendIds.includes(user.id) || user.id === session.user.id
     };
   });
-  
-  // Sort leaderboard by tasks completed and quality rating
+
+  // Rank by composite score (quality-weighted), then completed volume.
   return leaderboardData.sort((a, b) => {
-    if (a.tasksCompleted !== b.tasksCompleted) {
-      return b.tasksCompleted - a.tasksCompleted;
-    }
-    
-    const aRating = a.avgQualityRating || 0;
-    const bRating = b.avgQualityRating || 0;
-    return bRating - aRating;
+    const aScore = a.compositeScore || 0;
+    const bScore = b.compositeScore || 0;
+    if (aScore !== bScore) return bScore - aScore;
+    return b.tasksCompleted - a.tasksCompleted;
   });
 };
 
